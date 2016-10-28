@@ -9,6 +9,23 @@
 			"port": 6004,
 			"sourceMaps": true,
 			"outDir": "${workspaceRoot}/../client/server"
-		}
+		},
+		{
+            "name": "Debug component",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceRoot}/../client/server/component.js",
+            "stopOnEntry": false,
+            "args": [],
+            "cwd": "${workspaceRoot}",
+            "preLaunchTask": null,
+            "runtimeExecutable": null,
+            "runtimeArgs": [
+                "--nolazy"
+            ],
+            "console": "internalConsole",
+            "sourceMaps": true,
+            "outDir": null
+        }
 	]
 }

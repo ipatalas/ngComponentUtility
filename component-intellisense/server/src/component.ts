@@ -18,15 +18,23 @@ export class Component {
             fs.readFile(path, 'utf8', (err, contents) => {
                 if (err) return reject(err);
 
-                let regex = /component\(((?:.|\s)*?)\)/g;
+                let regex = /component\(((?:.|\s)*?})\s*\)/g;
                 let match: RegExpExecArray;
                 let results: Component[] = [];
 
                 while (match = regex.exec(contents)) {
-                    let componentJson = match[1].replace(/(\w+)\s*:/g, '"$1":') // surround keys with quotes
-                                                .replace(/(:\s*)?'([^\']*)'/g, '$1"$2"'); // replace single quotes for values
+                    let componentJson = match[1]
+                        .replace(/(\w+)\s*:/g, '"$1":') // surround keys with quotes
+                        .replace(/(:\s*)?'([^\']*)'/g, (m, p1, p2) => {
+                            let prefix = p1 || '';
+                            let quotes = '"' + p2.replace(/"/g, '\\"') + '"';
+                            return prefix + quotes;
+                        }) // replace single quotes for values
+                        .replace(/,(\s*})/, "$1") // fix trailing commas
+                        .replace(/\s*\/\/.*/g, ""); // remove line comments
 
-                    let [name, config] = JSON.parse(`[${componentJson}]`);
+                    let json = `[${componentJson}]`;
+                    let [name, config] = JSON.parse(json);
 
                     let result = new Component();
                     result.name = name;
@@ -55,12 +63,16 @@ export class Component {
     }
 }
 
-// async function test() {
-//     // Test code
-//     let path = 'D:/Projects/KnightFrank.Antares/src/wwwroot/app/common/components/card/item/cardComponent.ts'
-//     path = 'D:/Projects/KnightFrank.Antares/src/wwwroot/app/activity/edit/activityEditComponent.ts';
-//     let component = await Component.parse(path);
-//     console.dir(component);
-// }
+async function test() {
+    try {
+        // Test code
+        let path = 'D:/Projects/KnightFrank.Antares/src/wwwroot/app/common/components/card/item/cardComponent.ts'
+        path = 'D:/Projects/KnightFrank.Antares/src/wwwroot/app/common/components/attribute/range/rangeAttributeComponent.ts';
+        let component = await Component.parse(path);
+        console.dir(component, { depth: 5 });
+    } catch (ex) {
+        console.error(ex);
+    }
+}
 
-// test();
+test();
