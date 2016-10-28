@@ -13,7 +13,9 @@
   },
   "devDependencies": {
     "@types/decamelize": "0.0.30",
+    "@types/glob": "^5.0.30",
     "@types/node": "^6.0.46",
+    "glob": "^7.1.1",
     "typescript": "^2.0.3"
   },
   "scripts": {

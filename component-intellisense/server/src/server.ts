@@ -12,12 +12,18 @@ import {
 	CompletionItem, CompletionItemKind, TextEdit, Range, Position
 } from 'vscode-languageserver';
 
+import * as glob from 'glob';
+import { config, Settings } from './config';
+import { SolutionScaner } from './scaner'
+
 // Create a connection for the server. The connection uses Node's IPC as a transport
 let connection: IConnection = createConnection(new IPCMessageReader(process), new IPCMessageWriter(process));
 
 // Create a simple text document manager. The text document manager
 // supports full document sync only
 let documents: TextDocuments = new TextDocuments();
+
+let skaner = new SolutionScaner();
 // Make the text document manager listen on the connection
 // for open, change and close text document events
 documents.listen(connection);
@@ -27,6 +33,12 @@ documents.listen(connection);
 let workspaceRoot: string;
 connection.onInitialize((params): InitializeResult => {
 	workspaceRoot = params.rootPath;
+
+	if (workspaceRoot) {
+		skaner.init(workspaceRoot);
+		skaner.findFiles();
+	}
+
 	return {
 		capabilities: {
 			// Tell the client that the server works in FULL text document sync mode
@@ -42,54 +54,16 @@ connection.onInitialize((params): InitializeResult => {
 // The content of a text document has changed. This event is emitted
 // when the text document first opened or when its content has changed.
 documents.onDidChangeContent((change) => {
-	validateTextDocument(change.document);
+
 });
 
-// The settings interface describe the server relevant settings part
-interface Settings {
-	languageServerExample: ExampleSettings;
-}
-
-// These are the example settings we defined in the client's package.json
-// file
-interface ExampleSettings {
-	maxNumberOfProblems: number;
-}
-
-// hold the maxNumberOfProblems setting
-let maxNumberOfProblems: number;
 // The settings have changed. Is send on server activation
 // as well.
 connection.onDidChangeConfiguration((change) => {
 	let settings = <Settings>change.settings;
-	maxNumberOfProblems = settings.languageServerExample.maxNumberOfProblems || 100;
-	// Revalidate any open text documents
-	documents.all().forEach(validateTextDocument);
+	config.reload(settings);
 });
 
-function validateTextDocument(textDocument: TextDocument): void {
-	let diagnostics: Diagnostic[] = [];
-	let lines = textDocument.getText().split(/\r?\n/g);
-	let problems = 0;
-	for (var i = 0; i < lines.length && problems < maxNumberOfProblems; i++) {
-		let line = lines[i];
-		let index = line.indexOf('typescript');
-		if (index >= 0) {
-			problems++;
-			diagnostics.push({
-				severity: DiagnosticSeverity.Warning,
-				range: {
-					start: { line: i, character: index },
-					end: { line: i, character: index + 10 }
-				},
-				message: `${line.substr(index, 10)} should be spelled TypeScript`,
-				source: 'ex'
-			});
-		}
-	}
-	// Send the computed diagnostics to VSCode.
-	connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
-}
 
 connection.onDidChangeWatchedFiles((change) => {
 	// Monitored files have change in VSCode
@@ -101,36 +75,43 @@ connection.onCompletion((textDocumentPosition: TextDocumentPositionParams): Comp
 	// The pass parameter contains the position of the text document in
 	// which code complete got requested. For the example we ignore this
 	// info and always provide the same completion items.
-	return [
-		{
-			label: 'TypeScript',
-			kind: CompletionItemKind.Text,
-			data: 1
-		},
-		{
-			label: 'JavaScript',
-			kind: CompletionItemKind.Text,
-			data: 2
-		}
-	]
+	debugger
+	return skaner.components.map(
+		(c, i): any => {
+			var bindings: string = "";
+			c.bindings.forEach(p => {
+				bindings += `${p.htmlName}="" `;
+			});
+			var item: CompletionItem = <CompletionItem>{
+				label: c.htmlName,
+				kind: CompletionItemKind.Text,
+				data: i,
+				insertText: `<${c.htmlName} ${bindings}></${c.htmlName}>`
+				// documentation: JSON.stringify(c.bindings.keys())
+			};
+
+			return item;
+		});
 });
 
 // This handler resolve additional information for the item selected in
 // the completion list.
 connection.onCompletionResolve((item: CompletionItem): CompletionItem => {
-	if (item.data === 1) {
-		item.detail = 'TypeScript details';
-		item.documentation = 'TypeScript documentation';
-		item.insertText = "Inserted Text";
-		// item.additionalTextEdits = [
-		// 	TextEdit.insert(Position.create(0, 10), "New text"),
-		// 	TextEdit.del(Range.create(1, 0, 1, 3)),
-		// 	TextEdit.replace(Range.create(2, 0, 2, 5), "Replaced")
-		// ];
-	} else if (item.data === 2) {
-		item.detail = 'JavaScript details';
-		item.documentation = 'JavaScript documentation'
-	}
+
+
+	// if (item.data === 1) {
+	// 	item.detail = 'TypeScript details';
+	// 	item.documentation = 'TypeScript documentation';
+	// 	item.insertText = "Inserted Text";
+	// 	// item.additionalTextEdits = [
+	// 	// 	TextEdit.insert(Position.create(0, 10), "New text"),
+	// 	// 	TextEdit.del(Range.create(1, 0, 1, 3)),
+	// 	// 	TextEdit.replace(Range.create(2, 0, 2, 5), "Replaced")
+	// 	// ];
+	// } else if (item.data === 2) {
+	// 	item.detail = 'JavaScript details';
+	// 	item.documentation = 'JavaScript documentation'
+	// }
 	return item;
 });
 

@@ -41,6 +41,8 @@ export class Component {
                     result.htmlName = decamelize(name, '-');
                     result.controllerName = config.controller;
 
+                    if(!config.bindings) { continue;}
+
                     Object.keys(config.bindings).forEach(key => {
                         result.bindings.set(key, this.createBinding(key, config.bindings[key]));
                     });
