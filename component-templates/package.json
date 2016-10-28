@@ -11,14 +11,21 @@
         "Other"
     ],
     "activationEvents": [
-        "onCommand:extension.sayHello"
+        "onCommand:extension.createComponentTemplate"
     ],
     "main": "./out/src/extension",
     "contributes": {
         "commands": [{
-            "command": "extension.sayHello",
-            "title": "Hello World"
-        }]
+            "command": "extension.createComponentTemplate",
+            "title": "Create COMPONENT from template"
+        }],
+        "menus": {
+            "explorer/context": [
+				{
+					"command": "extension.createComponentTemplate"                    
+				}
+			]
+        }
     },
     "scripts": {
         "vscode:prepublish": "tsc -p ./",
