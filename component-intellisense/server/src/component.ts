@@ -13,33 +13,34 @@ export class Component {
     controllerName: string;
     bindings: Map<string, IComponentBinding> = new Map<string, IComponentBinding>();
 
-    private static readonly reComponent = /component\(((?:.|\s)*)\)/;
-
-    public static parse(path: string): Promise<Component> {
-        return new Promise<Component>((resolve, reject) => {
+    public static parse(path: string): Promise<Component[]> {
+        return new Promise<Component[]>((resolve, reject) => {
             fs.readFile(path, 'utf8', (err, contents) => {
                 if (err) return reject(err);
 
-                let bindingsMatch = contents.match(Component.reComponent);
-                if (bindingsMatch === null) {
-                    return reject();
+                let regex = /component\(((?:.|\s)*?)\)/g;
+                let match: RegExpExecArray;
+                let results: Component[] = [];
+
+                while (match = regex.exec(contents)) {
+                    let componentJson = match[1].replace(/(\w+)\s*:/g, '"$1":') // surround keys with quotes
+                                                .replace(/(:\s*)?'([^\']*)'/g, '$1"$2"'); // replace single quotes for values
+
+                    let [name, config] = JSON.parse(`[${componentJson}]`);
+
+                    let result = new Component();
+                    result.name = name;
+                    result.htmlName = decamelize(name, '-');
+                    result.controllerName = config.controller;
+
+                    Object.keys(config.bindings).forEach(key => {
+                        result.bindings.set(key, this.createBinding(key, config.bindings[key]));
+                    });
+
+                    results.push(result);
                 }
 
-                let componentJson = bindingsMatch[1].replace(/(\w+)\s*:/g, '"$1":') // surround keys with quotes
-                                                    .replace(/(:\s*)?'([^\']*)'/g, '$1"$2"'); // replace single quotes for values
-
-                let [name, config] = JSON.parse(`[${componentJson}]`);
-
-                let result = new Component();
-                result.name = name;
-                result.htmlName = decamelize(name, '-');
-                result.controllerName = config.controller;
-
-                Object.keys(config.bindings).forEach(key => {
-                    result.bindings.set(key, this.createBinding(key, config.bindings[key]));
-                });
-
-                resolve(result);
+                resolve(results);
             });
         });
     }
@@ -57,6 +58,7 @@ export class Component {
 // async function test() {
 //     // Test code
 //     let path = 'D:/Projects/KnightFrank.Antares/src/wwwroot/app/common/components/card/item/cardComponent.ts'
+//     path = 'D:/Projects/KnightFrank.Antares/src/wwwroot/app/activity/edit/activityEditComponent.ts';
 //     let component = await Component.parse(path);
 //     console.dir(component);
 // }
