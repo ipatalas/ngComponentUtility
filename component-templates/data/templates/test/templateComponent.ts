@@ -1,9 +1,9 @@
-/// <reference path="../../../typings/_all.d.ts" />
+///<reference path="@referencePath@"/>
 
-module Antares.template {
-    angular.module('app').component('template', {
-        controller: 'templateController',
+module @namespaceName@ {
+    angular.module('@appName@').component('@componentName@', {
+        controller: '@controllerName@',
         controllerAs : 'vm',
-        templateUrl: 'app/attributes/viewing/template/template.html'        
+        templateUrl: '@templateUrl@'        
     });
 }

@@ -25,12 +25,5 @@ export function createDirIfNotExist(dirPath: string) {
 }
 
 export function createFile(filePath: string, fileContent) {
-    fs.writeFile(filePath, fileContent, function (err) {
-        if (err) {
-            vscode.window.showErrorMessage(err.message);
-        }
-        else {
-            vscode.window.showInformationMessage("Template " + filePath + " created");
-        }
-    });
+    fs.writeFile(filePath, fileContent);
 }

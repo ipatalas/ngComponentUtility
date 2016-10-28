@@ -1,6 +1,8 @@
-///<reference path="../../../typings/_all.d.ts"/>
+///<reference path="@referencePath@"/>
 
-module Antares.Template {
-    export class TemplateController {
+module @namespaceName@ {
+    export class @controllerName@ {
     }
+
+    angular.module('@appName@').controller('@controllerName@', @controllerName@);
 }
