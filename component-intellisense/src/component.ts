@@ -14,7 +14,7 @@ export class Component {
     name: string;
     htmlName: string;
     controllerName: string;
-    bindings: Map<string, IComponentBinding> = new Map<string, IComponentBinding>();
+    bindings: IComponentBinding[] = [];
 
     public static parse(path: string): Promise<Component[]> {
         return new Promise<Component[]>((resolve, reject) => {
@@ -47,7 +47,7 @@ export class Component {
                     if(!config.bindings) { continue;}
 
                     Object.keys(config.bindings).forEach(key => {
-                        result.bindings.set(key, this.createBinding(key, config.bindings[key]));
+                        result.bindings.push(this.createBinding(key, config.bindings[key]));
                     });
 
                     results.push(result);
