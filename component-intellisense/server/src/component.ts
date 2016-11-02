@@ -65,16 +65,16 @@ export class Component {
     }
 }
 
-async function test() {
-    try {
-        // Test code
-        let path = 'D:/Projects/KnightFrank.Antares/src/wwwroot/app/common/components/card/item/cardComponent.ts'
-        path = 'D:/Projects/KnightFrank.Antares/src/wwwroot/app/common/components/attribute/range/rangeAttributeComponent.ts';
-        let component = await Component.parse(path);
-        console.dir(component, { depth: 5 });
-    } catch (ex) {
-        console.error(ex);
-    }
-}
+// async function test() {
+//     try {
+//         // Test code
+//         let path = 'D:/Projects/KnightFrank.Antares/src/wwwroot/app/common/components/card/item/cardComponent.ts'
+//         path = 'D:/Projects/KnightFrank.Antares/src/wwwroot/app/common/components/attribute/range/rangeAttributeComponent.ts';
+//         let component = await Component.parse(path);
+//         console.dir(component, { depth: 5 });
+//     } catch (ex) {
+//         console.error(ex);
+//     }
+// }
 
-test();
+// test();

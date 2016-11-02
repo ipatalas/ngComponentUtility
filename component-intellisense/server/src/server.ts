@@ -9,12 +9,13 @@ import {
 	createConnection, IConnection, TextDocumentSyncKind,
 	TextDocuments, TextDocument, Diagnostic, DiagnosticSeverity,
 	InitializeParams, InitializeResult, TextDocumentPositionParams,
-	CompletionItem, CompletionItemKind, TextEdit, Range, Position
+	CompletionItem, CompletionItemKind, TextEdit, Range, Position, Command
 } from 'vscode-languageserver';
 
 import * as glob from 'glob';
 import { config, Settings } from './config';
-import { SolutionScaner } from './scaner'
+import { SolutionScaner } from './scaner';
+import * as moment from 'moment';
 
 // Create a connection for the server. The connection uses Node's IPC as a transport
 let connection: IConnection = createConnection(new IPCMessageReader(process), new IPCMessageWriter(process));
@@ -35,8 +36,11 @@ connection.onInitialize((params): InitializeResult => {
 	workspaceRoot = params.rootPath;
 
 	if (workspaceRoot) {
+		let start = moment();
 		skaner.init(workspaceRoot);
 		skaner.findFiles();
+		let diff = moment().diff(start);
+		connection.console.info(`Finished in ${moment.duration(diff).asMilliseconds()}ms`);
 	}
 
 	return {
@@ -60,6 +64,7 @@ documents.onDidChangeContent((change) => {
 // The settings have changed. Is send on server activation
 // as well.
 connection.onDidChangeConfiguration((change) => {
+	connection.console.info("didChangeConfiguration");
 	let settings = <Settings>change.settings;
 	config.reload(settings);
 });

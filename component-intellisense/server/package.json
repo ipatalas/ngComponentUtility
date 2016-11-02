@@ -9,11 +9,13 @@
   },
   "dependencies": {
     "decamelize": "^1.2.0",
+    "moment": "^2.15.2",
     "vscode-languageserver": "^2.6.0"
   },
   "devDependencies": {
     "@types/decamelize": "0.0.30",
     "@types/glob": "^5.0.30",
+    "@types/moment": "^2.13.0",
     "@types/node": "^6.0.46",
     "glob": "^7.1.1",
     "typescript": "^2.0.3"

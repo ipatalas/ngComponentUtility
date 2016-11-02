@@ -46,9 +46,12 @@
 	"devDependencies": {
 		"typescript": "^2.0.3",
 		"vscode": "^1.0.3",
-		"@types/node": "^6.0.46"
+		"@types/node": "^6.0.46",
+		"@types/decamelize": "0.0.30",
+    	"@types/glob": "^5.0.30"
 	},
 	"dependencies": {
-		"vscode-languageclient": "^2.6.0"
+		"glob": "^7.1.1",
+		"decamelize": "^1.2.0"
 	}
 }
