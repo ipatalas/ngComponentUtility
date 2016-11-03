@@ -2,70 +2,75 @@ import * as fs from 'fs';
 import * as decamelize from 'decamelize';
 
 export interface IComponentBinding {
-    name: string;
-    htmlName: string;
-    type: string;
+	name: string;
+	htmlName: string;
+	type: string;
 }
+
+const REGEX_COMPONENT = /component\(((?:.|\s)*?})\s*\)/g;
+const REGEX_KEYS = /(\w+)\s*:/g;
+const REGEX_SINGLEQUOTES = /(:\s*)?'([^\']*)'/g;
+const REGEX_TRAILINGCOMMAS = /,(\s*})/;
+const REGEX_LINECOMMENTS = /\s*\/\/.*/g;
 
 // TODO: use https://github.com/Microsoft/TypeScript/wiki/Using-the-Compiler-API 
 // when things will become more complicated and simple string parsing won't be enough
 
 export class Component {
-    name: string;
-    htmlName: string;
-    controllerName: string;
-    bindings: IComponentBinding[] = [];
+	name: string;
+	htmlName: string;
+	controllerName: string;
+	bindings: IComponentBinding[] = [];
 
-    public static parse(path: string): Promise<Component[]> {
-        return new Promise<Component[]>((resolve, reject) => {
-            fs.readFile(path, 'utf8', (err, contents) => {
-                if (err) return reject(err);
+	public static parse(path: string): Promise<Component[]> {
+		return new Promise<Component[]>((resolve, reject) => {
+			fs.readFile(path, 'utf8', (err, contents) => {
+				if (err) return reject(err);
 
-                let regex = /component\(((?:.|\s)*?})\s*\)/g;
-                let match: RegExpExecArray;
-                let results: Component[] = [];
+				let match: RegExpExecArray;
+				let results: Component[] = [];
 
-                while (match = regex.exec(contents)) {
-                    let componentJson = match[1]
-                        .replace(/(\w+)\s*:/g, '"$1":') // surround keys with quotes
-                        .replace(/(:\s*)?'([^\']*)'/g, (m, p1, p2) => {
-                            let prefix = p1 || '';
-                            let quotes = '"' + p2.replace(/"/g, '\\"') + '"';
-                            return prefix + quotes;
-                        }) // replace single quotes for values
-                        .replace(/,(\s*})/, "$1") // fix trailing commas
-                        .replace(/\s*\/\/.*/g, ""); // remove line comments
+				while (match = REGEX_COMPONENT.exec(contents)) {
+					let componentJson = match[1]
+						.replace(REGEX_KEYS, '"$1":') // surround keys with quotes
+						.replace(REGEX_SINGLEQUOTES, (m, p1, p2) => {
+							let prefix = p1 || '';
+							let quotes = '"' + p2.replace(/"/g, '\\"') + '"';
+							return prefix + quotes;
+						}) // replace single quotes for values
+						.replace(REGEX_TRAILINGCOMMAS, "$1") // fix trailing commas
+						.replace(REGEX_LINECOMMENTS, ""); // remove line comments
 
-                    let json = `[${componentJson}]`;
-                    let [name, config] = JSON.parse(json);
+					let json = `[${componentJson}]`;
+					let [name, config] = JSON.parse(json);
 
-                    let result = new Component();
-                    result.name = name;
-                    result.htmlName = decamelize(name, '-');
-                    result.controllerName = config.controller;
+					let result = new Component();
+					result.name = name;
+					result.htmlName = decamelize(name, '-');
+					result.controllerName = config.controller;
 
-                    if(!config.bindings) { continue;}
+					if (config.bindings) {
+						Object.keys(config.bindings).forEach(key => {
+							result.bindings.push(Component.createBinding(key, config.bindings[key]));
+						});
+					}
 
-                    Object.keys(config.bindings).forEach(key => {
-                        result.bindings.push(this.createBinding(key, config.bindings[key]));
-                    });
+					results.push(result);
+				}
 
-                    results.push(result);
-                }
+				resolve(results);
+			});
+		});
+	}
 
-                resolve(results);
-            });
-        });
-    }
+	private static createBinding(key: string, type: string): IComponentBinding {
+		let result = <IComponentBinding>{};
+		result.name = key;
+		result.type = type;
+		result.htmlName = decamelize(key, '-');
 
-    private static createBinding(key: string, type: string): IComponentBinding {
-        let result = <IComponentBinding>{};
-        result.name = key;
-        result.type = type;
-        result.htmlName = decamelize(key, '-');
-
-        return result;
-    }
+		return result;
+	}
 }
 
 // async function test() {
