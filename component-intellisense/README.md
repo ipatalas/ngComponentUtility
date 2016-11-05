@@ -27,15 +27,15 @@ angular.module('app').component('otherComponent', {
 
 One should be able to use auto-completion like that:
 
-![Auto-completion popup](images/popup.png)
+![Auto-completion popup](https://kf-ireneuszpatalas.github.io/popup.png)
 
 As a result component's html code along with all bindings is added:
 
-![Auto-completion popup](images/result.png)
+![Auto-completion popup](https://kf-ireneuszpatalas.github.io/result.png)
 
 It can also help with bindings (will only suggest missing ones):
 
-![Auto-completion popup](images/bindings.png)
+![Auto-completion popup](https://kf-ireneuszpatalas.github.io/bindings.png)
 
 ## Configuration
 
