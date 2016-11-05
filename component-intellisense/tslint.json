@@ -1,0 +1,40 @@
+{
+	/*
+   * Possible values:
+   * - the name of a built-in config
+   * - the name of an NPM module which has a "main" file that exports a config object
+   * - a relative path to a JSON file
+   */
+	"extends": "tslint:recommended",
+	"rules": {
+		"variable-name": [
+			true,
+			"ban-keywords",
+			"check-format",
+			"allow-leading-underscore"
+		],
+		"no-unused-variable": [
+			true,
+			"check-parameters",
+			{
+				"ignore-pattern": "^_"
+			}
+		],
+		"indent": [
+			true,
+			"tabs"
+		],
+		"quotemark": [
+			"single"
+		],
+		"max-line-length": [
+			true,
+			150
+		],
+		"object-literal-sort-keys": false,
+		"trailing-comma": false,
+		"member-ordering": [
+			false
+		]
+	}
+}

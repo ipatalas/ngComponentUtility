@@ -13,27 +13,30 @@ const REGEX_SINGLEQUOTES = /(:\s*)?'([^\']*)'/g;
 const REGEX_TRAILINGCOMMAS = /,(\s*})/;
 const REGEX_LINECOMMENTS = /\s*\/\/.*/g;
 
-// TODO: use https://github.com/Microsoft/TypeScript/wiki/Using-the-Compiler-API 
+// TODO: use https://github.com/Microsoft/TypeScript/wiki/Using-the-Compiler-API
 // when things will become more complicated and simple string parsing won't be enough
 
 export class Component {
-	name: string;
-	htmlName: string;
-	controllerName: string;
-	bindings: IComponentBinding[] = [];
+	public name: string;
+	public htmlName: string;
+	public controllerName: string;
+	public bindings: IComponentBinding[] = [];
 
 	public static parse(path: string): Promise<Component[]> {
 		return new Promise<Component[]>((resolve, reject) => {
 			fs.readFile(path, 'utf8', (err, contents) => {
-				if (err) return reject(err);
+				if (err) {
+					return reject(err);
+				}
 
 				let match: RegExpExecArray;
 				let results: Component[] = [];
 
+				// tslint:disable-next-line:no-conditional-assignment
 				while (match = REGEX_COMPONENT.exec(contents)) {
 					let componentJson = match[1]
 						.replace(REGEX_KEYS, '"$1":') // surround keys with quotes
-						.replace(REGEX_SINGLEQUOTES, (m, p1, p2) => {
+						.replace(REGEX_SINGLEQUOTES, (_m, p1, p2) => {
 							let prefix = p1 || '';
 							let quotes = '"' + p2.replace(/"/g, '\\"') + '"';
 							return prefix + quotes;
@@ -64,7 +67,7 @@ export class Component {
 	}
 
 	private static createBinding(key: string, type: string): IComponentBinding {
-		let result = <IComponentBinding>{};
+		let result = <IComponentBinding> {};
 		result.name = key;
 		result.type = type;
 		result.htmlName = decamelize(key, '-');
