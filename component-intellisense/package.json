@@ -1,10 +1,10 @@
 {
 	"name": "vscode-angular-components-intellisense",
-	"displayName": "ng1.5 components intellisense",
-	"description": "Angular 1.5 components intellisense",
+	"displayName": "ng1.5 components utility",
+	"description": "Angular 1.5 components utility",
 	"author": "Ireneusz Patalas",
 	"license": "MIT",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"publisher": "ipatalas",
 	"preview": true,
 	"contributors": [
@@ -16,7 +16,7 @@
 	},
 	"categories": [
 		"Languages",
-		"Productivity"
+		"Other"
 	],
 	"icon": "images/angular.png",
 	"galleryBanner": {
@@ -35,16 +35,6 @@
 		"configuration": {
 			"type": "object",
 			"properties": {
-				"ngIntelliSense.ignore": {
-					"type": [
-						"array",
-						"null"
-					],
-					"default": [
-						"node_modules",
-						"test"
-					]
-				},
 				"ngIntelliSense.componentGlob": {
 					"type": [
 						"string"
