@@ -1,0 +1,29 @@
+import * as vsc from 'vscode';
+
+import { Component } from './utils/component';
+import { HtmlDocumentHelper } from './utils/htmlDocumentHelper';
+
+export class GoToDefinitionProvider implements vsc.DefinitionProvider {
+	constructor(private components: Component[]) {
+	}
+
+	public provideDefinition(document: vsc.TextDocument, position: vsc.Position/*, token: vsc.CancellationToken*/): vsc.Definition {
+		let bracketsBeforeCursor = HtmlDocumentHelper.findTagBrackets(document, position, 'backward');
+		let bracketsAfterCursor = HtmlDocumentHelper.findTagBrackets(document, position, 'forward');
+
+		if (HtmlDocumentHelper.isInsideAClosedTag(bracketsBeforeCursor, bracketsAfterCursor)) {
+			// get everything from starting < tag till ending >
+			let tagTextRange = new vsc.Range(bracketsBeforeCursor.opening, bracketsAfterCursor.closing);
+			let text = document.getText(tagTextRange);
+
+			let { tag } = HtmlDocumentHelper.parseTag(text);
+
+			let component = this.components.find(c => c.htmlName === tag);
+			if (component) {
+				return new vsc.Location(component.uri, new vsc.Position(0, 0));
+			}
+		}
+
+		return [];
+	}
+}

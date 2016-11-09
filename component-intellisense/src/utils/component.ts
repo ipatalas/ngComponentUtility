@@ -1,4 +1,5 @@
 import * as fs from 'fs';
+import * as vsc from 'vscode';
 import * as decamelize from 'decamelize';
 
 export interface IComponentBinding {
@@ -21,6 +22,7 @@ export class Component {
 	public htmlName: string;
 	public controllerName: string;
 	public bindings: IComponentBinding[] = [];
+	public uri: vsc.Uri;
 
 	public static parse(path: string): Promise<Component[]> {
 		return new Promise<Component[]>((resolve, reject) => {
@@ -51,6 +53,7 @@ export class Component {
 					result.name = name;
 					result.htmlName = decamelize(name, '-');
 					result.controllerName = config.controller;
+					result.uri = vsc.Uri.file(path);
 
 					if (config.bindings) {
 						Object.keys(config.bindings).forEach(key => {

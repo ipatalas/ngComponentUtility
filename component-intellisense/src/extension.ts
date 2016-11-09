@@ -6,13 +6,20 @@
 
 import * as vsc from 'vscode';
 
+import { ComponentScanner } from './utils/componentScanner';
 import { CompletionProvider } from './completionProvider';
+import { GoToDefinitionProvider } from './definitionProvider';
+
+const HTML_DOCUMENT_SELECTOR: vsc.DocumentSelector = 'html';
 
 export async function activate(context: vsc.ExtensionContext) {
-	let completionProvider = new CompletionProvider();
-	await completionProvider.scan();
+	let scanner = new ComponentScanner();
+	scanner.init(vsc.workspace.rootPath);
+	await scanner.findFiles();
 
-	let completionProviderDisposable = vsc.languages.registerCompletionItemProvider("html", completionProvider, '<');
+	let completionProvider = new CompletionProvider(scanner.components);
+	context.subscriptions.push(vsc.languages.registerCompletionItemProvider(HTML_DOCUMENT_SELECTOR, completionProvider, '<'));
 
-	context.subscriptions.push(completionProviderDisposable);
+	let definitionProvider = new GoToDefinitionProvider(scanner.components);
+	context.subscriptions.push(vsc.languages.registerDefinitionProvider(HTML_DOCUMENT_SELECTOR, definitionProvider));
 }
