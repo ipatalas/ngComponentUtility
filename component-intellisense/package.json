@@ -39,7 +39,8 @@
 					"type": [
 						"string"
 					],
-					"default": "**/*Component.ts"
+					"default": "**/*Component.ts",
+					"description": "glob string used to search for files with components"
 				}
 			}
 		}

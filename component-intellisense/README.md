@@ -2,7 +2,8 @@
 
 This extension is a result of hackathon event done in the company we work for. We had an option to invest 2 days into anything we could possibly want.
 We chose to develop an extension for VS Code which would make our daily work easier. Our current project is an Angular 1.5 based web application. As an Angular developers we wanted to have auto-completion for all custom components that are available in our application.
-This is still a preview version. It's our first attempt to VS Code extension, so not everything may be perfect. Do not hesitate to report any issues you may find.
+This is still a preview version. It's our first attempt to VS Code extension, so not everything may be perfect.
+Do not hesitate to [report](https://github.com/KamoHaladus/VSC-Hakaton/issues) any issues you may find.
 
 ## Features
 
@@ -55,4 +56,3 @@ The following features are planned:
 - refresh all when configuration changes (glob for example)
 - feature flags to disable specific functions
 - rename component feature - update all usages
-
