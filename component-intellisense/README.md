@@ -7,6 +7,8 @@ Do not hesitate to [report](https://github.com/KamoHaladus/VSC-Hakaton/issues) a
 
 ## Features
 
+### 1. Intellisense
+
 Given the following components in a project:
 ```TypeScript
 angular.module('app').component('exampleComponent', {
@@ -38,6 +40,17 @@ It can also help with bindings (will only suggest missing ones):
 
 ![Auto-completion popup](https://kf-ireneuszpatalas.github.io/bindings.png)
 
+There is now a command to refresh components cache which might be useful if you're developing components constantly and don't want to restart vscode.
+You can trigger the command from command panel, it's called `Refresh components cache`
+Alternatively you can just click the button on the status bar:
+
+![Status bar button](https://kf-ireneuszpatalas.github.io/statusbar.png)
+
+### 2. Go To definition
+
+You can go from html directly to the component being used. Just use F12 (default) or Go To Definition command (either from context menu or commands panel) when cursor is focused on a component.
+It will go straight to the component definition.
+
 ## Configuration
 
 This plugin contributes the following [settings](https://code.visualstudio.com/docs/customization/userandworkspace):
@@ -56,3 +69,7 @@ The following features are planned:
 - refresh all when configuration changes (glob for example)
 - feature flags to disable specific functions
 - rename component feature - update all usages
+- rethink the way components are parsed (component config is not a JSON, might contain incompatible stuff)
+	- `controller` field does not necessarily is a string, may be a class name directly
+	- `template` field may `require` a file instead of hardcoding it in the component
+	- make sure both TypeScript and bare JS are supported
