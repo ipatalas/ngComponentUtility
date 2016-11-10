@@ -4,7 +4,10 @@ import { Component } from './utils/component';
 import { HtmlDocumentHelper } from './utils/htmlDocumentHelper';
 
 export class GoToDefinitionProvider implements vsc.DefinitionProvider {
-	constructor(private components: Component[]) {
+	private components: Component[];
+
+	public loadComponents = (components: Component[]) => {
+		this.components = components;
 	}
 
 	public provideDefinition(document: vsc.TextDocument, position: vsc.Position/*, token: vsc.CancellationToken*/): vsc.Definition {

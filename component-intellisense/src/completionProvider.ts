@@ -6,7 +6,10 @@ import { HtmlDocumentHelper } from './utils/htmlDocumentHelper';
 const REGEX_TAG = /^<[a-z-]*$/i;
 
 export class CompletionProvider implements vsc.CompletionItemProvider {
-	constructor(private components: Component[]) {
+	private components: Component[];
+
+	public loadComponents = (components: Component[]) => {
+		this.components = components;
 	}
 
 	public provideCompletionItems = (document: vsc.TextDocument, position: vsc.Position/*, token: vsc.CancellationToken*/): vsc.CompletionItem[] => {

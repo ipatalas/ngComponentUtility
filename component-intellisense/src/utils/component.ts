@@ -8,7 +8,8 @@ export interface IComponentBinding {
 	type: string;
 }
 
-const REGEX_COMPONENT = /component\(((?:.|\s)*?})\s*\)/g;
+const REGEX_COMPONENT = /component\(\s*(["'])(\w+)\1\s*,\s*((?:.|\s)*?})\s*\)/g;
+const REGEX_BINDINGS = /bindings\s*:\s*({(?:.|\s)*?})/;
 const REGEX_KEYS = /(\w+)\s*:/g;
 const REGEX_SINGLEQUOTES = /(:\s*)?'([^\']*)'/g;
 const REGEX_TRAILINGCOMMAS = /,(\s*})/;
@@ -20,7 +21,6 @@ const REGEX_LINECOMMENTS = /\s*\/\/.*/g;
 export class Component {
 	public name: string;
 	public htmlName: string;
-	public controllerName: string;
 	public bindings: IComponentBinding[] = [];
 	public uri: vsc.Uri;
 
@@ -36,28 +36,31 @@ export class Component {
 
 				// tslint:disable-next-line:no-conditional-assignment
 				while (match = REGEX_COMPONENT.exec(contents)) {
-					let componentJson = match[1]
-						.replace(REGEX_KEYS, '"$1":') // surround keys with quotes
-						.replace(REGEX_SINGLEQUOTES, (_m, p1, p2) => {
-							let prefix = p1 || '';
-							let quotes = '"' + p2.replace(/"/g, '\\"') + '"';
-							return prefix + quotes;
-						}) // replace single quotes for values
-						.replace(REGEX_TRAILINGCOMMAS, "$1") // fix trailing commas
-						.replace(REGEX_LINECOMMENTS, ""); // remove line comments
+					let bindings;
+					let name = match[2];
+					let bindingsMatch = match[3].match(REGEX_BINDINGS)
+					if (bindingsMatch) {
+						let bindingsJson = bindingsMatch[1]
+							.replace(REGEX_KEYS, '"$1":') // surround keys with quotes
+							.replace(REGEX_SINGLEQUOTES, (_m, p1, p2) => {
+								let prefix = p1 || '';
+								let quotes = '"' + p2.replace(/"/g, '\\"') + '"';
+								return prefix + quotes;
+							}) // replace single quotes for values
+							.replace(REGEX_TRAILINGCOMMAS, "$1") // fix trailing commas
+							.replace(REGEX_LINECOMMENTS, ""); // remove line comments
 
-					let json = `[${componentJson}]`;
-					let [name, config] = JSON.parse(json);
+						bindings = JSON.parse(bindingsJson);
+					}
 
 					let result = new Component();
 					result.name = name;
 					result.htmlName = decamelize(name, '-');
-					result.controllerName = config.controller;
 					result.uri = vsc.Uri.file(path);
 
-					if (config.bindings) {
-						Object.keys(config.bindings).forEach(key => {
-							result.bindings.push(Component.createBinding(key, config.bindings[key]));
+					if (bindings) {
+						Object.keys(bindings).forEach(key => {
+							result.bindings.push(Component.createBinding(key, bindings[key]));
 						});
 					}
 
@@ -70,7 +73,7 @@ export class Component {
 	}
 
 	private static createBinding(key: string, type: string): IComponentBinding {
-		let result = <IComponentBinding> {};
+		let result = <IComponentBinding>{};
 		result.name = key;
 		result.type = type;
 		result.htmlName = decamelize(key, '-');
@@ -79,16 +82,3 @@ export class Component {
 	}
 }
 
-// async function test() {
-//     try {
-//         // Test code
-//         let path = 'D:/Projects/KnightFrank.Antares/src/wwwroot/app/common/components/card/item/cardComponent.ts'
-//         path = 'D:/Projects/KnightFrank.Antares/src/wwwroot/app/common/components/attribute/range/rangeAttributeComponent.ts';
-//         let component = await Component.parse(path);
-//         console.dir(component, { depth: 5 });
-//     } catch (ex) {
-//         console.error(ex);
-//     }
-// }
-
-// test();

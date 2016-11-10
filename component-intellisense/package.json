@@ -30,8 +30,14 @@
 		"type": "git",
 		"url": "https://github.com/KamoHaladus/VSC-Hakaton/tree/master/component-intellisense"
 	},
-	"main": "./out/extension",
+	"main": "./out/src/extension",
 	"contributes": {
+		"commands": [
+			{
+				"command": "extension.refreshAngularComponents",
+				"title": "Refresh Components Cache"
+			}
+		],
 		"configuration": {
 			"type": "object",
 			"properties": {
@@ -54,7 +60,9 @@
 		"@types/decamelize": "0.0.30",
 		"@types/glob": "^5.0.30",
 		"@types/lodash": "^4.14.38",
+		"@types/mocha": "^2.2.32",
 		"@types/node": "^6.0.46",
+		"mocha": "^3.1.2",
 		"typescript": "^2.0.3",
 		"vscode": "^1.0.3"
 	},
