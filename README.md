@@ -30,26 +30,23 @@ angular.module('app').component('otherComponent', {
 
 One should be able to use auto-completion like that:
 
-![Auto-completion popup](https://kf-ireneuszpatalas.github.io/popup.png)
+![Auto-completion popup](images/component.gif)
 
-As a result component's html code along with all bindings is added:
+As a result component's html code along with all bindings is added.
 
-![Auto-completion popup](https://kf-ireneuszpatalas.github.io/result.png)
-
-It can also help with bindings (will only suggest missing ones):
+It can also help with the bindings themselves (will only suggest missing ones):
 
 ![Auto-completion popup](https://kf-ireneuszpatalas.github.io/bindings.png)
 
-There is now a command to refresh components cache which might be useful if you're developing components constantly and don't want to restart vscode.
-You can trigger the command from command panel, it's called `Refresh components cache`
-Alternatively you can just click the button on the status bar:
+There is now a command to refresh components cache which might be useful if you're developing components constantly and don't want to restart vscode each time.
+You can trigger the command from command panel, it's called `Refresh components cache`. Alternatively you can just click the button on the status bar:
 
 ![Status bar button](https://kf-ireneuszpatalas.github.io/statusbar.png)
 
 ### 2. Go To definition
 
-You can go from html directly to the component being used. Just use F12 (default) or Go To Definition command (either from context menu or commands panel) when cursor is focused on a component.
-It will go straight to the component definition.
+You can go from html directly to the component being used. Just use F12 (default) or `Go To Definition` command (either from context menu or commands panel) when cursor is focused on a component.
+It will go straight to the component definition file.
 
 ## Configuration
 
