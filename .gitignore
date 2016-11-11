@@ -1,1 +1,4 @@
-/component-intellisense/.vscode/symbols.json
+out
+server
+node_modules
+/*.vsix
