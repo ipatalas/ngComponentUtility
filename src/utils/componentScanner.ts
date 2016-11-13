@@ -12,21 +12,37 @@ export class ComponentScanner {
 	public components: Component[] = [];
 
 	public findFiles = () => {
-		return new Promise<void>((resolve, _reject) => {
+		return new Promise<void>(async (resolve, reject) => {
 			console.time(PERF_TOTAL);
-			let config = vsc.workspace.getConfiguration("ngIntelliSense");
-			let componentGlob = <string> config.get("componentGlob");
+			let config = vsc.workspace.getConfiguration("ngComponents");
+			let componentGlobs = <string[]>config.get("componentGlobs");
 
-			glob(componentGlob, this.options, async (_err, matches) => {
+			try {
+				let files = _.flatten(await Promise.all(componentGlobs.map(pattern => this.glob(pattern))));
+
 				console.time(PERF_PARSEONLY);
 
-				let result = await Promise.all(matches.map(Component.parse));
+				let result = await Promise.all(files.map(m => Component.parse(m)));
 				this.components = _.flatten(result);
 
 				console.timeEnd(PERF_PARSEONLY);
 				console.timeEnd(PERF_TOTAL);
 
 				resolve();
+			} catch (e) {
+				reject(e);
+			}
+		});
+	}
+
+	private glob = (pattern: string) => {
+		return new Promise<string[]>((resolve, reject) => {
+			glob(pattern, this.options, (err, matches) => {
+				if (err) {
+					return reject(err);
+				}
+
+				resolve(matches);
 			});
 		});
 	}

@@ -41,11 +41,12 @@
 		"configuration": {
 			"type": "object",
 			"properties": {
-				"ngIntelliSense.componentGlob": {
+				"ngComponents.componentGlobs": {
 					"type": [
+						"array",
 						"string"
 					],
-					"default": "**/*Component.ts",
+					"default": ["**/*Component.ts"],
 					"description": "glob string used to search for files with components"
 				}
 			}
@@ -69,6 +70,7 @@
 	"dependencies": {
 		"decamelize": "^1.2.0",
 		"glob": "^7.1.1",
-		"lodash": "^4.16.6"
+		"lodash": "^4.16.6",
+		"typescript": "^2.0.9"
 	}
 }
