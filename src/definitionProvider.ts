@@ -10,7 +10,7 @@ export class GoToDefinitionProvider implements vsc.DefinitionProvider {
 		this.components = components;
 	}
 
-	public provideDefinition(document: vsc.TextDocument, position: vsc.Position/*, token: vsc.CancellationToken*/): vsc.Definition {
+	public provideDefinition(document: vsc.TextDocument, position: vsc.Position, _token: vsc.CancellationToken): vsc.Definition {
 		let bracketsBeforeCursor = HtmlDocumentHelper.findTagBrackets(document, position, 'backward');
 		let bracketsAfterCursor = HtmlDocumentHelper.findTagBrackets(document, position, 'forward');
 
@@ -23,7 +23,7 @@ export class GoToDefinitionProvider implements vsc.DefinitionProvider {
 
 			let component = this.components.find(c => c.htmlName === tag);
 			if (component) {
-				return new vsc.Location(component.uri, new vsc.Position(0, 0));
+				return new vsc.Location(vsc.Uri.file(component.path), new vsc.Position(component.offset.line, component.offset.character));
 			}
 		}
 
