@@ -18,12 +18,19 @@ const scanner = new ComponentScanner();
 let statusBar = vsc.window.createStatusBarItem(vsc.StatusBarAlignment.Left);
 
 export async function activate(context: vsc.ExtensionContext) {
-	scanner.init(vsc.workspace.rootPath);
-	await refreshComponents();
+	try {
+		scanner.init(vsc.workspace.rootPath);
+
+		await refreshComponents();
+	} catch (err) {
+		console.error(err);
+		vsc.window.showErrorMessage("Error initializing extension");
+	}
 
 	context.subscriptions.push(vsc.commands.registerCommand('extension.refreshAngularComponents', async () => {
-		await refreshComponents();
-		vsc.window.showInformationMessage('Components cache has been rebuilt');
+		refreshComponents().then(() => {
+			vsc.window.showInformationMessage('Components cache has been rebuilt');
+		});
 	}));
 	context.subscriptions.push(vsc.languages.registerCompletionItemProvider(HTML_DOCUMENT_SELECTOR, completionProvider, '<'));
 	context.subscriptions.push(vsc.languages.registerDefinitionProvider(HTML_DOCUMENT_SELECTOR, definitionProvider));
@@ -35,11 +42,14 @@ export async function activate(context: vsc.ExtensionContext) {
 	context.subscriptions.push(statusBar);
 }
 
-const refreshComponents = async () => {
-	await scanner.findFiles();
+const refreshComponents = async (): Promise<void> => {
+	return scanner.findFiles().then(() => {
+		completionProvider.loadComponents(scanner.components);
+		definitionProvider.loadComponents(scanner.components);
 
-	completionProvider.loadComponents(scanner.components);
-	definitionProvider.loadComponents(scanner.components);
-
-	statusBar.text = `$(sync) ${scanner.components.length} components`;
-}
+		statusBar.text = `$(sync) ${scanner.components.length} components`;
+	}).catch((err) => {
+		console.error(err);
+		vsc.window.showErrorMessage("There was an error refreshing components cache, check console for errors");
+	});
+};
