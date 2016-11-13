@@ -1,7 +1,7 @@
 import * as glob from 'glob';
 import * as vsc from 'vscode';
 import * as _ from 'lodash';
-import { Component } from './component';
+import { Component, ParseMode } from './component';
 
 const PERF_TOTAL = "Total time consumed on scanning for components";
 const PERF_PARSEONLY = "Time consumed on parsing component files";
@@ -22,7 +22,7 @@ export class ComponentScanner {
 
 				console.time(PERF_PARSEONLY);
 
-				let result = await Promise.all(files.map(m => Component.parse(m)));
+				let result = await Promise.all(files.map(m => Component.parse(m, ParseMode.AST)));
 				this.components = _.flatten(result);
 
 				console.timeEnd(PERF_PARSEONLY);
