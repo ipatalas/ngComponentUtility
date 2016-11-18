@@ -1,10 +1,13 @@
 import * as glob from 'glob';
 import * as vsc from 'vscode';
 import * as _ from 'lodash';
-import { Component, ParseMode } from './component';
+import { Component } from './component';
+import { SourceFile } from './sourceFile';
 
 const PERF_TOTAL = "Total time consumed on scanning for components";
-const PERF_PARSEONLY = "Time consumed on parsing component files";
+const PERF_GLOB = "Time consumed on finding component files";
+const PERF_PARSE = "Time consumed on parsing component files";
+const PERF_ANALYZE = "Time consumed on analyzing component files";
 
 // tslint:disable:no-console
 export class ComponentScanner {
@@ -18,14 +21,19 @@ export class ComponentScanner {
 			let componentGlobs = <string[]>config.get("componentGlobs");
 
 			try {
+				console.time(PERF_GLOB);
 				let files = _.flatten(await Promise.all(componentGlobs.map(pattern => this.glob(pattern))));
+				console.timeEnd(PERF_GLOB);
 
-				console.time(PERF_PARSEONLY);
+				console.time(PERF_PARSE);
+				let sourceFiles = await Promise.all(files.map(SourceFile.parse));
+				console.timeEnd(PERF_PARSE);
 
-				let result = await Promise.all(files.map(m => Component.parse(m, ParseMode.AST)));
-				this.components = _.flatten(result);
+				console.time(PERF_ANALYZE);
+				let components = await Promise.all(sourceFiles.map(Component.parse));
+				this.components = _.flatten(components);
+				console.timeEnd(PERF_ANALYZE);
 
-				console.timeEnd(PERF_PARSEONLY);
 				console.timeEnd(PERF_TOTAL);
 
 				resolve();

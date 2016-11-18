@@ -23,7 +23,7 @@ export class GoToDefinitionProvider implements vsc.DefinitionProvider {
 
 			let component = this.components.find(c => c.htmlName === tag);
 			if (component) {
-				return new vsc.Location(vsc.Uri.file(component.path), new vsc.Position(component.offset.line, component.offset.character));
+				return new vsc.Location(vsc.Uri.file(component.path), new vsc.Position(component.pos.line, component.pos.character));
 			}
 		}
 
