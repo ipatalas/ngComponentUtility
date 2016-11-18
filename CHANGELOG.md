@@ -1,5 +1,12 @@
 # Change Log
 
+## 0.2.1 (November 18, 2016)
+
+* Added support for multiple globs
+* Slight improvement for `Go To Definition` feature (cursor is now positioned exactly at the component)
+* Component parsing rewritten to use TypeScript Compiler API (more reliable than regex parsing)
+* Some improvements for error handling
+
 ## 0.2.0 (November 10, 2016)
 
 * Fixed bug when parsing component with comments (thx @19majkel94 for reporting)
