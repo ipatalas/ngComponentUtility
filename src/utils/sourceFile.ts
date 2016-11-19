@@ -15,6 +15,7 @@ export class SourceFile {
 
 				try {
 					let sourceFile = ts.createSourceFile(path.basename(filepath), contents, ts.ScriptTarget.ES5, true);
+
 					resolve(<SourceFile>{
 						path: filepath,
 						sourceFile: sourceFile

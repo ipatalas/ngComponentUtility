@@ -2,6 +2,7 @@ import * as vsc from 'vscode';
 
 import { Component } from './utils/component';
 import { HtmlDocumentHelper } from './utils/htmlDocumentHelper';
+import { getLocation } from './utils/vsc';
 
 export class GoToDefinitionProvider implements vsc.DefinitionProvider {
 	private components: Component[];
@@ -23,7 +24,14 @@ export class GoToDefinitionProvider implements vsc.DefinitionProvider {
 
 			let component = this.components.find(c => c.htmlName === tag);
 			if (component) {
-				return new vsc.Location(vsc.Uri.file(component.path), new vsc.Position(component.pos.line, component.pos.character));
+				let results: vsc.Location[] = [];
+				results.push(getLocation(component));
+
+				if (component.template) {
+					results.push(getLocation(component.template));
+				}
+
+				return results;
 			}
 		}
 

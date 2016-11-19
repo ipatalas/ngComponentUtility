@@ -1,6 +1,8 @@
 import * as ts from "typescript";
+import * as path from "path";
 import * as decamelize from 'decamelize';
 import { SourceFile } from './sourceFile';
+import { workspaceRoot } from './vsc';
 
 export interface IComponentBinding {
 	name: string;
@@ -15,6 +17,7 @@ export class Component {
 	public bindings: IComponentBinding[] = [];
 	public path: string;
 	public pos: ts.LineAndCharacter;
+	public template: ComponentTemplate;
 
 	public static parse(file: SourceFile): Promise<Component[]> {
 		return new Promise<Component[]>((resolve, _reject) => {
@@ -60,11 +63,23 @@ Please report this as a bug and include failing component if possible (remove or
 						component.bindings.push(...bindingsProps.properties.map(createBinding));
 					}
 
+					let templateUrlObj = <ts.PropertyAssignment>componentConfigObj.properties.find(v => v.name.getText() === 'templateUrl');
+					if (templateUrlObj) {
+						component.template = createTemplate(templateUrlObj);
+					}
+
 					results.push(component);
 				}
 			} else {
 				node.getChildren().forEach(c => visitAllChildren(c));
 			}
+		}
+
+		function createTemplate(node: ts.PropertyAssignment) {
+			let value = <ts.StringLiteral>node.initializer;
+			let templatePath = path.join(workspaceRoot, value.text);
+
+			return new ComponentTemplate(templatePath, { line: 0, character: 0 });
 		}
 
 		function createBinding(node: ts.PropertyAssignment): IComponentBinding {
@@ -76,5 +91,10 @@ Please report this as a bug and include failing component if possible (remove or
 
 			return binding;
 		}
+	}
+}
+
+export class ComponentTemplate {
+	constructor(public path: string, public pos: ts.LineAndCharacter) {
 	}
 }

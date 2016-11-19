@@ -27,7 +27,7 @@ export async function activate(context: vsc.ExtensionContext) {
 		vsc.window.showErrorMessage("Error initializing extension");
 	}
 
-	context.subscriptions.push(vsc.commands.registerCommand('extension.refreshAngularComponents', async () => {
+	context.subscriptions.push(vsc.commands.registerCommand('extension.refreshAngularComponents', () => {
 		refreshComponents().then(() => {
 			vsc.window.showInformationMessage('Components cache has been rebuilt');
 		});
