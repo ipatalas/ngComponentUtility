@@ -20,18 +20,28 @@ export class GoToDefinitionProvider implements vsc.DefinitionProvider {
 			let tagTextRange = new vsc.Range(bracketsBeforeCursor.opening, bracketsAfterCursor.closing);
 			let text = document.getText(tagTextRange);
 
+			let wordPos = document.getWordRangeAtPosition(position);
+			let word = document.getText(wordPos);
+
 			let { tag } = HtmlDocumentHelper.parseTag(text);
 
 			let component = this.components.find(c => c.htmlName === tag);
 			if (component) {
-				let results: vsc.Location[] = [];
-				results.push(getLocation(component));
-
-				if (component.template) {
-					results.push(getLocation(component.template));
+				let binding = component.bindings.find(b => b.htmlName === word);
+				if (binding) {
+					return getLocation({ path: component.path, pos: binding.pos });
 				}
 
-				return results;
+				if (word === component.htmlName) {
+					let results: vsc.Location[] = [];
+					results.push(getLocation(component));
+
+					if (component.template) {
+						results.push(getLocation(component.template));
+					}
+
+					return results;
+				}
 			}
 		}
 

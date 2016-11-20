@@ -87,7 +87,7 @@ Please report this as a bug and include failing component if possible (remove or
 			binding.name = node.name.getText();
 			binding.type = (<ts.StringLiteral>node.initializer).text;
 			binding.htmlName = decamelize(binding.name, '-');
-			binding.pos = sourceFile.getLineAndCharacterOfPosition(node.pos);
+			binding.pos = sourceFile.getLineAndCharacterOfPosition(node.initializer.pos);
 
 			return binding;
 		}

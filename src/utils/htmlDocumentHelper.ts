@@ -1,7 +1,7 @@
 import * as vsc from 'vscode';
 import * as _ from 'lodash';
 
-const REGEX_TAG_NAME = /<([a-z-]+)/i;
+const REGEX_TAG_NAME = /<\/?([a-z-]+)/i;
 const REGEX_ATTRIBUTE_NAME = /([a-z-]+)=/gi;
 
 export type BracketsPosition = { opening: vsc.Position, closing: vsc.Position };
