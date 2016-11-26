@@ -40,6 +40,10 @@ export class GoToDefinitionProvider implements vsc.DefinitionProvider {
 						results.push(getLocation(component.template));
 					}
 
+					if (component.controller) {
+						results.push(getLocation(component.controller));
+					}
+
 					return results;
 				}
 			}

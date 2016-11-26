@@ -2,6 +2,7 @@ import * as ts from "typescript";
 import * as path from "path";
 import * as decamelize from 'decamelize';
 import { SourceFile } from './sourceFile';
+import { Controller } from './controller';
 import { workspaceRoot } from './vsc';
 
 export interface IComponentBinding {
@@ -18,11 +19,12 @@ export class Component {
 	public path: string;
 	public pos: ts.LineAndCharacter;
 	public template: ComponentTemplate;
+	public controller: Controller;
 
-	public static parse(file: SourceFile): Promise<Component[]> {
+	public static parse(file: SourceFile, controllers: Controller[]): Promise<Component[]> {
 		return new Promise<Component[]>((resolve, _reject) => {
 			try {
-				let results: Component[] = Component.parseWithApi(file.sourceFile).map(c => {
+				let results: Component[] = Component.parseWithApi(file.sourceFile, controllers).map(c => {
 					c.path = file.path;
 					c.htmlName = decamelize(c.name, '-');
 					return c;
@@ -39,8 +41,9 @@ Please report this as a bug and include failing component if possible (remove or
 		});
 	}
 
-	private static parseWithApi(sourceFile: ts.SourceFile) {
+	private static parseWithApi(sourceFile: ts.SourceFile, controllers: Controller[]) {
 		let results: Component[] = [];
+
 		visitAllChildren(sourceFile);
 
 		return results;
@@ -68,10 +71,28 @@ Please report this as a bug and include failing component if possible (remove or
 						component.template = createTemplate(templateUrlObj);
 					}
 
+					if (controllers) { // TODO: && config flag for controller
+						let ctrlObj = <ts.PropertyAssignment>componentConfigObj.properties.find(v => v.name.getText() === 'controller');
+						if (ctrlObj) {
+							component.controller = createController(ctrlObj);
+							if (!component.controller) {
+								console.log(`Didn't find controller for ${component.name}`);
+							}
+						}
+					}
+
 					results.push(component);
 				}
 			} else {
 				node.getChildren().forEach(c => visitAllChildren(c));
+			}
+		}
+
+		function createController(node: ts.PropertyAssignment): Controller {
+			if (node.initializer.kind === ts.SyntaxKind.StringLiteral) {
+				return controllers.find(c => c.name === (<ts.StringLiteral>node.initializer).text);
+			} else if (node.initializer.kind === ts.SyntaxKind.Identifier) {
+				return controllers.find(c => c.className === (<ts.Identifier>node.initializer).text);
 			}
 		}
 
@@ -94,6 +115,7 @@ Please report this as a bug and include failing component if possible (remove or
 	}
 }
 
+// TODO: unify class and interface approach for template and bindings
 export class ComponentTemplate {
 	constructor(public path: string, public pos: ts.LineAndCharacter) {
 	}

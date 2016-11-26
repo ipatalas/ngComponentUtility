@@ -48,6 +48,14 @@
 					],
 					"default": ["**/*Component.ts"],
 					"description": "glob string used to search for files with components"
+				},
+				"ngComponents.controllerGlobs": {
+					"type": [
+						"array",
+						"string"
+					],
+					"default": ["**/*Controller.ts"],
+					"description": "glob string used to search for files with controllers"
 				}
 			}
 		}

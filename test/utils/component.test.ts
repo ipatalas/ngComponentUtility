@@ -24,7 +24,7 @@ function testFiles(files: string[]) {
 			let path = getTestFilePath(file);
 			let sourceFile = ts.createSourceFile(file, fs.readFileSync(path, 'utf8'), ts.ScriptTarget.ES5, true);
 
-			let component = await Component.parse({ path, sourceFile });
+			let component = await Component.parse({ path, sourceFile }, []);
 
 			assert.equal(component.length, 1);
 			assert.equal(component[0].name, 'exampleComponent');

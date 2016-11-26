@@ -1,12 +1,11 @@
-/* --------------------------------------------------------------------------------------------
- * Copyright (c) Microsoft Corporation. All rights reserved.
- * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
 'use strict';
 
 import * as vsc from 'vscode';
 
-import { ComponentScanner } from './utils/componentScanner';
+import { Component } from './utils/component';
+import { Controller } from './utils/controller';
+import { SourceFile } from './utils/sourceFile';
+import { SourceFilesScanner } from './utils/sourceFilesScanner';
 import { CompletionProvider } from './completionProvider';
 import { GoToDefinitionProvider } from './definitionProvider';
 
@@ -14,7 +13,7 @@ const HTML_DOCUMENT_SELECTOR: vsc.DocumentSelector = 'html';
 
 const completionProvider = new CompletionProvider();
 const definitionProvider = new GoToDefinitionProvider();
-const scanner = new ComponentScanner();
+const scanner = new SourceFilesScanner();
 let statusBar = vsc.window.createStatusBarItem(vsc.StatusBarAlignment.Left);
 
 export async function activate(context: vsc.ExtensionContext) {
@@ -32,6 +31,7 @@ export async function activate(context: vsc.ExtensionContext) {
 			vsc.window.showInformationMessage('Components cache has been rebuilt');
 		});
 	}));
+
 	context.subscriptions.push(vsc.languages.registerCompletionItemProvider(HTML_DOCUMENT_SELECTOR, completionProvider, '<'));
 	context.subscriptions.push(vsc.languages.registerDefinitionProvider(HTML_DOCUMENT_SELECTOR, definitionProvider));
 
@@ -43,11 +43,14 @@ export async function activate(context: vsc.ExtensionContext) {
 }
 
 const refreshComponents = async (): Promise<void> => {
-	return scanner.findFiles().then(() => {
-		completionProvider.loadComponents(scanner.components);
-		definitionProvider.loadComponents(scanner.components);
+	const controllers = await scanner.findFiles("controllerGlobs", Controller.parse, "Controller");
+	const parseComponent = (src: SourceFile) => Component.parse(src, controllers);
 
-		statusBar.text = `$(sync) ${scanner.components.length} components`;
+	return scanner.findFiles("componentGlobs", parseComponent, "Component").then((components: Component[]) => {
+		completionProvider.loadComponents(components);
+		definitionProvider.loadComponents(components);
+
+		statusBar.text = `$(sync) ${components.length} components`;
 	}).catch((err) => {
 		console.error(err);
 		vsc.window.showErrorMessage("There was an error refreshing components cache, check console for errors");
