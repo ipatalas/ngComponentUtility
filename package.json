@@ -56,6 +56,15 @@
 					],
 					"default": ["**/*Controller.ts"],
 					"description": "glob string used to search for files with controllers"
+				},
+				"ngComponents.goToDefinition": {
+					"type": [
+						"array",
+						"string"
+					],
+					"default": ["template", "controller"],
+					"uniqueItems": true,
+					"description": "Specify which parts of the component should the Go To Definition action show"
 				}
 			}
 		}

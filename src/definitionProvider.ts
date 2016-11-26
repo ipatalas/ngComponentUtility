@@ -33,14 +33,20 @@ export class GoToDefinitionProvider implements vsc.DefinitionProvider {
 				}
 
 				if (word === component.htmlName) {
-					let results: vsc.Location[] = [];
-					results.push(getLocation(component));
+					const config = vsc.workspace.getConfiguration("ngComponents");
+					let componentParts = <string[]>config.get("goToDefinition");
 
-					if (component.template) {
+					let results: vsc.Location[] = [];
+
+					if (componentParts.some(p => p === "component")) {
+						results.push(getLocation(component));
+					}
+
+					if (componentParts.some(p => p === "template") && component.template) {
 						results.push(getLocation(component.template));
 					}
 
-					if (component.controller) {
+					if (componentParts.some(p => p === "controller") && component.controller) {
 						results.push(getLocation(component.controller));
 					}
 
