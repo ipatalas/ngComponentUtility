@@ -5,26 +5,19 @@ import { SourceFile } from './sourceFile';
 import { Controller } from './controller';
 import { workspaceRoot } from './vsc';
 
-export interface IComponentBinding {
-	name: string;
-	htmlName: string;
-	type: string;
-	pos: ts.LineAndCharacter;
-}
-
 export class Component {
 	public name: string;
 	public htmlName: string;
 	public bindings: IComponentBinding[] = [];
 	public path: string;
 	public pos: ts.LineAndCharacter;
-	public template: ComponentTemplate;
+	public template: IComponentTemplate;
 	public controller: Controller;
 
 	public static parse(file: SourceFile, controllers: Controller[]): Promise<Component[]> {
 		return new Promise<Component[]>((resolve, _reject) => {
 			try {
-				let results: Component[] = Component.parseWithApi(file.sourceFile, controllers).map(c => {
+				let results: Component[] = Component.parseWithApi(file, controllers).map(c => {
 					c.path = file.path;
 					c.htmlName = decamelize(c.name, '-');
 					return c;
@@ -35,16 +28,18 @@ export class Component {
 				// tslint:disable-next-line:no-console
 				console.log(`
 There was an error analyzing ${file.sourceFile.fileName}.
-Please report this as a bug and include failing component if possible (remove or change sensitive data).`.trim());
+Please report this as a bug and include failing component if possible (remove or change sensitive data).
+
+${e}`.trim());
 				resolve([]);
 			}
 		});
 	}
 
-	private static parseWithApi(sourceFile: ts.SourceFile, controllers: Controller[]) {
+	private static parseWithApi(file: SourceFile, controllers: Controller[]) {
 		let results: Component[] = [];
 
-		visitAllChildren(sourceFile);
+		visitAllChildren(file.sourceFile);
 
 		return results;
 
@@ -58,24 +53,30 @@ Please report this as a bug and include failing component if possible (remove or
 
 					let component = new Component();
 					component.name = componentName.text;
-					component.pos = sourceFile.getLineAndCharacterOfPosition(componentName.pos);
+					component.pos = file.sourceFile.getLineAndCharacterOfPosition(componentName.pos);
 
-					let bindingsObj = <ts.PropertyAssignment>componentConfigObj.properties.find(v => v.name.getText() === 'bindings');
+					let bindingsObj = findProperty(componentConfigObj, 'bindings');
 					if (bindingsObj) {
 						let bindingsProps = <ts.ObjectLiteralExpression>bindingsObj.initializer;
 						component.bindings.push(...bindingsProps.properties.map(createBinding));
 					}
 
-					let templateUrlObj = <ts.PropertyAssignment>componentConfigObj.properties.find(v => v.name.getText() === 'templateUrl');
+					let templateUrlObj = findProperty(componentConfigObj, 'templateUrl');
 					if (templateUrlObj) {
-						component.template = createTemplate(templateUrlObj);
+						component.template = createTemplateFromUrl(templateUrlObj);
+					} else {
+						let templateObj = findProperty(componentConfigObj, 'template');
+						if (templateObj) {
+							component.template = createTemplate(templateObj);
+						}
 					}
 
-					if (controllers) { // TODO: && config flag for controller
-						let ctrlObj = <ts.PropertyAssignment>componentConfigObj.properties.find(v => v.name.getText() === 'controller');
+					if (controllers && controllers.length > 0) {
+						let ctrlObj = findProperty(componentConfigObj, 'controller');
 						if (ctrlObj) {
 							component.controller = createController(ctrlObj);
 							if (!component.controller) {
+								// tslint:disable-next-line:no-console
 								console.log(`Didn't find controller for ${component.name}`);
 							}
 						}
@@ -88,6 +89,10 @@ Please report this as a bug and include failing component if possible (remove or
 			}
 		}
 
+		function findProperty(obj: ts.ObjectLiteralExpression, name: string) {
+			return <ts.PropertyAssignment>obj.properties.find(v => v.name.getText() === name);
+		}
+
 		function createController(node: ts.PropertyAssignment): Controller {
 			if (node.initializer.kind === ts.SyntaxKind.StringLiteral) {
 				return controllers.find(c => c.name === (<ts.StringLiteral>node.initializer).text);
@@ -96,11 +101,28 @@ Please report this as a bug and include failing component if possible (remove or
 			}
 		}
 
-		function createTemplate(node: ts.PropertyAssignment) {
+		function createTemplate(node: ts.PropertyAssignment): IComponentTemplate {
+			if (node.initializer.kind === ts.SyntaxKind.StringLiteral || node.initializer.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral) {
+				const pos = file.sourceFile.getLineAndCharacterOfPosition(node.initializer.pos);
+
+				return <IComponentTemplate>{ path: file.path, pos };
+			} else if (node.initializer.kind === ts.SyntaxKind.CallExpression) {
+				// handle require('./template.html')
+				const call = <ts.CallExpression>node.initializer;
+				if (call.arguments.length === 1 && call.expression.kind === ts.SyntaxKind.Identifier && call.expression.getText() === "require") {
+					const relativePath = (<ts.StringLiteral>call.arguments[0]).text;
+					const templatePath = path.join(path.dirname(file.path), relativePath);
+
+					return <IComponentTemplate>{ path: templatePath, pos: { line: 0, character: 0 }};
+				}
+			}
+		}
+
+		function createTemplateFromUrl(node: ts.PropertyAssignment) {
 			let value = <ts.StringLiteral>node.initializer;
 			let templatePath = path.join(workspaceRoot, value.text);
 
-			return new ComponentTemplate(templatePath, { line: 0, character: 0 });
+			return <IComponentTemplate>{ path: templatePath, pos: { line: 0, character: 0 }};
 		}
 
 		function createBinding(node: ts.PropertyAssignment): IComponentBinding {
@@ -108,15 +130,21 @@ Please report this as a bug and include failing component if possible (remove or
 			binding.name = node.name.getText();
 			binding.type = (<ts.StringLiteral>node.initializer).text;
 			binding.htmlName = decamelize(binding.name, '-');
-			binding.pos = sourceFile.getLineAndCharacterOfPosition(node.initializer.pos);
+			binding.pos = file.sourceFile.getLineAndCharacterOfPosition(node.initializer.pos);
 
 			return binding;
 		}
 	}
 }
 
-// TODO: unify class and interface approach for template and bindings
-export class ComponentTemplate {
-	constructor(public path: string, public pos: ts.LineAndCharacter) {
-	}
+export interface IComponentTemplate {
+	path: string;
+	pos: ts.LineAndCharacter;
+}
+
+export interface IComponentBinding {
+	name: string;
+	htmlName: string;
+	type: string;
+	pos: ts.LineAndCharacter;
 }
