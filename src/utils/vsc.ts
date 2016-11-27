@@ -25,7 +25,7 @@ export function revertConsole() {
 }
 
 function getConsoleHandler(channel: vsc.OutputChannel, originalHandler: (message?: any, ...optionalParams: any[]) => void) {
-	return function (message, ...args) {
+	return (message, ...args) => {
 		channel.appendLine(util.format(message, ...args));
 		originalHandler.apply(console, arguments);
 	};
