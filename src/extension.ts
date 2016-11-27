@@ -43,7 +43,15 @@ export async function activate(context: vsc.ExtensionContext) {
 }
 
 const refreshComponents = async (): Promise<void> => {
-	const controllers = await scanner.findFiles("controllerGlobs", Controller.parse, "Controller");
+	const config = vsc.workspace.getConfiguration("ngComponents");
+	const componentParts = <string[]>config.get("goToDefinition");
+	const searchForControllers = componentParts.some(p => p === "controller");
+
+	let controllers: Controller[] = [];
+	if (searchForControllers) {
+		controllers = await scanner.findFiles("controllerGlobs", Controller.parse, "Controller");
+	}
+
 	const parseComponent = (src: SourceFile) => Component.parse(src, controllers);
 
 	return scanner.findFiles("componentGlobs", parseComponent, "Component").then((components: Component[]) => {
