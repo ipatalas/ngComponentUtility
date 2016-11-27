@@ -1,93 +1,100 @@
 {
-	"name": "vscode-angular-components-intellisense",
-	"displayName": "ng1.5 components utility",
-	"description": "Angular 1.5 components utility",
-	"author": "Ireneusz Patalas",
-	"license": "MIT",
-	"version": "0.2.1",
-	"publisher": "ipatalas",
-	"preview": true,
-	"contributors": [
-		"Ireneusz Patalas",
-		"Kamil Haładus"
-	],
-	"engines": {
-		"vscode": "^1.6.1"
-	},
-	"categories": [
-		"Languages",
-		"Other"
-	],
-	"icon": "images/angular.png",
-	"galleryBanner": {
-		"color": "#0273D4",
-		"theme": "dark"
-	},
-	"activationEvents": [
-		"onLanguage:html"
-	],
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/ipatalas/ngComponentUtility"
-	},
-	"main": "./out/src/extension",
-	"contributes": {
-		"commands": [
-			{
-				"command": "extension.refreshAngularComponents",
-				"title": "Refresh Components Cache"
-			}
-		],
-		"configuration": {
-			"type": "object",
-			"properties": {
-				"ngComponents.componentGlobs": {
-					"type": [
-						"array",
-						"string"
-					],
-					"default": ["**/*Component.ts"],
-					"description": "glob string used to search for files with components"
-				},
-				"ngComponents.controllerGlobs": {
-					"type": [
-						"array",
-						"string"
-					],
-					"default": ["**/*Controller.ts"],
-					"description": "glob string used to search for files with controllers"
-				},
-				"ngComponents.goToDefinition": {
-					"type": [
-						"array",
-						"string"
-					],
-					"default": ["template", "controller"],
-					"uniqueItems": true,
-					"description": "Specify which parts of the component should the Go To Definition action show"
-				}
-			}
-		}
-	},
-	"scripts": {
-		"vscode:prepublish": "tsc -p ./",
-		"compile": "tsc -watch -p ./",
-		"postinstall": "node ./node_modules/vscode/bin/install"
-	},
-	"devDependencies": {
-		"@types/decamelize": "0.0.30",
-		"@types/glob": "^5.0.30",
-		"@types/lodash": "^4.14.38",
-		"@types/mocha": "^2.2.32",
-		"@types/node": "^6.0.46",
-		"mocha": "^3.1.2",
-		"typescript": "^2.0.3",
-		"vscode": "^1.0.3"
-	},
-	"dependencies": {
-		"decamelize": "^1.2.0",
-		"glob": "^7.1.1",
-		"lodash": "^4.16.6",
-		"typescript": "^2.0.9"
-	}
+  "name": "vscode-angular-components-intellisense",
+  "displayName": "ng1.5 components utility",
+  "description": "Angular 1.5 components utility",
+  "author": "Ireneusz Patalas",
+  "license": "MIT",
+  "version": "0.2.1",
+  "publisher": "ipatalas",
+  "preview": true,
+  "contributors": [
+    "Ireneusz Patalas",
+    "Kamil Haładus"
+  ],
+  "engines": {
+    "vscode": "^1.6.1"
+  },
+  "categories": [
+    "Languages",
+    "Other"
+  ],
+  "icon": "images/angular.png",
+  "galleryBanner": {
+    "color": "#0273D4",
+    "theme": "dark"
+  },
+  "activationEvents": [
+    "onLanguage:html"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ipatalas/ngComponentUtility"
+  },
+  "main": "./out/src/extension",
+  "contributes": {
+    "commands": [
+      {
+        "command": "extension.refreshAngularComponents",
+        "title": "Refresh Components Cache"
+      }
+    ],
+    "configuration": {
+      "type": "object",
+      "properties": {
+        "ngComponents.componentGlobs": {
+          "type": [
+            "array",
+            "string"
+          ],
+          "default": [
+            "**/*Component.ts"
+          ],
+          "description": "glob string used to search for files with components"
+        },
+        "ngComponents.controllerGlobs": {
+          "type": [
+            "array",
+            "string"
+          ],
+          "default": [
+            "**/*Controller.ts"
+          ],
+          "description": "glob string used to search for files with controllers"
+        },
+        "ngComponents.goToDefinition": {
+          "type": [
+            "array",
+            "string"
+          ],
+          "default": [
+            "template",
+            "controller"
+          ],
+          "uniqueItems": true,
+          "description": "Specify which parts of the component should the Go To Definition action show"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "tsc -p ./",
+    "compile": "tsc -watch -p ./",
+    "postinstall": "node ./node_modules/vscode/bin/install"
+  },
+  "devDependencies": {
+    "@types/decamelize": "0.0.30",
+    "@types/glob": "^5.0.30",
+    "@types/lodash": "^4.14.40",
+    "@types/mocha": "^2.2.33",
+    "@types/node": "^6.0.51",
+    "mocha": "^3.2.0",
+    "typescript": "^2.0.10",
+    "vscode": "^1.0.3"
+  },
+  "dependencies": {
+    "decamelize": "^1.2.0",
+    "glob": "^7.1.1",
+    "lodash": "^4.17.2",
+    "typescript": "^2.0.9"
+  }
 }
