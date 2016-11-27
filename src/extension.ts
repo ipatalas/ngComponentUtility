@@ -8,15 +8,20 @@ import { SourceFile } from './utils/sourceFile';
 import { SourceFilesScanner } from './utils/sourceFilesScanner';
 import { CompletionProvider } from './completionProvider';
 import { GoToDefinitionProvider } from './definitionProvider';
+import { overrideConsole, revertConsole } from './utils/vsc';
 
 const HTML_DOCUMENT_SELECTOR: vsc.DocumentSelector = 'html';
 
 const completionProvider = new CompletionProvider();
 const definitionProvider = new GoToDefinitionProvider();
 const scanner = new SourceFilesScanner();
-let statusBar = vsc.window.createStatusBarItem(vsc.StatusBarAlignment.Left);
+const statusBar = vsc.window.createStatusBarItem(vsc.StatusBarAlignment.Left);
+const debugChannel = vsc.window.createOutputChannel("ng1.5 components utility - debug");
 
 export async function activate(context: vsc.ExtensionContext) {
+	context.subscriptions.push(debugChannel);
+	refreshDebugConsole();
+
 	try {
 		scanner.init(vsc.workspace.rootPath);
 
@@ -32,6 +37,10 @@ export async function activate(context: vsc.ExtensionContext) {
 		});
 	}));
 
+	context.subscriptions.push(vsc.workspace.onDidChangeConfiguration(() => {
+		refreshDebugConsole();
+	}));
+
 	context.subscriptions.push(vsc.languages.registerCompletionItemProvider(HTML_DOCUMENT_SELECTOR, completionProvider, '<'));
 	context.subscriptions.push(vsc.languages.registerDefinitionProvider(HTML_DOCUMENT_SELECTOR, definitionProvider));
 
@@ -40,6 +49,16 @@ export async function activate(context: vsc.ExtensionContext) {
 	statusBar.show();
 
 	context.subscriptions.push(statusBar);
+}
+
+const refreshDebugConsole = () => {
+	const debugConsoleEnabled = <boolean>vsc.workspace.getConfiguration("ngComponents").get("debugConsole");
+	if (debugConsoleEnabled) {
+		overrideConsole(debugChannel);
+	} else {
+		revertConsole();
+		debugChannel.hide();
+	}
 }
 
 const refreshComponents = async (): Promise<void> => {
