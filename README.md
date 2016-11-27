@@ -11,9 +11,7 @@ Do not hesitate to [report](https://github.com/KamoHaladus/VSC-Hakaton/issues) a
 
 Please note that the configuration key has been changed from `ngIntelliSense.componentGlob` to `ngComponents.componentGlobs`. Sorry for inconvenience.
 
-## Features
-
-### 1. Intellisense
+## Intellisense
 
 Given the following components in a project:
 ```TypeScript
@@ -49,18 +47,45 @@ You can trigger the command from command panel, it's called `Refresh components 
 
 ![Status bar button](images/statusbar.png)
 
-### 2. Go To definition
+## Go To definition
 
-You can go from html directly to the component being used. Just use F12 (default) or `Go To Definition` command (either from context menu or commands panel) when cursor is focused on a component.
-It will go straight to the component definition file.
+You can go from html directly to either the component definition, controller or template. Just use F12 (default) or `Go To Definition` command (either from context menu or commands panel) when cursor is focused on a component in html view.
+Depending on the configuration in `ngComponents.goToDefinition` specific files will show up in Go To Definition window (see screenshot below).
+If there is only one file configured, let's say the template, it will go straight to this file.
+
+### Controllers
+
+Controllers are searched using `ngComponents.controllerGlobs` setting. They are matched against the name used in component options `controller` field.
+This can be either an identifier of the class used directly or string literal specifying the name of the controller registration in Angular which basically means one can name the Angular controller differently than the class itself and this feature will still work.
+
+### Templates
+
+Templates are search based on either the `templateUrl` component option field or `template` field in the same component. They are mutually exclusive and both work here. Currently supported variations are:
+
+- `templateUrl: 'components/exampleComponent.html'`
+- `template: '<div>inline html template</div>'`
+- `template: require('./components/exampleComponent.html')`
+
+In case you have different scenarios please let me know the details and I'll try to include it in next version.
+
+![Go To Definition](images/gotodefinition.gif)
 
 ## Configuration
 
 This plugin contributes the following [settings](https://code.visualstudio.com/docs/customization/userandworkspace):
 
 - `ngComponents.componentGlobs`: array of glob strings used to search for components. Default value is  **[\*\*/\*Component.ts]**
+- `ngComponents.controllerGlobs`: array of glob strings used to search for controllers (used for `Go To Definition`). Default value is  **[\*\*/\*Component.ts]**
+- `ngComponents.goToDefinition`: array of strings to define which files `Go To Definition` for a component should show. Allowed values are *template*, *controller*, *component*. Default value is **["template", "controller"]**
+- `ngComponents.debugConsole`: boolean value to show debug information. Default value is **false**
 
-### Performance note on `ngComponents.componentGlobs`
+## Commands:
+
+This extension contributes the following commands to the Command palette.
+
+- `Refresh Components Cache`: refreshes components cache on demand
+
+## Performance note on `ngComponents.componentGlobs` and `ngComponents.controllerGlobs`
 
 Please use as specific globs as possible. Parsing files is only a fraction of the whole process.
 Vast majority of time is consumed on "globbing" for files to be processed so the more precise the globs are the better performance you can expect.
@@ -75,14 +100,14 @@ The bigger the project the greater the impact so in general it is better to use 
 The following features are planned:
 - ~~ability to specify multiple globs in configuration~~
 - **Find all references** for components in html view
-- **Go to definition** for components in html view (*mostly implemented*)
-	- ability to pick which file to open if possible (view, component or controller)
-	- should work for both the component and it's attributes/bindings
+- ~~**Go to definition** for components in html view~~
+	- ~~ability to pick which file to open if possible (view, component or controller)~~
+	- ~~should work for both the component and it's attributes/bindings~~
 - auto refresh components when they change (reload only the one that has changed)
 - refresh all when configuration changes (glob for example)
 - feature flags to disable specific functions
 - rename component feature - update all usages
 - ~~rethink the way components are parsed (component config is not a JSON, might contain incompatible stuff)~~
-	- `controller` field does not necessarily is a string, may be a class name directly
-	- `template` field may `require` a file instead of hardcoding it in the component
-	- make sure both TypeScript and bare JS are supported (currently we focus on TS cause it's what we use currently)
+	- ~~`controller` field does not necessarily is a string, may be a class name directly~~
+	- ~~`template` field may `require` a file instead of hardcoding it in the component~~
+	- make sure both TypeScript and bare JS are supported (currently we focus on TS cause it's what we use)

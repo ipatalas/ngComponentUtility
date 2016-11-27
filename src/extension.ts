@@ -59,7 +59,7 @@ const refreshDebugConsole = () => {
 		revertConsole();
 		debugChannel.hide();
 	}
-}
+};
 
 const refreshComponents = async (): Promise<void> => {
 	const config = vsc.workspace.getConfiguration("ngComponents");

@@ -44,6 +44,10 @@
 			"check-module",
 			"check-separator",
 			"check-type"
+		],
+		"arrow-parens": false,
+		"ordered-imports": [
+			false
 		]
 	}
 }
