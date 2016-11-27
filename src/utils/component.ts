@@ -51,42 +51,38 @@ ${e}`.trim());
 					let componentName = <ts.StringLiteral>call.arguments[0];
 					let componentConfigObj = <ts.ObjectLiteralExpression>call.arguments[1];
 
-					let component = new Component();
-					component.name = componentName.text;
-					component.pos = file.sourceFile.getLineAndCharacterOfPosition(componentName.pos);
-
-					let bindingsObj = findProperty(componentConfigObj, 'bindings');
-					if (bindingsObj) {
-						let bindingsProps = <ts.ObjectLiteralExpression>bindingsObj.initializer;
-						component.bindings.push(...bindingsProps.properties.map(createBinding));
-					}
-
-					let templateUrlObj = findProperty(componentConfigObj, 'templateUrl');
-					if (templateUrlObj) {
-						component.template = createTemplateFromUrl(templateUrlObj);
-					} else {
-						let templateObj = findProperty(componentConfigObj, 'template');
-						if (templateObj) {
-							component.template = createTemplate(templateObj);
-						}
-					}
-
-					if (controllers && controllers.length > 0) {
-						let ctrlObj = findProperty(componentConfigObj, 'controller');
-						if (ctrlObj) {
-							component.controller = createController(ctrlObj);
-							if (!component.controller) {
-								// tslint:disable-next-line:no-console
-								console.log(`Didn't find controller for ${component.name}`);
-							}
-						}
-					}
-
-					results.push(component);
+					results.push(createComponent(componentName, componentConfigObj));
 				}
 			} else {
 				node.getChildren().forEach(c => visitAllChildren(c));
 			}
+		}
+
+		function createComponent(componentName: ts.StringLiteral, configObj: ts.ObjectLiteralExpression) {
+			let component = new Component();
+			component.name = componentName.text;
+			component.pos = file.sourceFile.getLineAndCharacterOfPosition(componentName.pos);
+
+			let bindingsObj = findProperty(configObj, 'bindings');
+			if (bindingsObj) {
+				let bindingsProps = <ts.ObjectLiteralExpression>bindingsObj.initializer;
+				component.bindings.push(...bindingsProps.properties.map(createBinding));
+			}
+
+			component.template = createTemplateFromUrl(findProperty(configObj, 'templateUrl'));
+			if (!component.template) {
+				component.template = createTemplate(findProperty(configObj, 'template'));
+			}
+
+			if (controllers && controllers.length > 0) {
+				component.controller = createController(findProperty(configObj, 'controller'));
+				if (!component.controller) {
+					// tslint:disable-next-line:no-console
+					console.log(`Didn't find controller for ${component.name}`);
+				}
+			}
+
+			return component;
 		}
 
 		function findProperty(obj: ts.ObjectLiteralExpression, name: string) {
@@ -94,6 +90,10 @@ ${e}`.trim());
 		}
 
 		function createController(node: ts.PropertyAssignment): Controller {
+			if (!node) {
+				return undefined;
+			}
+
 			if (node.initializer.kind === ts.SyntaxKind.StringLiteral) {
 				return controllers.find(c => c.name === (<ts.StringLiteral>node.initializer).text);
 			} else if (node.initializer.kind === ts.SyntaxKind.Identifier) {
@@ -102,6 +102,10 @@ ${e}`.trim());
 		}
 
 		function createTemplate(node: ts.PropertyAssignment): IComponentTemplate {
+			if (!node) {
+				return undefined;
+			}
+
 			if (node.initializer.kind === ts.SyntaxKind.StringLiteral || node.initializer.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral) {
 				const pos = file.sourceFile.getLineAndCharacterOfPosition(node.initializer.pos);
 
@@ -113,16 +117,20 @@ ${e}`.trim());
 					const relativePath = (<ts.StringLiteral>call.arguments[0]).text;
 					const templatePath = path.join(path.dirname(file.path), relativePath);
 
-					return <IComponentTemplate>{ path: templatePath, pos: { line: 0, character: 0 }};
+					return <IComponentTemplate>{ path: templatePath, pos: { line: 0, character: 0 } };
 				}
 			}
 		}
 
 		function createTemplateFromUrl(node: ts.PropertyAssignment) {
+			if (!node) {
+				return undefined;
+			}
+
 			let value = <ts.StringLiteral>node.initializer;
 			let templatePath = path.join(workspaceRoot, value.text);
 
-			return <IComponentTemplate>{ path: templatePath, pos: { line: 0, character: 0 }};
+			return <IComponentTemplate>{ path: templatePath, pos: { line: 0, character: 0 } };
 		}
 
 		function createBinding(node: ts.PropertyAssignment): IComponentBinding {
