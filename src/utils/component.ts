@@ -78,7 +78,7 @@ ${e}`.trim());
 				component.controller = createController(findProperty(configObj, 'controller'));
 				if (!component.controller) {
 					// tslint:disable-next-line:no-console
-					console.log(`Didn't find controller for ${component.name}`);
+					console.log(`Controller for ${component.name} is not defined`);
 				}
 			}
 

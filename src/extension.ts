@@ -8,7 +8,7 @@ import { SourceFile } from './utils/sourceFile';
 import { SourceFilesScanner } from './utils/sourceFilesScanner';
 import { CompletionProvider } from './completionProvider';
 import { GoToDefinitionProvider } from './definitionProvider';
-import { overrideConsole, revertConsole } from './utils/vsc';
+import { overrideConsole, revertConsole, ConfigurationChangeListener, IConfigurationChangedEvent } from './utils/vsc';
 
 const HTML_DOCUMENT_SELECTOR: vsc.DocumentSelector = 'html';
 
@@ -18,8 +18,11 @@ const scanner = new SourceFilesScanner();
 const statusBar = vsc.window.createStatusBarItem(vsc.StatusBarAlignment.Left);
 const debugChannel = vsc.window.createOutputChannel("ng1.5 components utility - debug");
 
+const configListener = new ConfigurationChangeListener("ngComponents");
+
 export async function activate(context: vsc.ExtensionContext) {
 	context.subscriptions.push(debugChannel);
+	context.subscriptions.push(configListener);
 	refreshDebugConsole();
 
 	try {
@@ -37,8 +40,14 @@ export async function activate(context: vsc.ExtensionContext) {
 		});
 	}));
 
-	context.subscriptions.push(vsc.workspace.onDidChangeConfiguration(() => {
-		refreshDebugConsole();
+	context.subscriptions.push(configListener.onDidChange((change: IConfigurationChangedEvent) => {
+		if (change.hasChanged("debugConsole")) {
+			refreshDebugConsole(change.config);
+		}
+
+		if (change.hasChanged("controllerGlobs", "componentGlobs")) {
+			vsc.commands.executeCommand("extension.refreshAngularComponents");
+		}
 	}));
 
 	context.subscriptions.push(vsc.languages.registerCompletionItemProvider(HTML_DOCUMENT_SELECTOR, completionProvider, '<'));
@@ -51,8 +60,10 @@ export async function activate(context: vsc.ExtensionContext) {
 	context.subscriptions.push(statusBar);
 }
 
-const refreshDebugConsole = () => {
-	const debugConsoleEnabled = <boolean>vsc.workspace.getConfiguration("ngComponents").get("debugConsole");
+const refreshDebugConsole = (config?: vsc.WorkspaceConfiguration) => {
+	config = config || vsc.workspace.getConfiguration("ngComponents");
+
+	const debugConsoleEnabled = <boolean>config.get("debugConsole");
 	if (debugConsoleEnabled) {
 		overrideConsole(debugChannel);
 	} else {
@@ -61,8 +72,9 @@ const refreshDebugConsole = () => {
 	}
 };
 
-const refreshComponents = async (): Promise<void> => {
-	const config = vsc.workspace.getConfiguration("ngComponents");
+const refreshComponents = async (config?: vsc.WorkspaceConfiguration): Promise<void> => {
+	config = config || vsc.workspace.getConfiguration("ngComponents");
+
 	const componentParts = <string[]>config.get("goToDefinition");
 	const searchForControllers = componentParts.some(p => p === "controller");
 
