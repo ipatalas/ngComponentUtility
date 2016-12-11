@@ -73,11 +73,11 @@
           "uniqueItems": true,
           "description": "Specify which parts of the component should the Go To Definition action show"
         },
-		"ngComponents.debugConsole": {
-			"type": "boolean",
-			"default": false,
-			"description": "Set to true to enable debug console"
-		}
+        "ngComponents.debugConsole": {
+          "type": "boolean",
+          "default": false,
+          "description": "Set to true to enable debug console"
+        }
       }
     }
   },
@@ -85,7 +85,7 @@
     "vscode:prepublish": "tsc -p ./",
     "compile": "tsc -watch -p ./",
     "postinstall": "node ./node_modules/vscode/bin/install",
-	"test": "node ./node_modules/vscode/bin/test"
+    "test": "node ./node_modules/vscode/bin/test"
   },
   "devDependencies": {
     "@types/decamelize": "0.0.30",
@@ -99,6 +99,7 @@
   },
   "dependencies": {
     "decamelize": "^1.2.0",
+    "gaze": "^1.1.2",
     "glob": "^7.1.1",
     "lodash": "^4.17.2",
     "typescript": "^2.0.9"
