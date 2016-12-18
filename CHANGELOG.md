@@ -1,5 +1,10 @@
 # Change Log
 
+## 0.3.1 (December 18, 2016)
+
+* Components cache is now automatically rebuilt when files change
+* Components are refreshed when glob in configuration changes
+
 ## 0.3.0 (November 27, 2016)
 
 * Major improvements for Go To Definition feature:

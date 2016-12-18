@@ -83,6 +83,8 @@ This plugin contributes the following [settings](https://code.visualstudio.com/d
 - `ngComponents.goToDefinition`: array of strings to define which files `Go To Definition` for a component should show. Allowed values are *template*, *controller*, *component*. Default value is **["template", "controller"]**
 - `ngComponents.debugConsole`: boolean value to show debug information. Default value is **false**
 
+Whenever one of the globs changes components cache is automatically rebuilt. Additionally all component files are monitored for changes and they will be reflected immediately, ie. after adding a binding you can just save the file and go straight to template file to use that binding.
+
 ## Commands:
 
 This extension contributes the following commands to the Command palette.
@@ -107,8 +109,8 @@ The following features are planned:
 - ~~**Go to definition** for components in html view~~
 	- ~~ability to pick which file to open if possible (view, component or controller)~~
 	- ~~should work for both the component and it's attributes/bindings~~
-- auto refresh components when they change (reload only the one that has changed)
-- refresh all when configuration changes (glob for example)
+- ~~auto refresh components when they change (reload only the one that has changed)~~
+- ~~refresh all when configuration changes (glob for example)~~
 - feature flags to disable specific functions
 - rename component feature - update all usages
 - ~~rethink the way components are parsed (component config is not a JSON, might contain incompatible stuff)~~
