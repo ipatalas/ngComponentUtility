@@ -47,14 +47,18 @@ ${e}`.trim());
 			if (node.kind === ts.SyntaxKind.CallExpression) {
 				let call = <ts.CallExpression>node;
 
-				if ((call.expression as ts.PropertyAccessExpression).name.text === 'component' && call.arguments.length === 2) {
+				if (call.expression.kind === ts.SyntaxKind.PropertyAccessExpression
+					&& (call.expression as ts.PropertyAccessExpression).name.text === 'component'
+					&& call.arguments.length === 2) {
 					let componentName = <ts.StringLiteral>call.arguments[0];
 					let componentConfigObj = <ts.ObjectLiteralExpression>call.arguments[1];
 
 					results.push(createComponent(componentName, componentConfigObj));
+				} else {
+					call.getChildren().forEach(visitAllChildren);
 				}
 			} else {
-				node.getChildren().forEach(c => visitAllChildren(c));
+				node.getChildren().forEach(visitAllChildren);
 			}
 		}
 

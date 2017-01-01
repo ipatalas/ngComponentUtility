@@ -12,7 +12,7 @@ const getTestFilePath = (filename: string) => path.join(TEST_FILES_ROOT, filenam
 
 describe('Give Component class', () => {
 	describe('when calling parse in AST mode', () => {
-		let files = ['component_simple.ts', 'component_comments.ts'];
+		let files = ['component_simple.ts', 'component_comments.ts', 'test.component.js'];
 
 		testFiles(files);
 	});
