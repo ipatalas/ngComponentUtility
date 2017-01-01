@@ -36,7 +36,15 @@ Please report this as a bug and include failing controller if possible (remove o
 		return results;
 
 		function visitAllChildren(node: ts.Node) {
-			if (node.kind === ts.SyntaxKind.ClassDeclaration) {
+			if (node.kind === ts.SyntaxKind.FunctionDeclaration) {
+				let functionDeclaration = <ts.FunctionDeclaration>node;
+
+				let controller = new Controller();
+				controller.name = controller.className = functionDeclaration.name.text;
+				controller.pos = sourceFile.getLineAndCharacterOfPosition(functionDeclaration.name.pos);
+
+				results.push(controller);
+			} else if (node.kind === ts.SyntaxKind.ClassDeclaration) {
 				let classDeclaration = <ts.ClassDeclaration>node;
 
 				let controller = new Controller();
@@ -46,21 +54,26 @@ Please report this as a bug and include failing controller if possible (remove o
 				results.push(controller);
 			} else if (node.kind === ts.SyntaxKind.CallExpression) {
 				const call = <ts.CallExpression>node;
-				const module = (<ts.PropertyAccessExpression>call.expression).expression.getText();
 
-				if (ANGULAR_MODULE.test(module) && (call.expression as ts.PropertyAccessExpression).name.text === 'controller' && call.arguments.length === 2) {
-					let controllerName = <ts.StringLiteral>call.arguments[0];
-					let controllerIdentifier = <ts.Identifier>call.arguments[1];
+				if (call.expression.kind === ts.SyntaxKind.PropertyAccessExpression) {
+					const module = (<ts.PropertyAccessExpression>call.expression).expression.getText();
 
-					if (controllerName.text !== controllerIdentifier.text) {
-						let ctrl = results.find(c => c.className === controllerIdentifier.text);
-						if (ctrl) {
-							ctrl.name = controllerName.text;
+					if (ANGULAR_MODULE.test(module) && (call.expression as ts.PropertyAccessExpression).name.text === 'controller' && call.arguments.length === 2) {
+						let controllerName = <ts.StringLiteral>call.arguments[0];
+						let controllerIdentifier = <ts.Identifier>call.arguments[1];
+
+						if (controllerName.text !== controllerIdentifier.text) {
+							let ctrl = results.find(c => c.className === controllerIdentifier.text);
+							if (ctrl) {
+								ctrl.name = controllerName.text;
+							}
 						}
 					}
+				} else {
+					node.getChildren().forEach(visitAllChildren);
 				}
 			} else {
-				node.getChildren().forEach(c => visitAllChildren(c));
+				node.getChildren().forEach(visitAllChildren);
 			}
 		}
 	}
