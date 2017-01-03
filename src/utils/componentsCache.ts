@@ -8,7 +8,7 @@ import { SourceFile } from './sourceFile';
 import { SourceFilesScanner } from './sourceFilesScanner';
 
 // tslint:disable-next-line:no-var-requires
-const Gaze = require("gaze").Gaze;
+const gaze = require("gaze");
 
 export class ComponentsCache {
 	private scanner = new SourceFilesScanner();
@@ -28,7 +28,7 @@ export class ComponentsCache {
 			this.watcher.close(true);
 		}
 
-		this.watcher = new Gaze(globs, { cwd: vsc.workspace.rootPath });
+		this.watcher = new gaze.Gaze(globs, { cwd: vsc.workspace.rootPath });
 		this.watcher.on('renamed', this.onRename);
 		this.watcher.on('added', this.onAdded);
 		this.watcher.on('changed', this.onChanged);
