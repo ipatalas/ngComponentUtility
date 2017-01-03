@@ -1,5 +1,12 @@
 # Change Log
 
+## 0.3.2 (January 3, 2017)
+
+* Fixed issue #1 - component parsing didn't work with components inside anonymous closure
+* Controller parsing improvements:
+	* Added support for function controllers (pure JS projects)
+	* Fixed #1 bug for controllers as well
+
 ## 0.3.1 (December 18, 2016)
 
 * Components cache is now automatically rebuilt when files change

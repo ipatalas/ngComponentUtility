@@ -111,6 +111,8 @@ The following features are planned:
 	- ~~should work for both the component and it's attributes/bindings~~
 - ~~auto refresh components when they change (reload only the one that has changed)~~
 - ~~refresh all when configuration changes (glob for example)~~
+- optimize parsing files, especially when component and controller globs have common files
+	- careful to clear cache after entire scan, will need refactoring on file scanner first
 - feature flags to disable specific functions
 - rename component feature - update all usages
 - ~~rethink the way components are parsed (component config is not a JSON, might contain incompatible stuff)~~
