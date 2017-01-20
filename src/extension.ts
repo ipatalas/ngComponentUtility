@@ -4,6 +4,7 @@ import * as vsc from 'vscode';
 
 import { ComponentsCache } from './utils/componentsCache';
 import { CompletionProvider } from './completionProvider';
+import { BindingProvider } from './bindingProvider';
 import { GoToDefinitionProvider } from './definitionProvider';
 import { overrideConsole, revertConsole, ConfigurationChangeListener, IConfigurationChangedEvent } from './utils/vsc';
 
@@ -11,6 +12,7 @@ const HTML_DOCUMENT_SELECTOR: vsc.DocumentSelector = 'html';
 const COMMAND_REFRESHCOMPONENTS: string = 'extension.refreshAngularComponents';
 
 const completionProvider = new CompletionProvider();
+const bindingProvider = new BindingProvider();
 const definitionProvider = new GoToDefinitionProvider();
 const statusBar = vsc.window.createStatusBarItem(vsc.StatusBarAlignment.Left);
 const debugChannel = vsc.window.createOutputChannel("ng1.5 components utility - debug");
@@ -48,6 +50,7 @@ export async function activate(context: vsc.ExtensionContext) {
 	}));
 
 	context.subscriptions.push(vsc.languages.registerCompletionItemProvider(HTML_DOCUMENT_SELECTOR, completionProvider, '<'));
+	context.subscriptions.push(vsc.languages.registerCompletionItemProvider(HTML_DOCUMENT_SELECTOR, bindingProvider, ','));
 	context.subscriptions.push(vsc.languages.registerDefinitionProvider(HTML_DOCUMENT_SELECTOR, definitionProvider));
 
 	statusBar.tooltip = 'Refresh Angular components';
@@ -72,6 +75,7 @@ const refreshDebugConsole = (config?: vsc.WorkspaceConfiguration) => {
 const refreshComponents = async (config?: vsc.WorkspaceConfiguration): Promise<void> => {
 	return componentsCache.refresh(config).then(components => {
 		completionProvider.loadComponents(components);
+		bindingProvider.loadComponents(components);
 		definitionProvider.loadComponents(components);
 
 		statusBar.text = `$(sync) ${components.length} components`;
