@@ -13,6 +13,7 @@ export class Component {
 	public pos: ts.LineAndCharacter;
 	public template: IComponentTemplate;
 	public controller: Controller;
+	public controllerAs: string;
 
 	public static parse(file: SourceFile, controllers: Controller[]): Promise<Component[]> {
 		return new Promise<Component[]>((resolve, _reject) => {
@@ -77,6 +78,8 @@ ${e}`.trim());
 			if (!component.template) {
 				component.template = createTemplate(findProperty(configObj, 'template'));
 			}
+
+			component.controllerAs = createControllerAlias(findProperty(configObj, 'controllerAs'));
 
 			if (controllers && controllers.length > 0) {
 				component.controller = createController(findProperty(configObj, 'controller'));
@@ -145,6 +148,15 @@ ${e}`.trim());
 			binding.pos = file.sourceFile.getLineAndCharacterOfPosition(node.initializer.pos);
 
 			return binding;
+		}
+
+		function createControllerAlias(node: ts.PropertyAssignment): string {
+			if (!node) {
+				return '$ctrl';
+			}
+
+			let value = <ts.StringLiteral>node.initializer;
+			return value.text;
 		}
 	}
 }

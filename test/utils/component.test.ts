@@ -15,6 +15,24 @@ describe('Give Component class', () => {
 		let files = ['component_simple.ts', 'component_comments.ts', 'test.component.js'];
 
 		testFiles(files);
+
+		it('and controllerAs property exists then controller alias is set', async () =>{
+			let path = getTestFilePath('component_ctrlAlias.ts');
+			let sourceFile = ts.createSourceFile('component_ctrlAlias.ts', fs.readFileSync(path, 'utf8'), ts.ScriptTarget.ES5, true);
+
+			let component = await Component.parse({ path, sourceFile }, []);
+
+			assert.equal(component[0].controllerAs, 'vm');
+		});
+
+		it('and controllerAs property does not exist then default controller alias is set', async () =>{
+			let path = getTestFilePath('component_noCtrlAlias.ts');
+			let sourceFile = ts.createSourceFile('component_noCtrlAlias.ts', fs.readFileSync(path, 'utf8'), ts.ScriptTarget.ES5, true);
+
+			let component = await Component.parse({ path, sourceFile }, []);
+
+			assert.equal(component[0].controllerAs, '$ctrl');
+		});
 	});
 });
 
