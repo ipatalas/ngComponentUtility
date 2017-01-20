@@ -29,7 +29,7 @@
 		],
 		"max-line-length": [
 			true,
-			150
+			170
 		],
 		"object-literal-sort-keys": false,
 		"trailing-comma": false,

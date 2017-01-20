@@ -16,7 +16,7 @@ describe('Give Component class', () => {
 
 		testFiles(files);
 
-		it('and controllerAs property exists then controller alias is set', async () =>{
+		it('and controllerAs property exists then controller alias is set', async () => {
 			let path = getTestFilePath('component_ctrlAlias.ts');
 			let sourceFile = ts.createSourceFile('component_ctrlAlias.ts', fs.readFileSync(path, 'utf8'), ts.ScriptTarget.ES5, true);
 
@@ -25,7 +25,7 @@ describe('Give Component class', () => {
 			assert.equal(component[0].controllerAs, 'vm');
 		});
 
-		it('and controllerAs property does not exist then default controller alias is set', async () =>{
+		it('and controllerAs property does not exist then default controller alias is set', async () => {
 			let path = getTestFilePath('component_noCtrlAlias.ts');
 			let sourceFile = ts.createSourceFile('component_noCtrlAlias.ts', fs.readFileSync(path, 'utf8'), ts.ScriptTarget.ES5, true);
 
