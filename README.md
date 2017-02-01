@@ -111,11 +111,15 @@ The following features are planned:
 	- ~~should work for both the component and it's attributes/bindings~~
 - ~~auto refresh components when they change (reload only the one that has changed)~~
 - ~~refresh all when configuration changes (glob for example)~~
+- basic intellisense for view model used in html files (at least first level)
+- Go To Definition for view model properties/methods (at least first level)
+- ability to add binding from component usage in html (by typing it's name and selecting "Add binding" from intellisense menu or command)
+- rename component feature - update all usages
 - optimize parsing files, especially when component and controller globs have common files
 	- careful to clear cache after entire scan, will need refactoring on file scanner first
 - feature flags to disable specific functions
-- rename component feature - update all usages
 - ~~rethink the way components are parsed (component config is not a JSON, might contain incompatible stuff)~~
 	- ~~`controller` field does not necessarily is a string, may be a class name directly~~
 	- ~~`template` field may `require` a file instead of hardcoding it in the component~~
 	- make sure both TypeScript and bare JS are supported (currently we focus on TS cause it's what we use)
+- add support for Angular2 (perhaps as a separate extension)
