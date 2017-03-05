@@ -1,5 +1,8 @@
 import * as ts from "typescript";
-import { SourceFile } from './sourceFile';
+import { SourceFile } from '../sourceFile';
+import { IMember } from './member';
+import { ClassMethod } from './method';
+import { ClassProperty } from './property';
 
 const ANGULAR_MODULE = /^angular\s*\.\s*module\((['"])[^'"]*\1\)$/i;
 
@@ -8,6 +11,7 @@ export class Controller {
 	public className: string;
 	public path: string;
 	public pos: ts.LineAndCharacter;
+	public members: IMember[];
 
 	public static parse(file: SourceFile): Promise<Controller[]> {
 		return new Promise<Controller[]>((resolve, _reject) => {
@@ -50,6 +54,7 @@ Please report this as a bug and include failing controller if possible (remove o
 				let controller = new Controller();
 				controller.name = controller.className = classDeclaration.name.text;
 				controller.pos = sourceFile.getLineAndCharacterOfPosition(classDeclaration.members.pos);
+				controller.members = classDeclaration.members.map(createMember).filter(item => item); // filter out undefined (not implemented member types)
 
 				results.push(controller);
 			} else if (node.kind === ts.SyntaxKind.CallExpression) {
@@ -74,6 +79,22 @@ Please report this as a bug and include failing controller if possible (remove o
 				}
 			} else {
 				node.getChildren().forEach(visitAllChildren);
+			}
+		}
+
+		function createMember(member: ts.ClassElement) {
+			if (member.kind === ts.SyntaxKind.MethodDeclaration) {
+				return ClassMethod.fromNode(<ts.MethodDeclaration>member);
+			} else if (member.kind === ts.SyntaxKind.GetAccessor) {
+				return ClassProperty.fromProperty(<ts.GetAccessorDeclaration>member);
+			} else if (member.kind === ts.SyntaxKind.PropertyDeclaration) {
+				let prop = <ts.PropertyDeclaration>member;
+
+				if (prop.initializer && prop.initializer.kind === ts.SyntaxKind.ArrowFunction) {
+					return ClassMethod.fromNode(prop);
+				} else {
+					return ClassProperty.fromProperty(prop);
+				}
 			}
 		}
 	}

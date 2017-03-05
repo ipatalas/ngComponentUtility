@@ -4,7 +4,9 @@ import * as ts from "typescript";
 import * as fs from 'fs';
 import * as _ from 'lodash';
 
-import { Controller } from '../../src/utils/controller';
+import { Controller } from '../../src/utils/controller/controller';
+import { MemberBase, MemberType } from "../../src/utils/controller/member";
+import { ClassMethod } from "../../src/utils/controller/method";
 
 const TEST_FILES_ROOT = path.join(__dirname, '../../../test/test_files');
 
@@ -36,8 +38,46 @@ describe('Give Controller class', () => {
 		}];
 
 		testFiles(testCases);
+
+		it("with controller with members then all members are properly parsed", async () => {
+			let path = getTestFilePath('controller_members.ts');
+			let sourceFile = ts.createSourceFile('controller_members.ts', fs.readFileSync(path, 'utf8'), ts.ScriptTarget.ES5, true);
+
+			let ctrl = (await Controller.parse({ path, sourceFile }))[0];
+
+			let members = ctrl.members.map(m => <MemberBase>m);
+
+			assertField(members, 'privateField', 'string', false);
+			assertField(members, 'publicField', 'string', true);
+			assertField(members, 'implicitlyPublicField', 'string', true);
+			assertField(members, 'customType', 'IReturnType', true);
+
+			assertMethod(members, 'testMethod', 'number', true, [{name: 'p1', type: 'string'}]);
+			assertMethod(members, 'arrowFunction', 'number', true, [{name: 'p1', type: 'string'}, {name: 'p2', type: 'number'}]);
+		});
 	});
 });
+
+const assertField = (members: MemberBase[], name: string, returnType: string, isPublic: boolean) => assertMember(members, name, MemberType.Property, returnType, isPublic);
+
+const assertMethod = (members: MemberBase[], name: string, returnType: string, isPublic: boolean, params?: Array<{name: string, type: string}>) => {
+	let member = <ClassMethod>assertMember(members, name, MemberType.Method, returnType, isPublic);
+
+	if (params) {
+		assert.deepEqual(member.parameters, params);
+	}
+};
+
+function assertMember(members: MemberBase[], name: string, type: MemberType, returnType: string, isPublic: boolean) {
+	let member = members.find(m => m.name === name);
+	assert.notEqual(member, undefined, `Cannot find member '${name}'`);
+
+	assert.equal(member.type, type, `type for field '${name}' does not match`);
+	assert.equal(member.returnType, returnType, `returnType for field '${name}' does not match`);
+	assert.equal(member.isPublic, isPublic, `isPublic for field '${name}' does not match`);
+
+	return member;
+}
 
 function testFiles(cases: Array<{ test_file: string, expected_results: Array<{ className: string, name: string }> }>) {
 	cases.forEach(test => {

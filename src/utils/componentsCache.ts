@@ -3,7 +3,7 @@
 import * as path from 'path';
 import * as vsc from 'vscode';
 import { Component } from './component';
-import { Controller } from './controller';
+import { Controller } from './controller/controller';
 import { SourceFile } from './sourceFile';
 import { SourceFilesScanner } from './sourceFilesScanner';
 
@@ -104,7 +104,7 @@ export class ComponentsCache {
 		const searchForControllers = componentParts.some(p => p === "controller");
 
 		this.controllers = [];
-		if (searchForControllers) {
+		if (searchForControllers || true) {
 			this.controllers = await this.scanner.findFiles("controllerGlobs", Controller.parse, "Controller");
 		}
 
