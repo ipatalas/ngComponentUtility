@@ -18,7 +18,7 @@ export class SourceFile {
 
 					resolve(<SourceFile>{
 						path: filepath,
-						sourceFile: sourceFile
+						sourceFile
 					});
 				} catch (e) {
 					// tslint:disable-next-line:no-console

@@ -58,7 +58,9 @@ describe('Give Controller class', () => {
 	});
 });
 
-const assertField = (members: MemberBase[], name: string, returnType: string, isPublic: boolean) => assertMember(members, name, MemberType.Property, returnType, isPublic);
+const assertField = (members: MemberBase[], name: string, returnType: string, isPublic: boolean) => {
+	assertMember(members, name, MemberType.Property, returnType, isPublic);
+};
 
 const assertMethod = (members: MemberBase[], name: string, returnType: string, isPublic: boolean, params?: Array<{name: string, type: string}>) => {
 	let member = <ClassMethod>assertMember(members, name, MemberType.Method, returnType, isPublic);
