@@ -2,7 +2,24 @@
 [![bitHound Dependencies](https://www.bithound.io/github/ipatalas/ngComponentUtility/badges/dependencies.svg)](https://www.bithound.io/github/ipatalas/ngComponentUtility/master/dependencies/npm)
 [![bitHound Code](https://www.bithound.io/github/ipatalas/ngComponentUtility/badges/code.svg)](https://www.bithound.io/github/ipatalas/ngComponentUtility)
 
-# Angular components intellisense
+# Table of contents
+
+- [Synopsis](#synopsis)
+- [Breaking changes](#breaking-changes)
+	- [Upgrading from 0.2.0](#upgrading-from-020)
+- [Features](#features)
+	- [Intellisense](#intellisense)
+		- [Controller model in views (**new**)](#controller-model-in-views-new)
+	- [Go To definition](#go-to-definition)
+		- [Controllers](#controllers)
+		- [Templates](#templates)
+- [Configuration](#configuration)
+- [Commands](#commands)
+- [Performance note on `ngComponents.componentGlobs` and `ngComponents.controllerGlobs`](#performance-note-on-ngcomponentscomponentglobs-and-ngcomponentscontrollerglobs)
+- [Changelog](#changelog)
+- [Roadmap](#roadmap)
+
+# Synopsis
 
 This extension is a result of hackathon event done in the company we work for. We had an option to invest 2 days into anything we could possibly want.
 We chose to develop an extension for VS Code which would make our daily work easier. Our current project is an Angular 1.5 based web application. As an Angular developers we wanted to have auto-completion for all custom components that are available in our application.
@@ -14,6 +31,8 @@ Do not hesitate to [report](https://github.com/ipatalas/ngComponentUtility/issue
 ### Upgrading from 0.2.0
 
 Please note that the configuration key has been changed from `ngIntelliSense.componentGlob` to `ngComponents.componentGlobs`. Sorry for inconvenience.
+
+# Features
 
 ## Intellisense
 
@@ -51,6 +70,17 @@ You can trigger the command from command panel, it's called `Refresh components 
 
 ![Status bar button](images/statusbar.png)
 
+### Controller model in views (new)
+
+A new feature has been introduced to make working with views easier. You can now autocomplete controller member while being in component's view like seen on the screenshot below:
+
+![Model intellisense](images/model-intellisense.png)
+
+Currently only one level of intellisense is available since otherwise the extension would have to scan all files in the whole project. Controller files are already scanned so it was little effort to suggest its members.
+There is a plan to extend this in the future to allow more complex behavior but it requires some research first to find an optimal way of scanning whole project (and perhaps caching the results to speed up consequent startups).
+For now you can use this intellisense regardless of the cursor context. It works in every place in the file even though it makes no sense in some places.
+It was just much easier to implement that way. Scanning for the context would require a lot of effort and the outcome wouldn't be so much visible. It's only a tool so take care of the context yourself. It might change in future.
+
 ## Go To definition
 
 You can go from html directly to either the component definition, controller or template. Just use F12 (default) or `Go To Definition` command (either from context menu or commands panel) when cursor is focused on a component in html view.
@@ -74,7 +104,7 @@ In case you have different scenarios please let me know the details and I'll try
 
 ![Go To Definition](images/gotodefinition.gif)
 
-## Configuration
+# Configuration
 
 This plugin contributes the following [settings](https://code.visualstudio.com/docs/customization/userandworkspace):
 
@@ -82,16 +112,18 @@ This plugin contributes the following [settings](https://code.visualstudio.com/d
 - `ngComponents.controllerGlobs`: array of glob strings used to search for controllers (used for `Go To Definition`). Default value is  **[\*\*/\*Component.ts]**
 - `ngComponents.goToDefinition`: array of strings to define which files `Go To Definition` for a component should show. Allowed values are *template*, *controller*, *component*. Default value is **["template", "controller"]**
 - `ngComponents.debugConsole`: boolean value to show debug information. Default value is **false**
+- `ngComponents.controller.publicMembersOnly`: whether to suggest all members in view model auto complete. Default value is **true**
+- `ngComponents.controller.excludedMembers`: a regular expression excluding member from view model auto completion. Default value is **^\\$** (for Angular lifecycle methods)
 
 Whenever one of the globs changes components cache is automatically rebuilt. Additionally all component files are monitored for changes and they will be reflected immediately, ie. after adding a binding you can just save the file and go straight to template file to use that binding.
 
-## Commands:
+# Commands:
 
 This extension contributes the following commands to the Command palette.
 
 - `Refresh Components Cache`: refreshes components cache on demand
 
-## Performance note on `ngComponents.componentGlobs` and `ngComponents.controllerGlobs`
+# Performance note on `ngComponents.componentGlobs` and `ngComponents.controllerGlobs`
 
 Please use as specific globs as possible. Parsing files is only a fraction of the whole process.
 Vast majority of time is consumed on "globbing" for files to be processed so the more precise the globs are the better performance you can expect.
@@ -101,7 +133,11 @@ Restricting the pattern to one single subfolder (ie. **subdir/\*\*/\*Component.t
 
 The bigger the project the greater the impact so in general it is better to use multiple specific patterns rather than *one pattern to glob them all* :)
 
-## Roadmap
+# Changelog
+
+Full changelog is available [here](https://github.com/ipatalas/ngComponentUtility/blob/master/CHANGELOG.md) or in the Changelog tab from within vscode itself.
+
+# Roadmap
 
 The following features are planned:
 - ~~ability to specify multiple globs in configuration~~
@@ -111,7 +147,7 @@ The following features are planned:
 	- ~~should work for both the component and it's attributes/bindings~~
 - ~~auto refresh components when they change (reload only the one that has changed)~~
 - ~~refresh all when configuration changes (glob for example)~~
-- basic intellisense for view model used in html files (at least first level)
+- ~~basic intellisense for view model used in html files (at least first level)~~
 - Go To Definition for view model properties/methods (at least first level)
 - ability to add binding from component usage in html (by typing it's name and selecting "Add binding" from intellisense menu or command)
 - rename component feature - update all usages

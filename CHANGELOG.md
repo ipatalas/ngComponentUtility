@@ -1,5 +1,10 @@
 # Change Log
 
+## 0.4.0 (March 5, 2017)
+
+* Added intellisense for view models (controller's members inside component's view)
+* Updated Typescript to 2.2.1 to be able to parse files with all new features
+
 ## 0.3.2 (January 3, 2017)
 
 * Fixed issue #1 - component parsing didn't work with components inside anonymous closure
