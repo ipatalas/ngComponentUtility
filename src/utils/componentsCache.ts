@@ -99,14 +99,7 @@ export class ComponentsCache {
 		config = config || vsc.workspace.getConfiguration("ngComponents");
 
 		this.setupWatchers(config);
-
-		const componentParts = <string[]>config.get("goToDefinition");
-		const searchForControllers = componentParts.some(p => p === "controller");
-
-		this.controllers = [];
-		if (searchForControllers || true) {
-			this.controllers = await this.scanner.findFiles("controllerGlobs", Controller.parse, "Controller");
-		}
+		this.controllers = await this.scanner.findFiles("controllerGlobs", Controller.parse, "Controller");
 
 		const parseComponent = (src: SourceFile) => Component.parse(src, this.controllers);
 
