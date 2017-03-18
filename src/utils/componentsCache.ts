@@ -17,10 +17,6 @@ export class ComponentsCache {
 	private watcher: any;
 	private toDelete: string[] = [];
 
-	public init = () => {
-		this.scanner.init(vsc.workspace.rootPath);
-	}
-
 	private setupWatchers = (config: vsc.WorkspaceConfiguration) => {
 		let globs = <string[]>config.get('componentGlobs');
 

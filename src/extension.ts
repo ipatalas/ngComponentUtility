@@ -8,6 +8,7 @@ import { MemberCompletionProvider } from './memberCompletionProvider';
 import { BindingProvider } from './bindingProvider';
 import { GoToDefinitionProvider } from './definitionProvider';
 import { overrideConsole, revertConsole, ConfigurationChangeListener, IConfigurationChangedEvent } from './utils/vsc';
+import { init as initGlob } from './utils/glob';
 
 const HTML_DOCUMENT_SELECTOR: vsc.DocumentSelector = 'html';
 const COMMAND_REFRESHCOMPONENTS: string = 'extension.refreshAngularComponents';
@@ -16,9 +17,9 @@ const completionProvider = new CompletionProvider();
 const memberCompletionProvider = new MemberCompletionProvider();
 const bindingProvider = new BindingProvider();
 const definitionProvider = new GoToDefinitionProvider();
+const componentsCache = new ComponentsCache();
 const statusBar = vsc.window.createStatusBarItem(vsc.StatusBarAlignment.Left);
 const debugChannel = vsc.window.createOutputChannel("ng1.5 components utility - debug");
-const componentsCache = new ComponentsCache();
 const configListener = new ConfigurationChangeListener("ngComponents");
 
 export async function activate(context: vsc.ExtensionContext) {
@@ -27,7 +28,7 @@ export async function activate(context: vsc.ExtensionContext) {
 	refreshDebugConsole();
 
 	try {
-		componentsCache.init();
+		initGlob(vsc.workspace.rootPath);
 
 		await refreshComponents();
 	} catch (err) {
