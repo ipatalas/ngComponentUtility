@@ -23,7 +23,7 @@ export class SourceFilesScanner {
 
 			try {
 				console.time(GLOB);
-				let files = _.flatten(await Promise.all(globs.map(pattern => glob(pattern))));
+				let files = _.flatten(await Promise.all(globs.map(pattern => glob(pattern, { absolute: true }))));
 				console.timeEnd(GLOB);
 
 				console.time(PARSE);

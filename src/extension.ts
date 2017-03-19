@@ -2,22 +2,30 @@
 
 import * as vsc from 'vscode';
 
-import { ComponentsCache } from './utils/componentsCache';
 import { CompletionProvider } from './completionProvider';
 import { MemberCompletionProvider } from './memberCompletionProvider';
 import { BindingProvider } from './bindingProvider';
 import { GoToDefinitionProvider } from './definitionProvider';
+import { ReferencesProvider } from "./referencesProvider";
+
 import { overrideConsole, revertConsole, ConfigurationChangeListener, IConfigurationChangedEvent } from './utils/vsc';
+import { ComponentsCache } from './utils/componentsCache';
+import { HtmlReferencesCache } from "./utils/htmlReferencesCache";
 import { init as initGlob } from './utils/glob';
 
 const HTML_DOCUMENT_SELECTOR: vsc.DocumentSelector = 'html';
+const TS_DOCUMENT_SELECTOR: vsc.DocumentSelector = 'typescript';
 const COMMAND_REFRESHCOMPONENTS: string = 'extension.refreshAngularComponents';
 
 const completionProvider = new CompletionProvider();
 const memberCompletionProvider = new MemberCompletionProvider();
 const bindingProvider = new BindingProvider();
 const definitionProvider = new GoToDefinitionProvider();
+const referencesProvider = new ReferencesProvider();
+
 const componentsCache = new ComponentsCache();
+const htmlReferencesCache = new HtmlReferencesCache();
+
 const statusBar = vsc.window.createStatusBarItem(vsc.StatusBarAlignment.Left);
 const debugChannel = vsc.window.createOutputChannel("ng1.5 components utility - debug");
 const configListener = new ConfigurationChangeListener("ngComponents");
@@ -47,7 +55,7 @@ export async function activate(context: vsc.ExtensionContext) {
 			refreshDebugConsole(event.config);
 		}
 
-		if (event.hasChanged("controllerGlobs", "componentGlobs")) {
+		if (event.hasChanged("controllerGlobs", "componentGlobs", "htmlGlobs")) {
 			vsc.commands.executeCommand(COMMAND_REFRESHCOMPONENTS);
 		}
 	}));
@@ -56,6 +64,7 @@ export async function activate(context: vsc.ExtensionContext) {
 	context.subscriptions.push(vsc.languages.registerCompletionItemProvider(HTML_DOCUMENT_SELECTOR, bindingProvider, ','));
 	context.subscriptions.push(vsc.languages.registerCompletionItemProvider(HTML_DOCUMENT_SELECTOR, memberCompletionProvider, '.'));
 	context.subscriptions.push(vsc.languages.registerDefinitionProvider(HTML_DOCUMENT_SELECTOR, definitionProvider));
+	context.subscriptions.push(vsc.languages.registerReferenceProvider([HTML_DOCUMENT_SELECTOR, TS_DOCUMENT_SELECTOR], referencesProvider));
 
 	statusBar.tooltip = 'Refresh Angular components';
 	statusBar.command = COMMAND_REFRESHCOMPONENTS;
@@ -77,12 +86,18 @@ const refreshDebugConsole = (config?: vsc.WorkspaceConfiguration) => {
 };
 
 const refreshComponents = async (config?: vsc.WorkspaceConfiguration): Promise<void> => {
-	return componentsCache.refresh(config).then(components => {
+	return new Promise<void>(async (resolve, _reject) => {
+		let references = await htmlReferencesCache.refresh(config);
+
+		let components = await componentsCache.refresh(config);
+		referencesProvider.load(references, components);
 		completionProvider.loadComponents(components);
 		memberCompletionProvider.loadComponents(components);
 		bindingProvider.loadComponents(components);
 		definitionProvider.loadComponents(components);
 
 		statusBar.text = `$(sync) ${components.length} components`;
+
+		resolve();
 	});
 };
