@@ -75,7 +75,17 @@ export class HtmlReferencesCache {
 	}
 
 	private deleteFileReferences = (filepath: string) => {
-		_.forIn(this.htmlReferences, (value) => delete value[filepath]);
+		let emptyKeys = [];
+
+		_.forIn(this.htmlReferences, (value, key) => {
+			delete value[filepath];
+
+			if (_.isEmpty(value)) {
+				emptyKeys.push(key);
+			}
+		});
+
+		emptyKeys.forEach(key => delete this.htmlReferences[key]);
 	}
 
 	private parseFile = (projectPath, filePath, results) => {
