@@ -1,10 +1,10 @@
 import * as path from 'path';
 import * as _ from 'lodash';
 import * as vsc from 'vscode';
-import { HtmlDocumentHelper } from './utils/htmlDocumentHelper';
-import { IHtmlReferences, IComponentReference, IComponentReferences } from "./utils/htmlReferencesCache";
-import { getLocation, workspaceRoot } from "./utils/vsc";
-import { Component } from "./utils/component";
+import { HtmlDocumentHelper } from '../utils/htmlDocumentHelper';
+import { IHtmlReferences, IComponentReference, IComponentReferences } from "../utils/htmlReferencesCache";
+import { getLocation, workspaceRoot } from "../utils/vsc";
+import { Component } from "../utils/component";
 type DocumentHandlerDelegate = (document: vsc.TextDocument, position: vsc.Position) => vsc.Location[];
 
 export class ReferencesProvider implements vsc.ReferenceProvider {

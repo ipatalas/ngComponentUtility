@@ -2,11 +2,11 @@
 
 import * as vsc from 'vscode';
 
-import { CompletionProvider } from './completionProvider';
-import { MemberCompletionProvider } from './memberCompletionProvider';
-import { BindingProvider } from './bindingProvider';
-import { GoToDefinitionProvider } from './definitionProvider';
-import { ReferencesProvider } from "./referencesProvider";
+import { CompletionProvider } from './providers/completionProvider';
+import { MemberCompletionProvider } from './providers/memberCompletionProvider';
+import { BindingProvider } from './providers/bindingProvider';
+import { GoToDefinitionProvider } from './providers/definitionProvider';
+import { ReferencesProvider } from "./providers/referencesProvider";
 
 import { overrideConsole, revertConsole, ConfigurationChangeListener, IConfigurationChangedEvent } from './utils/vsc';
 import { ComponentsCache } from './utils/componentsCache';

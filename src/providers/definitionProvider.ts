@@ -1,8 +1,8 @@
 import * as vsc from 'vscode';
 
-import { Component } from './utils/component';
-import { HtmlDocumentHelper } from './utils/htmlDocumentHelper';
-import { getLocation } from './utils/vsc';
+import { Component } from '../utils/component';
+import { HtmlDocumentHelper } from '../utils/htmlDocumentHelper';
+import { getLocation } from '../utils/vsc';
 
 export class GoToDefinitionProvider implements vsc.DefinitionProvider {
 	private components: Component[];
