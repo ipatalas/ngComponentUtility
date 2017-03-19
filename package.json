@@ -23,7 +23,8 @@
     "theme": "dark"
   },
   "activationEvents": [
-    "onLanguage:html"
+    "onLanguage:html",
+    "onLanguage:typescript"
   ],
   "repository": {
     "type": "git",
@@ -35,7 +36,11 @@
       {
         "command": "extension.refreshAngularComponents",
         "title": "Refresh Components Cache"
-      }
+      },
+	  {
+		  "command": "extension.findUnusedAngularComponents",
+		  "title": "Find unused Angular components"
+	  }
     ],
     "configuration": {
       "title": "ng1.5 components utility",

@@ -7,6 +7,7 @@ import { MemberCompletionProvider } from './providers/memberCompletionProvider';
 import { BindingProvider } from './providers/bindingProvider';
 import { GoToDefinitionProvider } from './providers/definitionProvider';
 import { ReferencesProvider } from "./providers/referencesProvider";
+import { FindUnusedComponentsCommand } from "./commands/findUnusedComponents";
 
 import { overrideConsole, revertConsole, ConfigurationChangeListener, IConfigurationChangedEvent } from './utils/vsc';
 import { ComponentsCache } from './utils/componentsCache';
@@ -16,12 +17,14 @@ import { init as initGlob } from './utils/glob';
 const HTML_DOCUMENT_SELECTOR: vsc.DocumentSelector = 'html';
 const TS_DOCUMENT_SELECTOR: vsc.DocumentSelector = 'typescript';
 const COMMAND_REFRESHCOMPONENTS: string = 'extension.refreshAngularComponents';
+const COMMAND_FINDUNUSEDCOMPONENTS: string = 'extension.findUnusedAngularComponents';
 
 const completionProvider = new CompletionProvider();
 const memberCompletionProvider = new MemberCompletionProvider();
 const bindingProvider = new BindingProvider();
 const definitionProvider = new GoToDefinitionProvider();
 const referencesProvider = new ReferencesProvider();
+const findUnusedAngularComponents = new FindUnusedComponentsCommand();
 
 const componentsCache = new ComponentsCache();
 const htmlReferencesCache = new HtmlReferencesCache();
@@ -49,6 +52,8 @@ export async function activate(context: vsc.ExtensionContext) {
 			vsc.window.showInformationMessage('Components cache has been rebuilt');
 		});
 	}));
+
+	context.subscriptions.push(vsc.commands.registerCommand(COMMAND_FINDUNUSEDCOMPONENTS, () => findUnusedAngularComponents.execute()));
 
 	context.subscriptions.push(configListener.onDidChange((event: IConfigurationChangedEvent) => {
 		if (event.hasChanged("debugConsole")) {
@@ -88,9 +93,11 @@ const refreshDebugConsole = (config?: vsc.WorkspaceConfiguration) => {
 const refreshComponents = async (config?: vsc.WorkspaceConfiguration): Promise<void> => {
 	return new Promise<void>(async (resolve, _reject) => {
 		let references = await htmlReferencesCache.refresh(config);
-
 		let components = await componentsCache.refresh(config);
+
+		findUnusedAngularComponents.load(references, components);
 		referencesProvider.load(references, components);
+
 		completionProvider.loadComponents(components);
 		memberCompletionProvider.loadComponents(components);
 		bindingProvider.loadComponents(components);
