@@ -9,7 +9,6 @@ import { default as glob } from './glob';
 import { default as tags } from './htmlTags';
 import { workspaceRoot } from './vsc';
 
-// tslint:disable-next-line:no-var-requires
 const htmlTags = new Set<string>(tags);
 const PERF_GLOB = "Time consumed on finding HTML files";
 const PERF_PARSE = "Time consumed on parsing HTML files";
@@ -17,86 +16,67 @@ const PERF_PARSE = "Time consumed on parsing HTML files";
 // tslint:disable-next-line:no-var-requires
 const gaze = require("gaze");
 
-// tslint:disable:no-console
 export class HtmlReferencesCache {
 	private htmlReferences: IHtmlReferences;
-	// private watcher: any;
-	// private toDelete: string[] = [];
+	private watcher: any;
+	private toDelete: string[] = [];
 
-	// private setupWatchers = (config: vsc.WorkspaceConfiguration) => {
-	// 	let globs = <string[]>config.get('htmlGlobs');
+	private setupWatchers = (config: vsc.WorkspaceConfiguration) => {
+		let globs = <string[]>config.get('htmlGlobs');
 
-	// 	if (this.watcher) {
-	// 		this.watcher.close(true);
-	// 	}
+		if (this.watcher) {
+			this.watcher.close(true);
+		}
 
-	// 	this.watcher = new gaze.Gaze(globs, { cwd: workspaceRoot });
-	// 	this.watcher.on('renamed', this.onRename);
-	// 	this.watcher.on('added', this.onAdded);
-	// 	this.watcher.on('changed', this.onChanged);
-	// 	this.watcher.on('deleted', this.onDeleted);
-	// }
+		this.watcher = new gaze.Gaze(globs, { cwd: workspaceRoot });
+		this.watcher.on('renamed', this.onRename);
+		this.watcher.on('added', this.onAdded);
+		this.watcher.on('changed', this.onChanged);
+		this.watcher.on('deleted', this.onDeleted);
+	}
 
-	// private onAdded = async (filepath: string) => {
-	// 	const src = await SourceFile.parse(filepath);
-	// 	const components = await Component.parse(src, this.controllers);
+	private onAdded = async (filepath: string) => {
+		filepath = this.normalizeGazePath(filepath);
+		this.parseFile(workspaceRoot, filepath, this.htmlReferences);
+	}
 
-	// 	this.components.push.apply(this.components, components);
-	// }
+	// tslint:disable:no-console
+	private onChanged = async (filepath: string) => {
+		filepath = this.normalizeGazePath(filepath);
 
-	// private onChanged = async (filepath: string) => {
-	// 	filepath = this.normalizePath(filepath);
+		this.deleteFileReferences(filepath);
+		this.parseFile(workspaceRoot, filepath, this.htmlReferences);
+	}
 
-	// 	const idx = this.components.findIndex(c => this.normalizePath(c.path) === filepath);
-	// 	if (idx === -1) {
-	// 		console.warn("Component does not exist, cannot update it");
-	// 		return;
-	// 	}
+	private onDeleted = (filepath: string) => {
+		filepath = this.normalizeGazePath(filepath);
 
-	// 	const src = await SourceFile.parse(filepath);
-	// 	const components = await Component.parse(src, this.controllers);
+		// workaround for gaze behavior - https://github.com/shama/gaze/issues/55
+		setTimeout(this.commitDeleted, 500);
+	}
 
-	// 	this.deleteComponentFile(filepath);
-	// 	this.components.push.apply(this.components, components);
-	// }
+	private onRename = (newPath: string, oldPath: string) => {
+		oldPath = this.normalizeGazePath(oldPath);
+		newPath = this.normalizeGazePath(newPath);
 
-	// private onDeleted = (filepath: string) => {
-	// 	this.toDelete.push(this.normalizePath(filepath));
+		// workaround continued - see link above
+		const deletedIdx = this.toDelete.findIndex(p => p === oldPath);
+		if (deletedIdx > -1) {
+			this.toDelete.splice(deletedIdx, 1);
+		}
 
-	// 	// workaround for gaze behavior - https://github.com/shama/gaze/issues/55
-	// 	setTimeout(this.commitDeleted, 500);
-	// }
+		this.deleteFileReferences(oldPath);
+		this.parseFile(workspaceRoot, newPath, this.htmlReferences);
+	}
 
-	// private onRename = (newPath: string, oldPath: string) => {
-	// 	oldPath = this.normalizePath(oldPath);
+	private commitDeleted = () => {
+		this.toDelete.forEach(this.deleteFileReferences);
+		this.toDelete = [];
+	}
 
-	// 	// workaround continued - see link above
-	// 	const deletedIdx = this.toDelete.findIndex(p => p === oldPath);
-	// 	if (deletedIdx > -1) {
-	// 		this.toDelete.splice(deletedIdx, 1);
-	// 	}
-
-	// 	let component = this.components.find(c => this.normalizePath(c.path) === oldPath);
-	// 	if (component) {
-	// 		component.path = newPath;
-	// 	}
-	// }
-
-	// private commitDeleted = () => {
-	// 	this.toDelete.forEach(this.deleteComponentFile);
-	// 	this.toDelete = [];
-	// }
-
-	// private deleteComponentFile = (filepath: string) => {
-	// 	let idx;
-	// 	do {
-	// 		idx = this.components.findIndex(c => this.normalizePath(c.path) === filepath);
-	// 		if (idx > -1) {
-	// 			this.components.splice(idx, 1);
-	// 		}
-	// 	} while (idx > -1);
-	// }
-
+	private deleteFileReferences = (filepath: string) => {
+		_.forIn(this.htmlReferences, (value) => delete value[filepath]);
+	}
 
 	private parseFile = (projectPath, filePath, results) => {
 		return new Promise<{}>((resolve, reject) => {
@@ -125,7 +105,7 @@ export class HtmlReferencesCache {
 		config = config || vsc.workspace.getConfiguration("ngComponents");
 
 		try {
-			// this.setupWatchers(config);
+			this.setupWatchers(config);
 
 			let results: IHtmlReferences = {};
 			let htmlGlobs = <string[]>config.get("htmlGlobs");
@@ -148,7 +128,8 @@ export class HtmlReferencesCache {
 		}
 	}
 
-	// private normalizePath = (p: string) => path.normalize(p).toUpperCase();
+	// glob returns paths with forward slash on Windows whereas gaze returns them with OS specific separator
+	private normalizeGazePath = (p: string) => path.relative(workspaceRoot, p).replace('\\', '/');
 }
 
 export interface IHtmlReferences {
