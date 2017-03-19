@@ -39,7 +39,7 @@ export class ReferencesProvider implements vsc.ReferenceProvider {
 		let wordPos = document.getWordRangeAtPosition(position);
 		let word = document.getText(wordPos);
 
-		let component = this.components.find(c => c.controller.className === word);
+		let component = this.components.find(c => (c.controller && c.controller.className === word) || c.name === word);
 		if (component) {
 			let references = this.htmlReferences[component.htmlName];
 			if (references) {
