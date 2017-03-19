@@ -7,12 +7,12 @@ export class FindUnusedComponentsCommand {
 	private htmlReferences: IHtmlReferences;
 	private components: Component[];
 
-	load = (htmlReferences: IHtmlReferences, components: Component[]) => {
+	public load = (htmlReferences: IHtmlReferences, components: Component[]) => {
 		this.htmlReferences = htmlReferences;
 		this.components = components;
 	}
 
-	execute = () => {
+	public execute = () => {
 		let usedComponents = Object.keys(this.htmlReferences);
 		let unusedComponents = this.components.filter(c => usedComponents.indexOf(c.htmlName) === -1);
 
