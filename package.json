@@ -4,7 +4,7 @@
   "description": "Angular 1.5 components utility",
   "author": "Ireneusz Patalas",
   "license": "MIT",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "publisher": "ipatalas",
   "contributors": [
     "Ireneusz Patalas",
@@ -37,10 +37,10 @@
         "command": "extension.refreshAngularComponents",
         "title": "Refresh Components Cache"
       },
-	  {
-		  "command": "extension.findUnusedAngularComponents",
-		  "title": "Find unused Angular components"
-	  }
+      {
+        "command": "extension.findUnusedAngularComponents",
+        "title": "Find unused Angular components"
+      }
     ],
     "configuration": {
       "title": "ng1.5 components utility",
@@ -114,10 +114,10 @@
   },
   "devDependencies": {
     "@types/glob": "^5.0.30",
+    "@types/lodash": "^4.14.55",
     "@types/mocha": "^2.2.40",
-	"@types/lodash": "^4.14.55",
     "mocha": "^3.2.0",
-    "vscode": "^1.0.3"
+    "vscode": "^1.1.0"
   },
   "dependencies": {
     "decamelize": "^1.2.0",

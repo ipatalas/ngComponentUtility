@@ -9,13 +9,15 @@
 	- [Upgrading from 0.2.0](#upgrading-from-020)
 - [Features](#features)
 	- [Intellisense](#intellisense)
-		- [Controller model in views (**new**)](#controller-model-in-views-new)
-	- [Go To definition](#go-to-definition)
+		- [Controller model in views (**introduced in 0.4.0**)](#controller-model-in-views)
+	- [Go To Definition](#go-to-definition)
 		- [Controllers](#controllers)
 		- [Templates](#templates)
+	- [Find All References (**introduced in 0.5.0**)](#find-all-references)
+	- [Find unused components (**introduced in 0.5.0**)](#find-unused-components-experimental)
 - [Configuration](#configuration)
 - [Commands](#commands)
-- [Performance note on `ngComponents.componentGlobs` and `ngComponents.controllerGlobs`](#performance-note-on-ngcomponentscomponentglobs-and-ngcomponentscontrollerglobs)
+- [Performance note on configuration globs](#performance-note-on-configuration-globs)
 - [Changelog](#changelog)
 - [Roadmap](#roadmap)
 
@@ -70,7 +72,7 @@ You can trigger the command from command panel, it's called `Refresh components 
 
 ![Status bar button](images/statusbar.png)
 
-### Controller model in views (new)
+### Controller model in views
 
 A new feature has been introduced to make working with views easier. You can now autocomplete controller member while being in component's view like seen on the screenshot below:
 
@@ -104,12 +106,43 @@ In case you have different scenarios please let me know the details and I'll try
 
 ![Go To Definition](images/gotodefinition.gif)
 
+## Find All References
+
+Finnaly it's here! A feature I've been waiting for long but never had time to implement :)
+
+You can now use `Find All References` feature of vscode to navigate through usages of particular components. It works in all component parts: html template, controller and component itself. Unfortunately currently it only works with usages found by `ngComponents.htmlGlobs` setting which should be the vast majority of components unless you use inline templates heavily which I stronly discourage to do :)
+However there are places which do not require separate template files because they are too small, ie. angular-ui-router state definitions which possibly only contain oneliners with specific component. Those usages won't be found... yet :) It's planned for next version.
+
+In HTML template cursor has to be focused on component name, not the binding or the inner html of the component for this to work:
+
+![Find unused components](images/find-all-references-1.png)
+
+In component definition file cursor has to be on component name:
+
+![Find unused components](images/find-all-references-2.png)
+
+In controller file cursor has to be on the class name:
+
+![Find unused components](images/find-all-references-3.png)
+
+
+## Find unused components (experimental)
+
+This feature will allow you to easily find components which are not used in the project.
+Currently it only finds references throughout all HTML files found by `ngComponents.htmlGlobs` setting. This is still not perfect as some components may be used inside inline templates in other components. Hopefully it will be improved in next version.
+Selecting one of the unused components will navigate to it in the editor.
+
+It does understand HTML a bit so commented out parts will be taken into account. See screenshot below:
+
+![Find unused components](images/find-unused.png)
+
 # Configuration
 
 This plugin contributes the following [settings](https://code.visualstudio.com/docs/customization/userandworkspace):
 
 - `ngComponents.componentGlobs`: array of glob strings used to search for components. Default value is  **[\*\*/\*Component.ts]**
-- `ngComponents.controllerGlobs`: array of glob strings used to search for controllers (used for `Go To Definition`). Default value is  **[\*\*/\*Component.ts]**
+- `ngComponents.controllerGlobs`: array of glob strings used to search for controllers (used by `Go To Definition`). Default value is  **[\*\*/\*Component.ts]**
+- `ngComponents.htmlGlobs`: array of glob strings used to search for html views (used by `Find All References`). Default value is  **[\*\*/\*Component.ts]**
 - `ngComponents.goToDefinition`: array of strings to define which files `Go To Definition` for a component should show. Allowed values are *template*, *controller*, *component*. Default value is **["template", "controller"]**
 - `ngComponents.debugConsole`: boolean value to show debug information. Default value is **false**
 - `ngComponents.controller.publicMembersOnly`: whether to suggest all members in view model auto complete. Default value is **true**
@@ -117,13 +150,14 @@ This plugin contributes the following [settings](https://code.visualstudio.com/d
 
 Whenever one of the globs changes components cache is automatically rebuilt. Additionally all component files are monitored for changes and they will be reflected immediately, ie. after adding a binding you can just save the file and go straight to template file to use that binding.
 
-# Commands:
+# Commands
 
 This extension contributes the following commands to the Command palette.
 
 - `Refresh Components Cache`: refreshes components cache on demand
+- `Find unused Angular components`: searches for [unused components](#find-unused-components)
 
-# Performance note on `ngComponents.componentGlobs` and `ngComponents.controllerGlobs`
+# Performance note on configuration globs
 
 Please use as specific globs as possible. Parsing files is only a fraction of the whole process.
 Vast majority of time is consumed on "globbing" for files to be processed so the more precise the globs are the better performance you can expect.
@@ -141,7 +175,7 @@ Full changelog is available [here](https://github.com/ipatalas/ngComponentUtilit
 
 The following features are planned:
 - ~~ability to specify multiple globs in configuration~~
-- **Find all references** for components in html view
+- ~~**Find all references** for components in html view~~
 - ~~**Go to definition** for components in html view~~
 	- ~~ability to pick which file to open if possible (view, component or controller)~~
 	- ~~should work for both the component and it's attributes/bindings~~

@@ -1,5 +1,10 @@
 # Change Log
 
+## 0.5.0 (March 19, 2017)
+
+* Added Find All References feature for components (works in html files, controller files and component files as well)
+* Added new command to show unused components
+
 ## 0.4.0 (March 5, 2017)
 
 * Added intellisense for view models (controller's members inside component's view)
