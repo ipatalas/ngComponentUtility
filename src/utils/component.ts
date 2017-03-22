@@ -174,4 +174,3 @@ export interface IComponentBinding {
 	type: string;
 	pos: ts.LineAndCharacter;
 }
-
