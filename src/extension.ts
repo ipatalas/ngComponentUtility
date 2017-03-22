@@ -13,6 +13,8 @@ import { overrideConsole, revertConsole, ConfigurationChangeListener, IConfigura
 import { ComponentsCache } from './utils/componentsCache';
 import { HtmlReferencesCache } from "./utils/htmlReferencesCache";
 import { init as initGlob } from './utils/glob';
+import { RoutesCache } from "./utils/routesCache";
+import { IComponentTemplate } from "./utils/component";
 
 const HTML_DOCUMENT_SELECTOR: vsc.DocumentSelector = 'html';
 const TS_DOCUMENT_SELECTOR: vsc.DocumentSelector = 'typescript';
@@ -28,6 +30,7 @@ const findUnusedAngularComponents = new FindUnusedComponentsCommand();
 
 const componentsCache = new ComponentsCache();
 const htmlReferencesCache = new HtmlReferencesCache();
+const routesCache = new RoutesCache();
 
 const statusBar = vsc.window.createStatusBarItem(vsc.StatusBarAlignment.Left);
 const debugChannel = vsc.window.createOutputChannel("ng1.5 components utility - debug");
@@ -92,21 +95,32 @@ const refreshDebugConsole = (config?: vsc.WorkspaceConfiguration) => {
 
 const refreshComponents = async (config?: vsc.WorkspaceConfiguration): Promise<void> => {
 	return new Promise<void>(async (resolve, _reject) => {
-		let references = await htmlReferencesCache.refresh(config);
-		let components = await componentsCache.refresh(config);
+		try {
+			let references = await htmlReferencesCache.refresh(config);
+			let components = await componentsCache.refresh(config);
+			let routes = await routesCache.refresh(config);
 
-		htmlReferencesCache.loadInlineTemplates(components);
+			let inlineTemplates: IComponentTemplate[] = [];
+			inlineTemplates.push(...getTemplatesWithBody(components));
+			inlineTemplates.push(...getTemplatesWithBody(routes));
 
-		findUnusedAngularComponents.load(references, components);
-		referencesProvider.load(references, components);
+			htmlReferencesCache.loadInlineTemplates(inlineTemplates);
 
-		completionProvider.loadComponents(components);
-		memberCompletionProvider.loadComponents(components);
-		bindingProvider.loadComponents(components);
-		definitionProvider.loadComponents(components);
+			findUnusedAngularComponents.load(references, components);
+			referencesProvider.load(references, components);
 
-		statusBar.text = `$(sync) ${components.length} components`;
+			completionProvider.loadComponents(components);
+			memberCompletionProvider.loadComponents(components);
+			bindingProvider.loadComponents(components);
+			definitionProvider.loadComponents(components);
+
+			statusBar.text = `$(sync) ${components.length} components`;
+		} catch (err) {
+			vsc.window.showErrorMessage("Error refreshing components, check developer console");
+		}
 
 		resolve();
 	});
 };
+
+const getTemplatesWithBody = (source: Array<{ template: IComponentTemplate }>) => source.filter(c => c.template && c.template.body).map(c => c.template);

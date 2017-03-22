@@ -8,7 +8,7 @@ import * as vsc from 'vscode';
 import { default as glob } from './glob';
 import { default as tags } from './htmlTags';
 import { workspaceRoot } from './vsc';
-import { Component } from "./component";
+import { IComponentTemplate } from "./component";
 
 const htmlTags = new Set<string>(tags);
 const PERF_GLOB = "Time consumed on finding HTML files";
@@ -120,26 +120,24 @@ export class HtmlReferencesCache {
 		});
 	}
 
-	private parseTemplate = (component: Component, results) => {
+	private parseTemplate = (template: IComponentTemplate, results) => {
 		return new Promise<void>((resolve, reject) => {
-			let filePath = this.normalizeGazePath(component.template.path);
+			let filePath = this.normalizeGazePath(template.path);
 
 			let getLocation = (location: parse5.MarkupData.StartTagLocation) => ({
-				line: component.template.pos.line + location.line - 1,
-				col: (location.line === 1 ? component.template.pos.character + 1 : 0) + location.col
+				line: template.pos.line + location.line - 1,
+				col: (location.line === 1 ? template.pos.character + 1 : 0) + location.col
 			});
 
 			let parser = this.createParser(resolve, reject, results, filePath, getLocation);
 
-			parser.write(component.template.body);
+			parser.write(template.body);
 			parser.end();
 		});
 	}
 
-	public loadInlineTemplates = async (components: Component[]) => {
-		let inlineComponents = components.filter(c => c.template.body);
-
-		await Promise.all(inlineComponents.map(c => this.parseTemplate(c, this.htmlReferences)));
+	public loadInlineTemplates = async (templates: IComponentTemplate[]) => {
+		await Promise.all(templates.map(c => this.parseTemplate(c, this.htmlReferences)));
 	}
 
 	public refresh = async (config?: vsc.WorkspaceConfiguration): Promise<IHtmlReferences> => {

@@ -76,6 +76,16 @@
           ],
           "description": "glob string used to search for HTML files for references of the components"
         },
+		"ngComponents.routeGlobs": {
+          "type": [
+            "array",
+            "string"
+          ],
+          "default": [
+            "**/*route.ts"
+          ],
+          "description": "glob string used to search for angular-ui-router files for references of the components"
+        },
         "ngComponents.goToDefinition": {
           "type": [
             "array",
@@ -124,7 +134,7 @@
     "gaze": "^1.1.2",
     "glob": "^7.1.1",
     "lodash": "^4.17.4",
-    "typescript": "^2.2.1",
-    "parse5": "^3.0.2"
+    "parse5": "^3.0.2",
+    "typescript": "^2.2.1"
   }
 }
