@@ -3,7 +3,7 @@ import * as _ from 'lodash';
 import * as vsc from 'vscode';
 import { HtmlDocumentHelper } from '../utils/htmlDocumentHelper';
 import { IHtmlReferences, IComponentReference, IComponentReferences } from "../utils/htmlReferencesCache";
-import { getLocation, workspaceRoot } from "../utils/vsc";
+import { workspaceRoot, getLocation } from "../utils/vsc";
 import { Component } from "../utils/component";
 type DocumentHandlerDelegate = (document: vsc.TextDocument, position: vsc.Position) => vsc.Location[];
 
@@ -19,16 +19,16 @@ export class ReferencesProvider implements vsc.ReferenceProvider {
 			['typescript', this.provideControllerReferences]
 		]);
 	}
+
 	public load = (references: IHtmlReferences, components: Component[]) => {
 		this.htmlReferences = references;
 		this.components = components;
 	}
-	// tslint:disable-next-line:max-line-length
+
 	// tslint:disable-next-line:member-access
-	provideReferences(document: vsc.TextDocument, position: vsc.Position, _context: vsc.ReferenceContext, _token: vsc.CancellationToken): vsc.Location[] | Thenable<vsc.Location[]> {
+	provideReferences(document: vsc.TextDocument, position: vsc.Position, _context: vsc.ReferenceContext, _token: vsc.CancellationToken): vsc.Location[] {
 		let handler = this.documentHandlers.get(document.languageId);
 		if (handler) {
-			_context.includeDeclaration = false;
 			return handler(document, position);
 		}
 

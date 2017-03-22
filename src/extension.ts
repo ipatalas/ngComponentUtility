@@ -95,6 +95,8 @@ const refreshComponents = async (config?: vsc.WorkspaceConfiguration): Promise<v
 		let references = await htmlReferencesCache.refresh(config);
 		let components = await componentsCache.refresh(config);
 
+		htmlReferencesCache.loadInlineTemplates(components);
+
 		findUnusedAngularComponents.load(references, components);
 		referencesProvider.load(references, components);
 

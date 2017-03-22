@@ -93,7 +93,7 @@ ${e}`.trim());
 		}
 
 		function findProperty(obj: ts.ObjectLiteralExpression, name: string) {
-			return <ts.PropertyAssignment>obj.properties.find(v => v.name.getText() === name);
+			return <ts.PropertyAssignment>obj.properties.find(v => v.name.getText(file.sourceFile) === name);
 		}
 
 		function createController(node: ts.PropertyAssignment): Controller {
@@ -114,9 +114,10 @@ ${e}`.trim());
 			}
 
 			if (node.initializer.kind === ts.SyntaxKind.StringLiteral || node.initializer.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral) {
-				const pos = file.sourceFile.getLineAndCharacterOfPosition(node.initializer.pos);
+				let pos = file.sourceFile.getLineAndCharacterOfPosition(node.initializer.getStart(file.sourceFile));
+				let literal = <ts.LiteralExpression>node.initializer;
 
-				return <IComponentTemplate>{ path: file.path, pos };
+				return <IComponentTemplate>{ path: file.path, pos, body: literal.text };
 			} else if (node.initializer.kind === ts.SyntaxKind.CallExpression) {
 				// handle require('./template.html')
 				const call = <ts.CallExpression>node.initializer;
@@ -142,7 +143,7 @@ ${e}`.trim());
 
 		function createBinding(node: ts.PropertyAssignment): IComponentBinding {
 			let binding = <IComponentBinding>{};
-			binding.name = node.name.getText();
+			binding.name = node.name.getText(file.sourceFile);
 			binding.type = (<ts.StringLiteral>node.initializer).text;
 			binding.htmlName = decamelize(binding.name, '-');
 			binding.pos = file.sourceFile.getLineAndCharacterOfPosition(node.initializer.pos);
@@ -164,6 +165,7 @@ ${e}`.trim());
 export interface IComponentTemplate {
 	path: string;
 	pos: ts.LineAndCharacter;
+	body?: string; // used only for inline templates
 }
 
 export interface IComponentBinding {
@@ -172,3 +174,4 @@ export interface IComponentBinding {
 	type: string;
 	pos: ts.LineAndCharacter;
 }
+

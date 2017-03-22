@@ -8,6 +8,7 @@ import * as vsc from 'vscode';
 import { default as glob } from './glob';
 import { default as tags } from './htmlTags';
 import { workspaceRoot } from './vsc';
+import { Component } from "./component";
 
 const htmlTags = new Set<string>(tags);
 const PERF_GLOB = "Time consumed on finding HTML files";
@@ -88,27 +89,57 @@ export class HtmlReferencesCache {
 		emptyKeys.forEach(key => delete this.htmlReferences[key]);
 	}
 
-	private parseFile = (projectPath, filePath, results) => {
-		return new Promise<{}>((resolve, reject) => {
-			let parser = new parse5.SAXParser({ locationInfo: true });
+	private createParser = (resolve, reject, results, filepath, locationCb): parse5.SAXParser => {
+		let parser = new parse5.SAXParser({ locationInfo: true });
 
-			parser.on("startTag", (name, _attrs, _self, location) => {
-				if (htmlTags.has(name)) {
-					return;
-				}
-				results[name] = results[name] || {};
-				results[name][filePath] = results[name][filePath] || [];
-				results[name][filePath].push({ line: location.line - 1, col: location.col - 1 });
-			}).on('finish', () => {
-				parser.end();
-				resolve(results);
-			}).on('error', (err) => {
-				parser.end();
-				reject(err);
-			});
+		parser.on("startTag", (name, _attrs, _self, location) => {
+			if (htmlTags.has(name)) {
+				return;
+			}
+
+			results[name] = results[name] || {};
+			results[name][filepath] = results[name][filepath] || [];
+			results[name][filepath].push(locationCb(location));
+		}).on('finish', () => {
+			parser.end();
+			resolve();
+		}).on('error', (err) => {
+			parser.end();
+			reject(err);
+		});
+
+		return parser;
+	}
+
+	private parseFile = (projectPath, filePath, results) => {
+		return new Promise<void>((resolve, reject) => {
+			let getLocation = (location: parse5.MarkupData.StartTagLocation) => ({ line: location.line - 1, col: location.col - 1 });
+			let parser = this.createParser(resolve, reject, results, filePath, getLocation);
 
 			fs.createReadStream(path.join(projectPath, filePath)).pipe(parser);
 		});
+	}
+
+	private parseTemplate = (component: Component, results) => {
+		return new Promise<void>((resolve, reject) => {
+			let filePath = this.normalizeGazePath(component.template.path);
+
+			let getLocation = (location: parse5.MarkupData.StartTagLocation) => ({
+				line: component.template.pos.line + location.line - 1,
+				col: (location.line === 1 ? component.template.pos.character + 1 : 0) + location.col
+			});
+
+			let parser = this.createParser(resolve, reject, results, filePath, getLocation);
+
+			parser.write(component.template.body);
+			parser.end();
+		});
+	}
+
+	public loadInlineTemplates = async (components: Component[]) => {
+		let inlineComponents = components.filter(c => c.template.body);
+
+		await Promise.all(inlineComponents.map(c => this.parseTemplate(c, this.htmlReferences)));
 	}
 
 	public refresh = async (config?: vsc.WorkspaceConfiguration): Promise<IHtmlReferences> => {
