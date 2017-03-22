@@ -110,8 +110,8 @@ In case you have different scenarios please let me know the details and I'll try
 
 Finnaly it's here! A feature I've been waiting for long but never had time to implement :)
 
-You can now use `Find All References` feature of vscode to navigate through usages of particular components. It works in all component parts: html template, controller and component itself. Unfortunately currently it only works with usages found by `ngComponents.htmlGlobs` setting which should be the vast majority of components unless you use inline templates heavily which I stronly discourage to do :)
-However there are places which do not require separate template files because they are too small, ie. angular-ui-router state definitions which possibly only contain oneliners with specific component. Those usages won't be found... yet :) It's planned for next version.
+You can now use `Find All References` feature of vscode to navigate through usages of particular components. It works in all component parts: html template, controller and component itself. ~~Unfortunately currently it only works with usages found by `ngComponents.htmlGlobs` setting which should be the vast majority of components unless you use inline templates heavily which I stronly discourage to do :)~~
+However there are places which do not require separate template files because they are too small, ie. angular-ui-router state definitions which possibly only contain oneliners with specific component. ~~Those usages won't be found... yet :) It's planned for next version.~~ (implemented in 0.5.1)
 
 In HTML template cursor has to be focused on component name, not the binding or the inner html of the component for this to work:
 
@@ -143,6 +143,7 @@ This plugin contributes the following [settings](https://code.visualstudio.com/d
 - `ngComponents.componentGlobs`: array of glob strings used to search for components. Default value is  **[\*\*/\*Component.ts]**
 - `ngComponents.controllerGlobs`: array of glob strings used to search for controllers (used by `Go To Definition`). Default value is  **[\*\*/\*Component.ts]**
 - `ngComponents.htmlGlobs`: array of glob strings used to search for html views (used by `Find All References`). Default value is  **[\*\*/\*Component.ts]**
+- `ngComponents.routeGlobs`: array of glob strings used to search for angular-ui-router files (used by `Find All References`). Default value is  **[\*\*/\*route.ts]**
 - `ngComponents.goToDefinition`: array of strings to define which files `Go To Definition` for a component should show. Allowed values are *template*, *controller*, *component*. Default value is **["template", "controller"]**
 - `ngComponents.debugConsole`: boolean value to show debug information. Default value is **false**
 - `ngComponents.controller.publicMembersOnly`: whether to suggest all members in view model auto complete. Default value is **true**

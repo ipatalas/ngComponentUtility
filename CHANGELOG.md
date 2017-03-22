@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.5.1 (March 22, 2017)
+
+* Find All References and Find unused components feature now find usages in angular-ui-router files
+
 ## 0.5.0 (March 19, 2017)
 
 * Added Find All References feature for components (works in html files, controller files and component files as well)
