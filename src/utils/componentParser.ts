@@ -8,6 +8,7 @@ import { workspaceRoot } from './vsc';
 
 export class ComponentParser {
 	private results: Component[] = [];
+	private identifierNodes: Map<string, ts.Node> = new Map<string, ts.Node>();
 
 	constructor(private file: SourceFile, private controllers: Controller[]) {
 
@@ -25,22 +26,53 @@ export class ComponentParser {
 			if (call.expression.kind === ts.SyntaxKind.PropertyAccessExpression
 				&& (call.expression as ts.PropertyAccessExpression).name.text === 'component'
 				&& call.arguments.length === 2) {
-				let componentName = <ts.StringLiteral>call.arguments[0];
+				let componentNameNode = call.arguments[0];
 				let componentConfigObj = <ts.ObjectLiteralExpression>call.arguments[1];
 
-				this.results.push(this.createComponent(componentName, componentConfigObj));
+				let component = this.createComponent(componentNameNode, componentConfigObj);
+				if (component) {
+					this.results.push(component);
+				}
 			} else {
 				call.getChildren().forEach(this.parseChildren);
 			}
+		} else if (node.kind === ts.SyntaxKind.Identifier) {
+			let identifier = <ts.Identifier>node;
+			this.identifierNodes.set(identifier.text, identifier);
 		} else {
 			node.getChildren().forEach(this.parseChildren);
 		}
 	}
 
-	private createComponent = (componentName: ts.StringLiteral, configObj: ts.ObjectLiteralExpression) => {
+	private getComponentName(node: ts.Expression) {
+		if (node.kind === ts.SyntaxKind.StringLiteral) {
+			return (<ts.StringLiteral>node).text;
+		}
+
+		if (node.kind === ts.SyntaxKind.Identifier) {
+			let refIdentifier = <ts.Identifier>node;
+			if (this.identifierNodes.has(refIdentifier.text)) {
+				let identifier = this.identifierNodes.get(refIdentifier.text);
+				if (identifier.parent.kind === ts.SyntaxKind.VariableDeclaration) {
+					let varDeclaration = <ts.VariableDeclaration>identifier.parent;
+
+					if (varDeclaration.initializer.kind === ts.SyntaxKind.StringLiteral) {
+						return (<ts.StringLiteral>varDeclaration.initializer).text;
+					}
+				}
+			}
+		}
+	}
+
+	private createComponent = (componentNameNode: ts.Expression, configObj: ts.ObjectLiteralExpression) => {
+		let componentName = this.getComponentName(componentNameNode);
+		if (!componentName) {
+			return undefined;
+		}
+
 		let component = new Component();
-		component.name = componentName.text;
-		component.pos = this.file.sourceFile.getLineAndCharacterOfPosition(componentName.pos);
+		component.name = componentName;
+		component.pos = this.file.sourceFile.getLineAndCharacterOfPosition(componentNameNode.pos);
 
 		let bindingsObj = this.findProperty(configObj, 'bindings');
 		if (bindingsObj) {
