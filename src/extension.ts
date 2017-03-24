@@ -9,7 +9,7 @@ import { ComponentDefinitionProvider } from './providers/componentDefinitionProv
 import { ReferencesProvider } from "./providers/referencesProvider";
 import { FindUnusedComponentsCommand } from "./commands/findUnusedComponents";
 
-import { overrideConsole, revertConsole, ConfigurationChangeListener, IConfigurationChangedEvent } from './utils/vsc';
+import { ConfigurationChangeListener, IConfigurationChangedEvent } from './utils/vsc';
 import { IComponentTemplate } from "./utils/component/component";
 import { ComponentsCache } from './utils/component/componentsCache';
 import { HtmlReferencesCache } from "./utils/htmlReferencesCache";
@@ -35,13 +35,10 @@ const htmlReferencesCache = new HtmlReferencesCache();
 const routesCache = new RoutesCache();
 
 const statusBar = vsc.window.createStatusBarItem(vsc.StatusBarAlignment.Left);
-const debugChannel = vsc.window.createOutputChannel("ng1.5 components utility - debug");
 const configListener = new ConfigurationChangeListener("ngComponents");
 
 export async function activate(context: vsc.ExtensionContext) {
-	context.subscriptions.push(debugChannel);
 	context.subscriptions.push(configListener);
-	refreshDebugConsole();
 
 	try {
 		initGlob(vsc.workspace.rootPath);
@@ -61,10 +58,6 @@ export async function activate(context: vsc.ExtensionContext) {
 	context.subscriptions.push(vsc.commands.registerCommand(COMMAND_FINDUNUSEDCOMPONENTS, () => findUnusedAngularComponents.execute()));
 
 	context.subscriptions.push(configListener.onDidChange((event: IConfigurationChangedEvent) => {
-		if (event.hasChanged("debugConsole")) {
-			refreshDebugConsole(event.config);
-		}
-
 		if (event.hasChanged("controllerGlobs", "componentGlobs", "htmlGlobs")) {
 			vsc.commands.executeCommand(COMMAND_REFRESHCOMPONENTS);
 		}
@@ -83,18 +76,6 @@ export async function activate(context: vsc.ExtensionContext) {
 
 	context.subscriptions.push(statusBar);
 }
-
-const refreshDebugConsole = (config?: vsc.WorkspaceConfiguration) => {
-	config = config || vsc.workspace.getConfiguration("ngComponents");
-
-	const debugConsoleEnabled = <boolean>config.get("debugConsole");
-	if (debugConsoleEnabled) {
-		overrideConsole(debugChannel);
-	} else {
-		revertConsole();
-		debugChannel.hide();
-	}
-};
 
 const refreshComponents = async (config?: vsc.WorkspaceConfiguration): Promise<void> => {
 	return new Promise<void>(async (resolve, _reject) => {
