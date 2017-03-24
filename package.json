@@ -98,11 +98,6 @@
           "uniqueItems": true,
           "description": "Specify which parts of the component should the Go To Definition action show"
         },
-        "ngComponents.debugConsole": {
-          "type": "boolean",
-          "default": false,
-          "description": "Set to true to enable debug console"
-        },
         "ngComponents.controller.publicMembersOnly": {
           "type": "boolean",
           "default": true,
