@@ -5,13 +5,14 @@ import { SourceFile } from "../sourceFile";
 import { Controller } from "../controller/controller";
 import { Component, IComponentTemplate, IComponentBinding } from "./component";
 import { workspaceRoot } from '../vsc';
+import { TypescriptParser } from "../typescriptParser";
 
 export class ComponentParser {
 	private results: Component[] = [];
-	private identifierNodes: Map<string, ts.Node> = new Map<string, ts.Node>();
+	private tsParser: TypescriptParser;
 
 	constructor(private file: SourceFile, private controllers: Controller[]) {
-
+		this.tsParser = new TypescriptParser(file.sourceFile);
 	}
 	public parse = () => {
 		this.parseChildren(this.file.sourceFile);
@@ -27,7 +28,7 @@ export class ComponentParser {
 				&& (call.expression as ts.PropertyAccessExpression).name.text === 'component'
 				&& call.arguments.length === 2) {
 				let componentNameNode = call.arguments[0];
-				let componentConfigObj = <ts.ObjectLiteralExpression>call.arguments[1];
+				let componentConfigObj = this.getComponentConfig(call.arguments[1]);
 
 				let component = this.createComponent(componentNameNode, componentConfigObj);
 				if (component) {
@@ -37,30 +38,25 @@ export class ComponentParser {
 				call.getChildren().forEach(this.parseChildren);
 			}
 		} else if (node.kind === ts.SyntaxKind.Identifier) {
-			let identifier = <ts.Identifier>node;
-			this.identifierNodes.set(identifier.text, identifier);
+			this.tsParser.addIdentifier(<ts.Identifier>node);
 		} else {
 			node.getChildren().forEach(this.parseChildren);
+		}
+	}
+
+	private getComponentConfig(node: ts.Expression) {
+		if (node.kind === ts.SyntaxKind.ObjectLiteralExpression) {
+			return <ts.ObjectLiteralExpression>node;
+		} else if (node.kind === ts.SyntaxKind.Identifier) {
+			return this.tsParser.getObjectLiteralVariableValue(<ts.Identifier>node);
 		}
 	}
 
 	private getComponentName(node: ts.Expression) {
 		if (node.kind === ts.SyntaxKind.StringLiteral) {
 			return (<ts.StringLiteral>node).text;
-		}
-
-		if (node.kind === ts.SyntaxKind.Identifier) {
-			let refIdentifier = <ts.Identifier>node;
-			if (this.identifierNodes.has(refIdentifier.text)) {
-				let identifier = this.identifierNodes.get(refIdentifier.text);
-				if (identifier.parent.kind === ts.SyntaxKind.VariableDeclaration) {
-					let varDeclaration = <ts.VariableDeclaration>identifier.parent;
-
-					if (varDeclaration.initializer.kind === ts.SyntaxKind.StringLiteral) {
-						return (<ts.StringLiteral>varDeclaration.initializer).text;
-					}
-				}
-			}
+		} else if (node.kind === ts.SyntaxKind.Identifier) {
+			return this.tsParser.getStringVariableValue(<ts.Identifier>node);
 		}
 	}
 
@@ -74,21 +70,21 @@ export class ComponentParser {
 		component.name = componentName;
 		component.pos = this.file.sourceFile.getLineAndCharacterOfPosition(componentNameNode.pos);
 
-		let bindingsObj = this.findProperty(configObj, 'bindings');
+		let bindingsObj = this.tsParser.findProperty(configObj, 'bindings');
 		if (bindingsObj) {
 			let bindingsProps = <ts.ObjectLiteralExpression>bindingsObj.initializer;
 			component.bindings.push(...bindingsProps.properties.map(this.createBinding));
 		}
 
-		component.template = this.createTemplateFromUrl(this.findProperty(configObj, 'templateUrl'));
+		component.template = this.createTemplateFromUrl(this.tsParser.findProperty(configObj, 'templateUrl'));
 		if (!component.template) {
-			component.template = this.createTemplate(this.findProperty(configObj, 'template'));
+			component.template = this.createTemplate(this.tsParser.findProperty(configObj, 'template'));
 		}
 
-		component.controllerAs = this.createControllerAlias(this.findProperty(configObj, 'controllerAs'));
+		component.controllerAs = this.createControllerAlias(this.tsParser.findProperty(configObj, 'controllerAs'));
 
 		if (this.controllers && this.controllers.length > 0) {
-			component.controller = this.createController(this.findProperty(configObj, 'controller'));
+			component.controller = this.createController(this.tsParser.findProperty(configObj, 'controller'));
 			if (!component.controller) {
 				// tslint:disable-next-line:no-console
 				console.log(`Controller for ${component.name} is not defined`);
@@ -96,10 +92,6 @@ export class ComponentParser {
 		}
 
 		return component;
-	}
-
-	private findProperty = (obj: ts.ObjectLiteralExpression, name: string) => {
-		return <ts.PropertyAssignment>obj.properties.find(v => v.name.getText(this.file.sourceFile) === name);
 	}
 
 	private createController = (node: ts.PropertyAssignment): Controller => {
