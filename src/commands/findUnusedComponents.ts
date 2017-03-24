@@ -1,6 +1,6 @@
 
 import { IHtmlReferences } from "../utils/htmlReferencesCache";
-import { Component } from "../utils/component";
+import { Component } from "../utils/component/component";
 import * as vsc from 'vscode';
 
 export class FindUnusedComponentsCommand {

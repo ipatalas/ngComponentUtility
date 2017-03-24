@@ -8,7 +8,7 @@ import * as vsc from 'vscode';
 import { default as glob } from './glob';
 import { default as tags } from './htmlTags';
 import { workspaceRoot } from './vsc';
-import { IComponentTemplate } from "./component";
+import { IComponentTemplate } from "./component/component";
 
 const htmlTags = new Set<string>(tags);
 const PERF_GLOB = "Time consumed on finding HTML files";

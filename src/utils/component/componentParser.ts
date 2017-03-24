@@ -1,10 +1,10 @@
 import * as ts from 'typescript';
 import * as path from "path";
 import * as decamelize from 'decamelize';
-import { SourceFile } from "./sourceFile";
-import { Controller } from "./controller/controller";
+import { SourceFile } from "../sourceFile";
+import { Controller } from "../controller/controller";
 import { Component, IComponentTemplate, IComponentBinding } from "./component";
-import { workspaceRoot } from './vsc';
+import { workspaceRoot } from '../vsc';
 
 export class ComponentParser {
 	private results: Component[] = [];

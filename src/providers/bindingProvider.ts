@@ -1,5 +1,5 @@
 import * as vsc from 'vscode';
-import { Component } from '../utils/component';
+import { Component } from '../utils/component/component';
 import * as _ from 'lodash';
 
 export class BindingProvider implements vsc.CompletionItemProvider {

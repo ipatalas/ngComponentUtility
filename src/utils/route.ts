@@ -1,6 +1,6 @@
 import * as ts from "typescript";
 import { SourceFile } from './sourceFile';
-import { IComponentTemplate } from "./component";
+import { IComponentTemplate } from "./component/component";
 
 export class Route {
 	public name: string;

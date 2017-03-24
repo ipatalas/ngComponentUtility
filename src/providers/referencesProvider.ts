@@ -4,7 +4,7 @@ import * as vsc from 'vscode';
 import { HtmlDocumentHelper } from '../utils/htmlDocumentHelper';
 import { IHtmlReferences, IComponentReference, IComponentReferences } from "../utils/htmlReferencesCache";
 import { workspaceRoot, getLocation } from "../utils/vsc";
-import { Component } from "../utils/component";
+import { Component } from "../utils/component/component";
 type DocumentHandlerDelegate = (document: vsc.TextDocument, position: vsc.Position) => vsc.Location[];
 
 export class ReferencesProvider implements vsc.ReferenceProvider {

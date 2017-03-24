@@ -4,7 +4,7 @@ import * as ts from "typescript";
 import * as fs from 'fs';
 import * as _ from 'lodash';
 
-import { Component, IComponentBinding } from '../../src/utils/component';
+import { Component, IComponentBinding } from '../../src/utils/component/component';
 
 const TEST_FILES_ROOT = path.join(__dirname, '../../../test/test_files');
 

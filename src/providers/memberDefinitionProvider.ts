@@ -1,7 +1,7 @@
 import * as vsc from 'vscode';
 import * as path from 'path';
 
-import { Component } from '../utils/component';
+import { Component } from '../utils/component/component';
 import { getLocation } from '../utils/vsc';
 
 export class MemberDefinitionProvider implements vsc.DefinitionProvider {

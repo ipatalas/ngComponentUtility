@@ -1,6 +1,6 @@
 import * as vsc from 'vscode';
 import * as _ from 'lodash';
-import { Component } from '../utils/component';
+import { Component } from '../utils/component/component';
 import { HtmlDocumentHelper } from '../utils/htmlDocumentHelper';
 
 const REGEX_TAG = /^<[a-z-]*$/i;

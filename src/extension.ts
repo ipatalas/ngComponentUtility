@@ -10,11 +10,11 @@ import { ReferencesProvider } from "./providers/referencesProvider";
 import { FindUnusedComponentsCommand } from "./commands/findUnusedComponents";
 
 import { overrideConsole, revertConsole, ConfigurationChangeListener, IConfigurationChangedEvent } from './utils/vsc';
-import { ComponentsCache } from './utils/componentsCache';
+import { IComponentTemplate } from "./utils/component/component";
+import { ComponentsCache } from './utils/component/componentsCache';
 import { HtmlReferencesCache } from "./utils/htmlReferencesCache";
 import { init as initGlob } from './utils/glob';
 import { RoutesCache } from "./utils/routesCache";
-import { IComponentTemplate } from "./utils/component";
 import { MemberDefinitionProvider } from "./providers/memberDefinitionProvider";
 
 const HTML_DOCUMENT_SELECTOR: vsc.DocumentSelector = 'html';

@@ -1,6 +1,6 @@
 import * as vsc from 'vscode';
 
-import { Component } from '../utils/component';
+import { Component } from '../utils/component/component';
 import { HtmlDocumentHelper } from '../utils/htmlDocumentHelper';
 import { getLocation } from '../utils/vsc';
 

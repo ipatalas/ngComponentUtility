@@ -3,9 +3,9 @@
 import * as path from 'path';
 import * as vsc from 'vscode';
 import { Component } from './component';
-import { Controller } from './controller/controller';
-import { SourceFile } from './sourceFile';
-import { SourceFilesScanner } from './sourceFilesScanner';
+import { Controller } from '../controller/controller';
+import { SourceFile } from '../sourceFile';
+import { SourceFilesScanner } from '../sourceFilesScanner';
 
 // tslint:disable-next-line:no-var-requires
 const gaze = require("gaze");
