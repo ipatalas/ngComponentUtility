@@ -15,6 +15,7 @@ import { HtmlReferencesCache } from "./utils/htmlReferencesCache";
 import { init as initGlob } from './utils/glob';
 import { RoutesCache } from "./utils/routesCache";
 import { IComponentTemplate } from "./utils/component";
+import { MemberDefinitionProvider } from "./providers/memberDefinitionProvider";
 
 const HTML_DOCUMENT_SELECTOR: vsc.DocumentSelector = 'html';
 const TS_DOCUMENT_SELECTOR: vsc.DocumentSelector = 'typescript';
@@ -26,6 +27,7 @@ const memberCompletionProvider = new MemberCompletionProvider();
 const bindingProvider = new BindingProvider();
 const definitionProvider = new ComponentDefinitionProvider();
 const referencesProvider = new ReferencesProvider();
+const memberDefinitionProvider = new MemberDefinitionProvider();
 const findUnusedAngularComponents = new FindUnusedComponentsCommand();
 
 const componentsCache = new ComponentsCache();
@@ -72,6 +74,7 @@ export async function activate(context: vsc.ExtensionContext) {
 	context.subscriptions.push(vsc.languages.registerCompletionItemProvider(HTML_DOCUMENT_SELECTOR, bindingProvider, ','));
 	context.subscriptions.push(vsc.languages.registerCompletionItemProvider(HTML_DOCUMENT_SELECTOR, memberCompletionProvider, '.'));
 	context.subscriptions.push(vsc.languages.registerDefinitionProvider(HTML_DOCUMENT_SELECTOR, definitionProvider));
+	context.subscriptions.push(vsc.languages.registerDefinitionProvider(HTML_DOCUMENT_SELECTOR, memberDefinitionProvider));
 	context.subscriptions.push(vsc.languages.registerReferenceProvider([HTML_DOCUMENT_SELECTOR, TS_DOCUMENT_SELECTOR], referencesProvider));
 
 	statusBar.tooltip = 'Refresh Angular components';
@@ -113,6 +116,7 @@ const refreshComponents = async (config?: vsc.WorkspaceConfiguration): Promise<v
 			memberCompletionProvider.loadComponents(components);
 			bindingProvider.loadComponents(components);
 			definitionProvider.loadComponents(components);
+			memberDefinitionProvider.loadComponents(components);
 
 			statusBar.text = `$(sync) ${components.length} components`;
 		} catch (err) {

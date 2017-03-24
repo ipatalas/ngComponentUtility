@@ -6,8 +6,10 @@ export abstract class MemberBase implements IMember {
 	public type: MemberType;
 	public returnType: string;
 	public isPublic: boolean;
+	public pos: ts.LineAndCharacter;
 
-	protected fillCommonFields = (node: ts.PropertyDeclaration | ts.MethodDeclaration | ts.GetAccessorDeclaration) => {
+	protected fillCommonFields = (node: ts.PropertyDeclaration | ts.MethodDeclaration | ts.GetAccessorDeclaration, sourceFile: ts.SourceFile) => {
+		this.pos = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile));
 		this.name = (<ts.Identifier>node.name).text;
 		this.isPublic = node.modifiers === undefined || node.modifiers.some(modifier => modifier.kind === ts.SyntaxKind.PublicKeyword);
 		this.setReturnType(node.type);
@@ -30,8 +32,8 @@ export abstract class MemberBase implements IMember {
 export interface IMember {
 	name: string;
 	type: MemberType;
-
 	isPublic: boolean;
+	pos: ts.LineAndCharacter;
 
 	buildCompletionItem(): vsc.CompletionItem;
 }

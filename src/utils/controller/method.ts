@@ -11,9 +11,9 @@ export class ClassMethod extends MemberBase {
 		super();
 	}
 
-	public static fromNode(node: ts.PropertyDeclaration | ts.MethodDeclaration) {
+	public static fromNode(node: ts.PropertyDeclaration | ts.MethodDeclaration, sourceFile: ts.SourceFile) {
 		let result = new ClassMethod();
-		result.fillCommonFields(node);
+		result.fillCommonFields(node, sourceFile);
 
 		if (isProperty(node)) {
 			let initializer = <ts.ArrowFunction>node.initializer;

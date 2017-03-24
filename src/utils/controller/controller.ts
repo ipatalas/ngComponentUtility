@@ -84,16 +84,16 @@ Please report this as a bug and include failing controller if possible (remove o
 
 		function createMember(member: ts.ClassElement) {
 			if (member.kind === ts.SyntaxKind.MethodDeclaration) {
-				return ClassMethod.fromNode(<ts.MethodDeclaration>member);
+				return ClassMethod.fromNode(<ts.MethodDeclaration>member, sourceFile);
 			} else if (member.kind === ts.SyntaxKind.GetAccessor) {
-				return ClassProperty.fromProperty(<ts.GetAccessorDeclaration>member);
+				return ClassProperty.fromProperty(<ts.GetAccessorDeclaration>member, sourceFile);
 			} else if (member.kind === ts.SyntaxKind.PropertyDeclaration) {
 				let prop = <ts.PropertyDeclaration>member;
 
 				if (prop.initializer && prop.initializer.kind === ts.SyntaxKind.ArrowFunction) {
-					return ClassMethod.fromNode(prop);
+					return ClassMethod.fromNode(prop, sourceFile);
 				} else {
-					return ClassProperty.fromProperty(prop);
+					return ClassProperty.fromProperty(prop, sourceFile);
 				}
 			}
 		}

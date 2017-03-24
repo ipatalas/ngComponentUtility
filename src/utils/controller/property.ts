@@ -9,9 +9,9 @@ export class ClassProperty extends MemberBase {
 	private constructor() {
 		super();
 	}
-	public static fromProperty(node: ts.PropertyDeclaration | ts.GetAccessorDeclaration) {
+	public static fromProperty(node: ts.PropertyDeclaration | ts.GetAccessorDeclaration, sourceFile: ts.SourceFile) {
 		let result = new ClassProperty();
-		result.fillCommonFields(node);
+		result.fillCommonFields(node, sourceFile);
 
 		return result;
 	}
