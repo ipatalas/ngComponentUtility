@@ -2,10 +2,10 @@
 
 import * as vsc from 'vscode';
 
-import { CompletionProvider } from './providers/completionProvider';
+import { ComponentCompletionProvider } from './providers/componentCompletionProvider';
 import { MemberCompletionProvider } from './providers/memberCompletionProvider';
 import { BindingProvider } from './providers/bindingProvider';
-import { GoToDefinitionProvider } from './providers/definitionProvider';
+import { ComponentDefinitionProvider } from './providers/componentDefinitionProvider';
 import { ReferencesProvider } from "./providers/referencesProvider";
 import { FindUnusedComponentsCommand } from "./commands/findUnusedComponents";
 
@@ -21,10 +21,10 @@ const TS_DOCUMENT_SELECTOR: vsc.DocumentSelector = 'typescript';
 const COMMAND_REFRESHCOMPONENTS: string = 'extension.refreshAngularComponents';
 const COMMAND_FINDUNUSEDCOMPONENTS: string = 'extension.findUnusedAngularComponents';
 
-const completionProvider = new CompletionProvider();
+const completionProvider = new ComponentCompletionProvider();
 const memberCompletionProvider = new MemberCompletionProvider();
 const bindingProvider = new BindingProvider();
-const definitionProvider = new GoToDefinitionProvider();
+const definitionProvider = new ComponentDefinitionProvider();
 const referencesProvider = new ReferencesProvider();
 const findUnusedAngularComponents = new FindUnusedComponentsCommand();
 

@@ -5,7 +5,7 @@ import { HtmlDocumentHelper } from '../utils/htmlDocumentHelper';
 
 const REGEX_TAG = /^<[a-z-]*$/i;
 
-export class CompletionProvider implements vsc.CompletionItemProvider {
+export class ComponentCompletionProvider implements vsc.CompletionItemProvider {
 	private components: Component[];
 
 	public loadComponents = (components: Component[]) => {

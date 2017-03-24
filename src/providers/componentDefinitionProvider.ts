@@ -4,7 +4,7 @@ import { Component } from '../utils/component';
 import { HtmlDocumentHelper } from '../utils/htmlDocumentHelper';
 import { getLocation } from '../utils/vsc';
 
-export class GoToDefinitionProvider implements vsc.DefinitionProvider {
+export class ComponentDefinitionProvider implements vsc.DefinitionProvider {
 	private components: Component[];
 
 	public loadComponents = (components: Component[]) => {
