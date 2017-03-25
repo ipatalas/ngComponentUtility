@@ -52,16 +52,21 @@ export class ComponentParser {
 		}
 	}
 
-	private getComponentName(node: ts.Expression) {
-		if (node.kind === ts.SyntaxKind.StringLiteral) {
-			return (<ts.StringLiteral>node).text;
+	private getStringValueFromNode(node: ts.Expression) {
+		if (node.kind === ts.SyntaxKind.StringLiteral || node.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral) {
+			return (<ts.LiteralExpression>node).text;
 		} else if (node.kind === ts.SyntaxKind.Identifier) {
 			return this.tsParser.getStringVariableValue(<ts.Identifier>node);
+		} else if (node.kind === ts.SyntaxKind.PropertyAccessExpression) {
+			let member = this.tsParser.getPropertyAccessMember(<ts.PropertyAccessExpression>node);
+			if (member) {
+				return this.getStringValueFromNode(member.initializer);
+			}
 		}
 	}
 
 	private createComponent = (componentNameNode: ts.Expression, configObj: ts.ObjectLiteralExpression) => {
-		let componentName = this.getComponentName(componentNameNode);
+		let componentName = this.getStringValueFromNode(componentNameNode);
 		if (!componentName) {
 			return undefined;
 		}
@@ -133,10 +138,12 @@ export class ComponentParser {
 			return undefined;
 		}
 
-		let value = <ts.StringLiteral>node.initializer;
-		let templatePath = path.join(workspaceRoot, value.text);
+		let value = this.getStringValueFromNode(node.initializer);
+		if (value) {
+			let templatePath = path.join(workspaceRoot, value);
 
-		return <IComponentTemplate>{ path: templatePath, pos: { line: 0, character: 0 } };
+			return <IComponentTemplate>{ path: templatePath, pos: { line: 0, character: 0 } };
+		}
 	}
 
 	private createBinding = (node: ts.PropertyAssignment): IComponentBinding => {
