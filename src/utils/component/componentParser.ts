@@ -52,21 +52,8 @@ export class ComponentParser {
 		}
 	}
 
-	private getStringValueFromNode(node: ts.Expression) {
-		if (node.kind === ts.SyntaxKind.StringLiteral || node.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral) {
-			return (<ts.LiteralExpression>node).text;
-		} else if (node.kind === ts.SyntaxKind.Identifier) {
-			return this.tsParser.getStringVariableValue(<ts.Identifier>node);
-		} else if (node.kind === ts.SyntaxKind.PropertyAccessExpression) {
-			let member = this.tsParser.getPropertyAccessMember(<ts.PropertyAccessExpression>node);
-			if (member) {
-				return this.getStringValueFromNode(member.initializer);
-			}
-		}
-	}
-
 	private createComponent = (componentNameNode: ts.Expression, configObj: ts.ObjectLiteralExpression) => {
-		let componentName = this.getStringValueFromNode(componentNameNode);
+		let componentName = this.tsParser.getStringValueFromNode(componentNameNode);
 		if (!componentName) {
 			return undefined;
 		}
@@ -75,21 +62,23 @@ export class ComponentParser {
 		component.name = componentName;
 		component.pos = this.file.sourceFile.getLineAndCharacterOfPosition(componentNameNode.pos);
 
-		let bindingsObj = this.tsParser.findProperty(configObj, 'bindings');
+		let config = this.tsParser.translateObjectLiteral(configObj);
+
+		let bindingsObj = config['bindings'];
 		if (bindingsObj) {
 			let bindingsProps = <ts.ObjectLiteralExpression>bindingsObj.initializer;
 			component.bindings.push(...bindingsProps.properties.map(this.createBinding));
 		}
 
-		component.template = this.createTemplateFromUrl(this.tsParser.findProperty(configObj, 'templateUrl'));
+		component.template = this.createTemplateFromUrl(config['templateUrl']);
 		if (!component.template) {
-			component.template = this.createTemplate(this.tsParser.findProperty(configObj, 'template'));
+			component.template = this.createTemplate(config['template']);
 		}
 
-		component.controllerAs = this.createControllerAlias(this.tsParser.findProperty(configObj, 'controllerAs'));
+		component.controllerAs = this.createControllerAlias(config['controllerAs']);
 
 		if (this.controllers && this.controllers.length > 0) {
-			component.controller = this.createController(this.tsParser.findProperty(configObj, 'controller'));
+			component.controller = this.createController(config['controller']);
 			if (!component.controller) {
 				// tslint:disable-next-line:no-console
 				console.log(`Controller for ${component.name} is not defined`);
@@ -138,7 +127,7 @@ export class ComponentParser {
 			return undefined;
 		}
 
-		let value = this.getStringValueFromNode(node.initializer);
+		let value = this.tsParser.getStringValueFromNode(node.initializer);
 		if (value) {
 			let templatePath = path.join(workspaceRoot, value);
 

@@ -15,7 +15,20 @@ export class TypescriptParser {
 		this.identifierNodes.get(node.text).push(node);
 	}
 
-	public getVariableDefinition = (identifier: ts.Identifier) => {
+	public getStringValueFromNode = (node: ts.Expression) => {
+		if (node.kind === ts.SyntaxKind.StringLiteral || node.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral) {
+			return (<ts.LiteralExpression>node).text;
+		} else if (node.kind === ts.SyntaxKind.Identifier) {
+			return this.getStringVariableValue(<ts.Identifier>node);
+		} else if (node.kind === ts.SyntaxKind.PropertyAccessExpression) {
+			let member = this.getPropertyAccessMember(<ts.PropertyAccessExpression>node);
+			if (member) {
+				return this.getStringValueFromNode(member.initializer);
+			}
+		}
+	}
+
+	private getVariableDefinition = (identifier: ts.Identifier) => {
 		if (this.identifierNodes.has(identifier.text)) {
 			let usages = this.identifierNodes.get(identifier.text);
 			let varDeclaration = usages.find(u => u.parent.kind === ts.SyntaxKind.VariableDeclaration);
@@ -25,7 +38,7 @@ export class TypescriptParser {
 		}
 	}
 
-	public getPropertyAccessMember = (pae: ts.PropertyAccessExpression) => {
+	private getPropertyAccessMember = (pae: ts.PropertyAccessExpression) => {
 		if (pae.expression.kind === ts.SyntaxKind.Identifier) {
 			let className = (<ts.Identifier>pae.expression).text;
 
@@ -43,7 +56,7 @@ export class TypescriptParser {
 		}
 	}
 
-	public getStringVariableValue = (identifier: ts.Identifier) => {
+	private getStringVariableValue = (identifier: ts.Identifier) => {
 		let varDeclaration = this.getVariableDefinition(identifier);
 
 		if (varDeclaration && varDeclaration.initializer.kind === ts.SyntaxKind.StringLiteral) {
@@ -59,7 +72,14 @@ export class TypescriptParser {
 		}
 	}
 
-	public findProperty = (obj: ts.ObjectLiteralExpression, name: string) => {
-		return <ts.PropertyAssignment>obj.properties.find(v => v.name.getText(this.sourceFile) === name);
+	public translateObjectLiteral = (node: ts.ObjectLiteralExpression) => {
+		return <IObjectLiteral>node.properties.reduce((acc, current) => {
+			acc[current.name.getText(this.sourceFile)] = <ts.PropertyAssignment>current;
+			return acc;
+		}, {});
 	}
+}
+
+interface IObjectLiteral {
+	[name: string]: ts.PropertyAssignment;
 }
