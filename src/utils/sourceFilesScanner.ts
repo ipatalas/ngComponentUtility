@@ -2,40 +2,34 @@ import * as vsc from 'vscode';
 import * as _ from 'lodash';
 import { SourceFile } from './sourceFile';
 import { default as glob } from './glob';
-
-const PERF_TOTAL = "Total time consumed on scanning for {type}s";
-const PERF_GLOB = "Time consumed on finding {type} files";
-const PERF_PARSE = "Time consumed on parsing {type} files";
-const PERF_ANALYZE = "Time consumed on analyzing {type} files";
+import * as prettyHrtime from 'pretty-hrtime';
 
 // tslint:disable:no-console
 export class SourceFilesScanner {
 	public findFiles = <SourceFileType>(configKey: string, callbackFn: (src: SourceFile) => Promise<SourceFileType[]>, fileType: string) => {
-		const TOTAL = PERF_TOTAL.replace("{type}", fileType);
-		const GLOB = PERF_GLOB.replace("{type}", fileType);
-		const PARSE = PERF_PARSE.replace("{type}", fileType);
-		const ANALYZE = PERF_ANALYZE.replace("{type}", fileType);
-
 		return new Promise<SourceFileType[]>(async (resolve, reject) => {
-			console.time(TOTAL);
+			let total = process.hrtime();
 			let config = vsc.workspace.getConfiguration("ngComponents");
 			let globs = <string[]>config.get(configKey);
 
 			try {
-				console.time(GLOB);
+				let globTime = process.hrtime();
 				let files = _.flatten(await Promise.all(globs.map(pattern => glob(pattern, { absolute: true }))));
-				console.timeEnd(GLOB);
+				globTime = process.hrtime(globTime);
 
-				console.time(PARSE);
+				let parse = process.hrtime();
 				let sourceFiles = await Promise.all(files.map(SourceFile.parse));
-				console.timeEnd(PARSE);
+				parse = process.hrtime(parse);
 
-				console.time(ANALYZE);
+				let analyze = process.hrtime();
 				let components = await Promise.all(sourceFiles.map(callbackFn));
 				let result = _.flatten(components);
-				console.timeEnd(ANALYZE);
+				analyze = process.hrtime(analyze);
 
-				console.timeEnd(TOTAL);
+				total = process.hrtime(total);
+
+				// tslint:disable-next-line:max-line-length
+				console.log(`[ngComponents] ${fileType} stats [files=${files.length}, glob=${prettyHrtime(globTime)}, parse=${prettyHrtime(parse)}, analyze=${prettyHrtime(analyze)}, total=${prettyHrtime(total)}]`);
 
 				resolve(result);
 			} catch (e) {

@@ -7,6 +7,7 @@
    */
 	"extends": "tslint:recommended",
 	"rules": {
+		"no-string-literal": false,
 		"variable-name": [
 			true,
 			"ban-keywords",

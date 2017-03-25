@@ -5,14 +5,13 @@ import * as path from 'path';
 import * as parse5 from 'parse5';
 import * as fs from 'fs';
 import * as vsc from 'vscode';
+import * as prettyHrtime from 'pretty-hrtime';
 import { default as glob } from './glob';
 import { default as tags } from './htmlTags';
 import { workspaceRoot } from './vsc';
 import { IComponentTemplate } from "./component/component";
 
 const htmlTags = new Set<string>(tags);
-const PERF_GLOB = "Time consumed on finding HTML files";
-const PERF_PARSE = "Time consumed on parsing HTML files";
 
 // tslint:disable-next-line:no-var-requires
 const gaze = require("gaze");
@@ -149,14 +148,16 @@ export class HtmlReferencesCache {
 			let results: IHtmlReferences = {};
 			let htmlGlobs = <string[]>config.get("htmlGlobs");
 
-			console.time(PERF_GLOB);
+			let globTime = process.hrtime();
 			let promises = htmlGlobs.map(pattern => glob(pattern, { absolute: false }));
 			let files = _.flatten(await Promise.all(promises));
-			console.timeEnd(PERF_GLOB);
+			globTime = process.hrtime(globTime);
 
-			console.time(PERF_PARSE);
+			let parseTime = process.hrtime();
 			await Promise.all(files.map(f => this.parseFile(workspaceRoot, f, results)));
-			console.timeEnd(PERF_PARSE);
+			parseTime = process.hrtime(parseTime);
+
+			console.log(`[ngComponents] HTML stats [files=${files.length}, glob=${prettyHrtime(globTime)}, parse=${prettyHrtime(parseTime)}]`);
 
 			this.htmlReferences = results;
 			return this.htmlReferences;
