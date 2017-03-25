@@ -28,7 +28,7 @@ export class ComponentParser {
 				&& (call.expression as ts.PropertyAccessExpression).name.text === 'component'
 				&& call.arguments.length === 2) {
 				let componentNameNode = call.arguments[0];
-				let componentConfigObj = this.getComponentConfig(call.arguments[1]);
+				let componentConfigObj = this.tsParser.getObjectLiteralValueFromNode(call.arguments[1]);
 
 				let component = this.createComponent(componentNameNode, componentConfigObj);
 				if (component) {
@@ -41,14 +41,6 @@ export class ComponentParser {
 			this.tsParser.addIdentifier(<ts.Identifier>node);
 		} else {
 			node.getChildren().forEach(this.parseChildren);
-		}
-	}
-
-	private getComponentConfig(node: ts.Expression) {
-		if (node.kind === ts.SyntaxKind.ObjectLiteralExpression) {
-			return <ts.ObjectLiteralExpression>node;
-		} else if (node.kind === ts.SyntaxKind.Identifier) {
-			return this.tsParser.getObjectLiteralVariableValue(<ts.Identifier>node);
 		}
 	}
 

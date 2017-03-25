@@ -28,6 +28,19 @@ export class TypescriptParser {
 		}
 	}
 
+	public getObjectLiteralValueFromNode = (node: ts.Expression) => {
+		if (node.kind === ts.SyntaxKind.ObjectLiteralExpression) {
+			return <ts.ObjectLiteralExpression>node;
+		} else if (node.kind === ts.SyntaxKind.Identifier) {
+			return this.getObjectLiteralVariableValue(<ts.Identifier>node);
+		} else if (node.kind === ts.SyntaxKind.PropertyAccessExpression) {
+			let member = this.getPropertyAccessMember(<ts.PropertyAccessExpression>node);
+			if (member) {
+				return this.getObjectLiteralValueFromNode(member.initializer);
+			}
+		}
+	}
+
 	private getVariableDefinition = (identifier: ts.Identifier) => {
 		if (this.identifierNodes.has(identifier.text)) {
 			let usages = this.identifierNodes.get(identifier.text);
@@ -64,7 +77,7 @@ export class TypescriptParser {
 		}
 	}
 
-	public getObjectLiteralVariableValue = (identifier: ts.Identifier) => {
+	private getObjectLiteralVariableValue = (identifier: ts.Identifier) => {
 		let varDeclaration = this.getVariableDefinition(identifier);
 
 		if (varDeclaration && varDeclaration.initializer.kind === ts.SyntaxKind.ObjectLiteralExpression) {
