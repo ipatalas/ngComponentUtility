@@ -24,8 +24,7 @@
 # Synopsis
 
 This extension is a result of hackathon event done in the company we work for. We had an option to invest 2 days into anything we could possibly want.
-We chose to develop an extension for VS Code which would make our daily work easier. Our current project is an Angular 1.5 based web application. As an Angular developers we wanted to have auto-completion for all custom components that are available in our application.
-This is still a preview version. It's our first attempt to VS Code extension, so not everything may be perfect.
+We chose to develop an extension for VS Code which would make our daily work easier. Our current project is an Angular 1.5 based web application. As Angular developers we wanted to have auto-completion for all custom components that are available in our application.
 Do not hesitate to [report](https://github.com/ipatalas/ngComponentUtility/issues) any issues you may find.
 
 ## Breaking changes
@@ -83,6 +82,8 @@ There is a plan to extend this in the future to allow more complex behavior but 
 For now you can use this intellisense regardless of the cursor context. It works in every place in the file even though it makes no sense in some places.
 It was just much easier to implement that way. Scanning for the context would require a lot of effort and the outcome wouldn't be so much visible. It's only a tool so take care of the context yourself. It might change in future.
 
+> **New in 0.6.0:** `Go To Definition` also works for model members
+
 ## Go To definition
 
 You can go from html directly to either the component definition, controller or template. Just use F12 (default) or `Go To Definition` command (either from context menu or commands panel) when cursor is focused on a component in html view.
@@ -96,7 +97,7 @@ This can be either an identifier of the class used directly or string literal sp
 
 ### Templates
 
-Templates are search based on either the `templateUrl` component option field or `template` field in the same component. They are mutually exclusive and both work here. Currently supported variations are:
+Templates are searched based on either the `templateUrl` component option field or `template` field in the same component. They are mutually exclusive and both work here. Currently supported variations are:
 
 - `templateUrl: 'components/exampleComponent.html'`
 - `template: '<div>inline html template</div>'`
@@ -183,7 +184,7 @@ The following features are planned:
 - ~~auto refresh components when they change (reload only the one that has changed)~~
 - ~~refresh all when configuration changes (glob for example)~~
 - ~~basic intellisense for view model used in html files (at least first level)~~
-- Go To Definition for view model properties/methods (at least first level)
+- ~~Go To Definition for view model properties/methods (at least first level)~~
 - ability to add binding from component usage in html (by typing it's name and selecting "Add binding" from intellisense menu or command)
 - rename component feature - update all usages
 - optimize parsing files, especially when component and controller globs have common files

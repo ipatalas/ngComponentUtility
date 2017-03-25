@@ -1,5 +1,14 @@
 # Change Log
 
+## 0.6.0 (March 25, 2017)
+
+* Added Go To Definition for view models (controller's members inside component's view) - only first level
+* Fixed [issue #3](https://github.com/ipatalas/ngComponentUtility/issues/3) - vars/consts can be now used for component name or templateUrl
+* Fixed [issue #4](https://github.com/ipatalas/ngComponentUtility/issues/4) - static class field can be now used for component name or templateUrl
+* Fixed [issue #5](https://github.com/ipatalas/ngComponentUtility/issues/5) - static class field or var/const can be now used for component configuration
+* Removed custom debug channel (not needed, Dev Tools are enough)
+* Cosmetic changes to formatting of statistics in console (Dev Tools)
+
 ## 0.5.1 (March 22, 2017)
 
 * Find All References and Find unused components feature now find usages in angular-ui-router files
@@ -16,7 +25,7 @@
 
 ## 0.3.2 (January 3, 2017)
 
-* Fixed issue #1 - component parsing didn't work with components inside anonymous closure
+* Fixed [issue #1](https://github.com/ipatalas/ngComponentUtility/issues/1) - component parsing didn't work with components inside anonymous closure
 * Controller parsing improvements:
 	* Added support for function controllers (pure JS projects)
 	* Fixed #1 bug for controllers as well
