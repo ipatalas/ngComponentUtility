@@ -38,7 +38,7 @@ const statusBar = vsc.window.createStatusBarItem(vsc.StatusBarAlignment.Left);
 const configListener = new ConfigurationChangeListener("ngComponents");
 
 export async function activate(context: vsc.ExtensionContext) {
-	context.subscriptions.push(configListener);
+	context.subscriptions.push(configListener, componentsCache, htmlReferencesCache, routesCache);
 
 	try {
 		initGlob(vsc.workspace.rootPath);
@@ -80,11 +80,11 @@ export async function activate(context: vsc.ExtensionContext) {
 const refreshComponents = async (config?: vsc.WorkspaceConfiguration): Promise<void> => {
 	return new Promise<void>(async (resolve, _reject) => {
 		try {
-			let references = await htmlReferencesCache.refresh(config);
-			let components = await componentsCache.refresh(config);
-			let routes = await routesCache.refresh(config);
+			const references = await htmlReferencesCache.refresh(config);
+			const components = await componentsCache.refresh(config);
+			const routes = await routesCache.refresh(config);
 
-			let inlineTemplates: IComponentTemplate[] = [];
+			const inlineTemplates: IComponentTemplate[] = [];
 			inlineTemplates.push(...getTemplatesWithBody(components));
 			inlineTemplates.push(...getTemplatesWithBody(routes));
 

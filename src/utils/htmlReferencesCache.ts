@@ -10,72 +10,39 @@ import { default as glob } from './glob';
 import { default as tags } from './htmlTags';
 import { workspaceRoot } from './vsc';
 import { IComponentTemplate } from "./component/component";
+import { FileWatcher } from "./fileWatcher";
 
 const htmlTags = new Set<string>(tags);
 
-// tslint:disable-next-line:no-var-requires
-const gaze = require("gaze");
-
-export class HtmlReferencesCache {
+export class HtmlReferencesCache implements vsc.Disposable {
 	private htmlReferences: IHtmlReferences;
-	private watcher: any;
-	private toDelete: string[] = [];
+	private watcher: FileWatcher;
 
 	private setupWatchers = (config: vsc.WorkspaceConfiguration) => {
-		let globs = <string[]>config.get('htmlGlobs');
+		const globs = config.get('htmlGlobs') as string[];
 
-		if (this.watcher) {
-			this.watcher.close(true);
-		}
-
-		this.watcher = new gaze.Gaze(globs, { cwd: workspaceRoot });
-		this.watcher.on('renamed', this.onRename);
-		this.watcher.on('added', this.onAdded);
-		this.watcher.on('changed', this.onChanged);
-		this.watcher.on('deleted', this.onDeleted);
+		this.dispose();
+		this.watcher = new FileWatcher(globs, this.onAdded, this.onChanged, this.onDeleted);
 	}
 
-	private onAdded = async (filepath: string) => {
-		filepath = this.normalizeGazePath(filepath);
+	private onAdded = async (uri: vsc.Uri) => {
+		const filepath = this.normalizePath(uri.fsPath);
 		this.parseFile(workspaceRoot, filepath, this.htmlReferences);
 	}
 
-	// tslint:disable:no-console
-	private onChanged = async (filepath: string) => {
-		filepath = this.normalizeGazePath(filepath);
+	private onChanged = async (uri: vsc.Uri) => {
+		const filepath = this.normalizePath(uri.fsPath);
 
 		this.deleteFileReferences(filepath);
 		this.parseFile(workspaceRoot, filepath, this.htmlReferences);
 	}
 
-	private onDeleted = (filepath: string) => {
-		filepath = this.normalizeGazePath(filepath);
-
-		// workaround for gaze behavior - https://github.com/shama/gaze/issues/55
-		setTimeout(this.commitDeleted, 500);
-	}
-
-	private onRename = (newPath: string, oldPath: string) => {
-		oldPath = this.normalizeGazePath(oldPath);
-		newPath = this.normalizeGazePath(newPath);
-
-		// workaround continued - see link above
-		const deletedIdx = this.toDelete.findIndex(p => p === oldPath);
-		if (deletedIdx > -1) {
-			this.toDelete.splice(deletedIdx, 1);
-		}
-
-		this.deleteFileReferences(oldPath);
-		this.parseFile(workspaceRoot, newPath, this.htmlReferences);
-	}
-
-	private commitDeleted = () => {
-		this.toDelete.forEach(this.deleteFileReferences);
-		this.toDelete = [];
+	private onDeleted = (uri: vsc.Uri) => {
+		this.deleteFileReferences(this.normalizePath(uri.fsPath));
 	}
 
 	private deleteFileReferences = (filepath: string) => {
-		let emptyKeys = [];
+		const emptyKeys = [];
 
 		_.forIn(this.htmlReferences, (value, key) => {
 			delete value[filepath];
@@ -89,7 +56,7 @@ export class HtmlReferencesCache {
 	}
 
 	private createParser = (resolve, reject, results, filepath, locationCb): parse5.SAXParser => {
-		let parser = new parse5.SAXParser({ locationInfo: true });
+		const parser = new parse5.SAXParser({ locationInfo: true });
 
 		parser.on("startTag", (name, _attrs, _self, location) => {
 			if (htmlTags.has(name)) {
@@ -112,8 +79,8 @@ export class HtmlReferencesCache {
 
 	private parseFile = (projectPath, filePath, results) => {
 		return new Promise<void>((resolve, reject) => {
-			let getLocation = (location: parse5.MarkupData.StartTagLocation) => ({ line: location.line - 1, col: location.col - 1 });
-			let parser = this.createParser(resolve, reject, results, filePath, getLocation);
+			const getLocation = (location: parse5.MarkupData.StartTagLocation) => ({ line: location.line - 1, col: location.col - 1 });
+			const parser = this.createParser(resolve, reject, results, filePath, getLocation);
 
 			fs.createReadStream(path.join(projectPath, filePath)).pipe(parser);
 		});
@@ -121,14 +88,14 @@ export class HtmlReferencesCache {
 
 	private parseTemplate = (template: IComponentTemplate, results) => {
 		return new Promise<void>((resolve, reject) => {
-			let filePath = this.normalizeGazePath(template.path);
+			const filePath = this.normalizePath(template.path);
 
-			let getLocation = (location: parse5.MarkupData.StartTagLocation) => ({
+			const getLocation = (location: parse5.MarkupData.StartTagLocation) => ({
 				line: template.pos.line + location.line - 1,
 				col: (location.line === 1 ? template.pos.character + 1 : 0) + location.col
 			});
 
-			let parser = this.createParser(resolve, reject, results, filePath, getLocation);
+			const parser = this.createParser(resolve, reject, results, filePath, getLocation);
 
 			parser.write(template.body);
 			parser.end();
@@ -145,18 +112,19 @@ export class HtmlReferencesCache {
 		try {
 			this.setupWatchers(config);
 
-			let results: IHtmlReferences = {};
-			let htmlGlobs = <string[]>config.get("htmlGlobs");
+			const results: IHtmlReferences = {};
+			const htmlGlobs = config.get("htmlGlobs") as string[];
 
 			let globTime = process.hrtime();
-			let promises = htmlGlobs.map(pattern => glob(pattern, { absolute: false }));
-			let files = _.flatten(await Promise.all(promises));
+			const promises = htmlGlobs.map(pattern => glob(pattern, { absolute: false }));
+			const files = _.flatten(await Promise.all(promises));
 			globTime = process.hrtime(globTime);
 
 			let parseTime = process.hrtime();
 			await Promise.all(files.map(f => this.parseFile(workspaceRoot, f, results)));
 			parseTime = process.hrtime(parseTime);
 
+			// tslint:disable-next-line:no-console
 			console.log(`[ngComponents] HTML stats [files=${files.length}, glob=${prettyHrtime(globTime)}, parse=${prettyHrtime(parseTime)}]`);
 
 			this.htmlReferences = results;
@@ -168,8 +136,14 @@ export class HtmlReferencesCache {
 		}
 	}
 
+	public dispose() {
+		if (this.watcher) {
+			this.watcher.dispose();
+		}
+	}
+
 	// glob returns paths with forward slash on Windows whereas gaze returns them with OS specific separator
-	private normalizeGazePath = (p: string) => path.relative(workspaceRoot, p).replace('\\', '/');
+	private normalizePath = (p: string) => path.relative(workspaceRoot, p).replace('\\', '/');
 }
 
 export interface IHtmlReferences {

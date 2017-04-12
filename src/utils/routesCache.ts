@@ -5,39 +5,30 @@ import * as vsc from 'vscode';
 import { SourceFilesScanner } from './sourceFilesScanner';
 import { Route } from "./route";
 import { SourceFile } from "./sourceFile";
+import { FileWatcher } from "./fileWatcher";
 
-// tslint:disable-next-line:no-var-requires
-const gaze = require("gaze");
-
-export class RoutesCache {
+export class RoutesCache implements vsc.Disposable {
 	private scanner = new SourceFilesScanner();
 	private routes: Route[] = [];
-	private watcher: any;
-	private toDelete: string[] = [];
+	private watcher: FileWatcher;
 
 	private setupWatchers = (config: vsc.WorkspaceConfiguration) => {
-		let globs = <string[]>config.get('routeGlobs');
+		const globs = config.get('routeGlobs') as string[];
 
-		if (this.watcher) {
-			this.watcher.close(true);
-		}
-
-		this.watcher = new gaze.Gaze(globs, { cwd: vsc.workspace.rootPath });
-		this.watcher.on('renamed', this.onRename);
-		this.watcher.on('added', this.onAdded);
-		this.watcher.on('changed', this.onChanged);
-		this.watcher.on('deleted', this.onDeleted);
+		this.dispose();
+		this.watcher = new FileWatcher(globs, this.onAdded, this.onChanged, this.onDeleted);
 	}
 
-	private onAdded = async (filepath: string) => {
+	private onAdded = async (uri: vsc.Uri) => {
+		const filepath = this.normalizePath(uri.fsPath);
 		const src = await SourceFile.parse(filepath);
 		const routes = await Route.parse(src);
 
 		this.routes.push(...routes);
 	}
 
-	private onChanged = async (filepath: string) => {
-		filepath = this.normalizePath(filepath);
+	private onChanged = async (uri: vsc.Uri) => {
+		const filepath = this.normalizePath(uri.fsPath);
 
 		const idx = this.routes.findIndex(c => this.normalizePath(c.path) === filepath);
 		if (idx === -1) {
@@ -52,31 +43,8 @@ export class RoutesCache {
 		this.routes.push(...routes);
 	}
 
-	private onDeleted = (filepath: string) => {
-		this.toDelete.push(this.normalizePath(filepath));
-
-		// workaround for gaze behavior - https://github.com/shama/gaze/issues/55
-		setTimeout(this.commitDeleted, 500);
-	}
-
-	private onRename = (newPath: string, oldPath: string) => {
-		oldPath = this.normalizePath(oldPath);
-
-		// workaround continued - see link above
-		const deletedIdx = this.toDelete.findIndex(p => p === oldPath);
-		if (deletedIdx > -1) {
-			this.toDelete.splice(deletedIdx, 1);
-		}
-
-		let route = this.routes.find(c => this.normalizePath(c.path) === oldPath);
-		if (route) {
-			route.path = newPath;
-		}
-	}
-
-	private commitDeleted = () => {
-		this.toDelete.forEach(this.deleteComponentFile);
-		this.toDelete = [];
+	private onDeleted = (uri: vsc.Uri) => {
+		this.deleteComponentFile(this.normalizePath(uri.fsPath));
 	}
 
 	private deleteComponentFile = (filepath: string) => {
@@ -105,5 +73,11 @@ export class RoutesCache {
 		});
 	}
 
-	private normalizePath = (p: string) => path.normalize(p).toUpperCase();
+	public dispose() {
+		if (this.watcher) {
+			this.watcher.dispose();
+		}
+	}
+
+	private normalizePath = (p: string) => path.normalize(p).toLowerCase();
 }
