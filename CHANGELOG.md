@@ -1,5 +1,8 @@
 # Change Log
 
+## 0.6.1 (April 12, 2017)
+
+* Fixed [issue #6](https://github.com/ipatalas/ngComponentUtility/issues/6) - high CPU usage when idle on some machines
 ## 0.6.0 (March 25, 2017)
 
 * Added Go To Definition for view models (controller's members inside component's view) - only first level
