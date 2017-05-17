@@ -1,4 +1,5 @@
 import * as ts from 'typescript';
+import * as fs from 'fs';
 import * as path from "path";
 import * as decamelize from 'decamelize';
 import { SourceFile } from "../sourceFile";
@@ -14,51 +15,77 @@ export class ComponentParser {
 	constructor(private file: SourceFile, private controllers: Controller[]) {
 		this.tsParser = new TypescriptParser(file.sourceFile);
 	}
-	public parse = () => {
-		this.parseChildren(this.file.sourceFile);
+
+	public parse = async () => {
+		await this.parseChildren(this.tsParser.sourceFile);
 
 		return this.results;
 	}
 
-	private parseChildren = (node: ts.Node) => {
+	private parseChildren = async (node: ts.Node) => {
 		if (node.kind === ts.SyntaxKind.CallExpression) {
-			let call = <ts.CallExpression>node;
+			const call = node as ts.CallExpression;
 
 			if (call.expression.kind === ts.SyntaxKind.PropertyAccessExpression
 				&& (call.expression as ts.PropertyAccessExpression).name.text === 'component'
 				&& call.arguments.length === 2) {
-				let componentNameNode = call.arguments[0];
-				let componentConfigObj = this.tsParser.getObjectLiteralValueFromNode(call.arguments[1]);
+				const componentNameNode = call.arguments[0];
+				const componentConfigObj = await this.getComponentConfigObj(call.arguments[1]);
 
-				let component = this.createComponent(componentNameNode, componentConfigObj);
+				const component = this.createComponent(componentNameNode, componentConfigObj);
 				if (component) {
 					this.results.push(component);
 				}
 			} else {
-				call.getChildren().forEach(this.parseChildren);
+				await Promise.all(call.getChildren().map(item => this.parseChildren(item)));
 			}
 		} else if (node.kind === ts.SyntaxKind.Identifier) {
-			this.tsParser.addIdentifier(<ts.Identifier>node);
+			this.tsParser.addIdentifier(node as ts.Identifier);
 		} else {
-			node.getChildren().forEach(this.parseChildren);
+			await Promise.all(node.getChildren().map(item => this.parseChildren(item)));
+		}
+	}
+
+	private getComponentConfigObj = async (configNode: ts.Expression) => {
+		const componentConfigObj = this.tsParser.getObjectLiteralValueFromNode(configNode);
+		if (componentConfigObj) {
+			return Promise.resolve(componentConfigObj);
+		}
+
+		const importDeclaration = this.tsParser.getImportDeclaration(configNode as ts.Identifier);
+		if (importDeclaration) {
+			const module = importDeclaration.moduleSpecifier as ts.StringLiteral;
+			const modulePath = path.resolve(path.dirname(this.file.path), module.text + '.ts');
+			if (fs.existsSync(modulePath)) {
+				const sourceFile = await SourceFile.parse(modulePath);
+				this.tsParser = new TypescriptParser(sourceFile.sourceFile);
+				const varDeclaration = this.tsParser.getExportedVariable(sourceFile.sourceFile, (configNode as ts.Identifier).text);
+				if (varDeclaration) {
+					if (varDeclaration.initializer.kind === ts.SyntaxKind.ObjectLiteralExpression) {
+						return Promise.resolve(varDeclaration.initializer as ts.ObjectLiteralExpression);
+					}
+				}
+			}
 		}
 	}
 
 	private createComponent = (componentNameNode: ts.Expression, configObj: ts.ObjectLiteralExpression) => {
-		let componentName = this.tsParser.getStringValueFromNode(componentNameNode);
+		const componentName = this.tsParser.getStringValueFromNode(componentNameNode);
 		if (!componentName) {
 			return undefined;
 		}
 
-		let component = new Component();
+		const component = new Component();
+		component.path = this.tsParser.sourceFile.fullpath;
 		component.name = componentName;
-		component.pos = this.file.sourceFile.getLineAndCharacterOfPosition(componentNameNode.pos);
+		component.htmlName = decamelize(componentName, '-');
+		component.pos = this.tsParser.sourceFile.getLineAndCharacterOfPosition(componentNameNode.pos);
 
-		let config = this.tsParser.translateObjectLiteral(configObj);
+		const config = this.tsParser.translateObjectLiteral(configObj);
 
-		let bindingsObj = config['bindings'];
+		const bindingsObj = config['bindings'];
 		if (bindingsObj) {
-			let bindingsProps = <ts.ObjectLiteralExpression>bindingsObj.initializer;
+			const bindingsProps = bindingsObj.initializer as ts.ObjectLiteralExpression;
 			component.bindings.push(...bindingsProps.properties.map(this.createBinding));
 		}
 
@@ -86,9 +113,9 @@ export class ComponentParser {
 		}
 
 		if (node.initializer.kind === ts.SyntaxKind.StringLiteral) {
-			return this.controllers.find(c => c.name === (<ts.StringLiteral>node.initializer).text);
+			return this.controllers.find(c => c.name === (node.initializer as ts.StringLiteral).text);
 		} else if (node.initializer.kind === ts.SyntaxKind.Identifier) {
-			return this.controllers.find(c => c.className === (<ts.Identifier>node.initializer).text);
+			return this.controllers.find(c => c.className === (node.initializer as ts.Identifier).text);
 		}
 	}
 
@@ -98,18 +125,18 @@ export class ComponentParser {
 		}
 
 		if (node.initializer.kind === ts.SyntaxKind.StringLiteral || node.initializer.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral) {
-			let pos = this.file.sourceFile.getLineAndCharacterOfPosition(node.initializer.getStart(this.file.sourceFile));
-			let literal = <ts.LiteralExpression>node.initializer;
+			const pos = this.tsParser.sourceFile.getLineAndCharacterOfPosition(node.initializer.getStart(this.tsParser.sourceFile));
+			const literal = node.initializer as ts.LiteralExpression;
 
-			return <IComponentTemplate>{ path: this.file.path, pos, body: literal.text };
+			return { path: this.file.path, pos, body: literal.text } as IComponentTemplate;
 		} else if (node.initializer.kind === ts.SyntaxKind.CallExpression) {
 			// handle require('./template.html')
-			const call = <ts.CallExpression>node.initializer;
+			const call = node.initializer as ts.CallExpression;
 			if (call.arguments.length === 1 && call.expression.kind === ts.SyntaxKind.Identifier && call.expression.getText() === "require") {
-				const relativePath = (<ts.StringLiteral>call.arguments[0]).text;
+				const relativePath = (call.arguments[0] as ts.StringLiteral).text;
 				const templatePath = path.join(path.dirname(this.file.path), relativePath);
 
-				return <IComponentTemplate>{ path: templatePath, pos: { line: 0, character: 0 } };
+				return { path: templatePath, pos: { line: 0, character: 0 } } as IComponentTemplate;
 			}
 		}
 	}
@@ -119,20 +146,20 @@ export class ComponentParser {
 			return undefined;
 		}
 
-		let value = this.tsParser.getStringValueFromNode(node.initializer);
+		const value = this.tsParser.getStringValueFromNode(node.initializer);
 		if (value) {
-			let templatePath = path.join(workspaceRoot, value);
+			const templatePath = path.join(workspaceRoot, value);
 
-			return <IComponentTemplate>{ path: templatePath, pos: { line: 0, character: 0 } };
+			return { path: templatePath, pos: { line: 0, character: 0 } } as IComponentTemplate;
 		}
 	}
 
 	private createBinding = (node: ts.PropertyAssignment): IComponentBinding => {
-		let binding = <IComponentBinding>{};
-		binding.name = node.name.getText(this.file.sourceFile);
-		binding.type = (<ts.StringLiteral>node.initializer).text;
+		const binding = {} as IComponentBinding;
+		binding.name = node.name.getText(this.tsParser.sourceFile);
+		binding.type = (node.initializer as ts.StringLiteral).text;
 		binding.htmlName = decamelize(binding.name, '-');
-		binding.pos = this.file.sourceFile.getLineAndCharacterOfPosition(node.initializer.pos);
+		binding.pos = this.tsParser.sourceFile.getLineAndCharacterOfPosition(node.initializer.pos);
 
 		return binding;
 	}
@@ -142,7 +169,7 @@ export class ComponentParser {
 			return '$ctrl';
 		}
 
-		let value = <ts.StringLiteral>node.initializer;
+		const value = node.initializer as ts.StringLiteral;
 		return value.text;
 	}
 }

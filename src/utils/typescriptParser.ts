@@ -1,9 +1,10 @@
 import * as ts from 'typescript';
+import { ISourceFile } from "./sourceFile";
 
 export class TypescriptParser {
 	private identifierNodes: Map<string, ts.Node[]> = new Map<string, ts.Node[]>();
 
-	constructor(private sourceFile: ts.SourceFile) {
+	constructor(public sourceFile: ISourceFile) {
 
 	}
 
@@ -17,79 +18,112 @@ export class TypescriptParser {
 
 	public getStringValueFromNode = (node: ts.Expression) => {
 		if (node.kind === ts.SyntaxKind.StringLiteral || node.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral) {
-			return (<ts.LiteralExpression>node).text;
+			return (node as ts.LiteralExpression).text;
 		} else if (node.kind === ts.SyntaxKind.Identifier) {
-			return this.getStringVariableValue(<ts.Identifier>node);
+			return this.getStringVariableValue(node as ts.Identifier);
 		} else if (node.kind === ts.SyntaxKind.PropertyAccessExpression) {
-			let member = this.getPropertyAccessMember(<ts.PropertyAccessExpression>node);
+			const member = this.getPropertyAccessMember(node as ts.PropertyAccessExpression);
 			if (member) {
 				return this.getStringValueFromNode(member.initializer);
 			}
 		}
 	}
 
-	public getObjectLiteralValueFromNode = (node: ts.Expression) => {
+	public getObjectLiteralValueFromNode = (node: ts.Expression): ts.ObjectLiteralExpression => {
 		if (node.kind === ts.SyntaxKind.ObjectLiteralExpression) {
-			return <ts.ObjectLiteralExpression>node;
+			return node as ts.ObjectLiteralExpression;
 		} else if (node.kind === ts.SyntaxKind.Identifier) {
-			return this.getObjectLiteralVariableValue(<ts.Identifier>node);
+			return this.getObjectLiteralVariableValue(node as ts.Identifier);
 		} else if (node.kind === ts.SyntaxKind.PropertyAccessExpression) {
-			let member = this.getPropertyAccessMember(<ts.PropertyAccessExpression>node);
+			const member = this.getPropertyAccessMember(node as ts.PropertyAccessExpression);
 			if (member) {
 				return this.getObjectLiteralValueFromNode(member.initializer);
 			}
 		}
 	}
 
+	public getImportDeclaration = (identifier: ts.Identifier): ts.ImportDeclaration => {
+		if (this.identifierNodes.has(identifier.text)) {
+			const usages = this.identifierNodes.get(identifier.text);
+			const node = usages.find(u => u.parent.kind === ts.SyntaxKind.ImportSpecifier);
+
+			return this.closestParent<ts.ImportDeclaration>(node.parent, ts.SyntaxKind.ImportDeclaration);
+		}
+	}
+
+	private closestParent = <TNode extends ts.Node>(node: ts.Node, kind: ts.SyntaxKind) => {
+		while (node && node.kind !== kind) {
+			node = node.parent;
+		}
+
+		return node as TNode;
+	}
+
 	private getVariableDefinition = (identifier: ts.Identifier) => {
 		if (this.identifierNodes.has(identifier.text)) {
-			let usages = this.identifierNodes.get(identifier.text);
-			let varDeclaration = usages.find(u => u.parent.kind === ts.SyntaxKind.VariableDeclaration);
+			const usages = this.identifierNodes.get(identifier.text);
+			const varDeclaration = usages.find(u => u.parent.kind === ts.SyntaxKind.VariableDeclaration);
 			if (varDeclaration) {
-				return <ts.VariableDeclaration>varDeclaration.parent;
+				return varDeclaration.parent as ts.VariableDeclaration;
 			}
 		}
 	}
 
 	private getPropertyAccessMember = (pae: ts.PropertyAccessExpression) => {
 		if (pae.expression.kind === ts.SyntaxKind.Identifier) {
-			let className = (<ts.Identifier>pae.expression).text;
+			const className = (pae.expression as ts.Identifier).text;
 
 			if (this.identifierNodes.has(className)) {
-				let usages = this.identifierNodes.get(className);
-				let classIdentifier = usages.find(u => u.parent.kind === ts.SyntaxKind.ClassDeclaration);
+				const usages = this.identifierNodes.get(className);
+				const classIdentifier = usages.find(u => u.parent.kind === ts.SyntaxKind.ClassDeclaration);
 				if (classIdentifier) {
-					let classDeclaration = <ts.ClassDeclaration>classIdentifier.parent;
+					const classDeclaration = classIdentifier.parent as ts.ClassDeclaration;
 
-					return <ts.PropertyDeclaration>classDeclaration.members
+					return classDeclaration.members
 						.filter(m => m.kind === ts.SyntaxKind.PropertyDeclaration)
-						.find(m => m.name.getText(this.sourceFile) === pae.name.text);
+						.find(m => m.name.getText(this.sourceFile) === pae.name.text) as ts.PropertyDeclaration;
 				}
 			}
 		}
 	}
 
 	private getStringVariableValue = (identifier: ts.Identifier) => {
-		let varDeclaration = this.getVariableDefinition(identifier);
+		const varDeclaration = this.getVariableDefinition(identifier);
 
 		if (varDeclaration && varDeclaration.initializer.kind === ts.SyntaxKind.StringLiteral) {
-			return (<ts.StringLiteral>varDeclaration.initializer).text;
+			return (varDeclaration.initializer as ts.StringLiteral).text;
 		}
 	}
 
 	private getObjectLiteralVariableValue = (identifier: ts.Identifier) => {
-		let varDeclaration = this.getVariableDefinition(identifier);
+		const varDeclaration = this.getVariableDefinition(identifier);
 
 		if (varDeclaration && varDeclaration.initializer.kind === ts.SyntaxKind.ObjectLiteralExpression) {
-			return <ts.ObjectLiteralExpression>varDeclaration.initializer;
+			return varDeclaration.initializer as ts.ObjectLiteralExpression;
 		}
 	}
 
 	public translateObjectLiteral = (node: ts.ObjectLiteralExpression) => {
-		return <IObjectLiteral>node.properties.reduce((acc, current) => {
-			acc[current.name.getText(this.sourceFile)] = <ts.PropertyAssignment>current;
+		return node.properties.reduce((acc, current) => {
+			acc[current.name.getText(this.sourceFile)] = current as ts.PropertyAssignment;
 			return acc;
-		}, {});
+		}, {}) as IObjectLiteral;
+	}
+
+	public getExportedVariable = (node: ts.Node, name: string) => {
+		if (node.kind === ts.SyntaxKind.Identifier && (node as ts.Identifier).text === name && node.parent.kind === ts.SyntaxKind.VariableDeclaration) {
+			const varStatement = this.closestParent<ts.VariableStatement>(node.parent, ts.SyntaxKind.VariableStatement);
+			if (varStatement && varStatement.modifiers.some(modifier => modifier.kind === ts.SyntaxKind.ExportKeyword)) {
+				return node.parent as ts.VariableDeclaration;
+			}
+		}
+
+		for (const child of node.getChildren()) {
+			const result = this.getExportedVariable(child, name);
+			if (result) {
+				return result;
+			}
+		}
 	}
 }
 

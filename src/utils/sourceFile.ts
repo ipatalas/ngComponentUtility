@@ -3,8 +3,11 @@ import * as path from 'path';
 import * as ts from "typescript";
 
 export class SourceFile {
-	public path: string;
-	public sourceFile: ts.SourceFile;
+	public get path(): string {
+		return this.sourceFile.fullpath;
+	}
+
+	constructor(public sourceFile: ISourceFile) {}
 
 	public static parse(filepath: string): Promise<SourceFile> {
 		return new Promise<SourceFile>((resolve, reject) => {
@@ -14,12 +17,10 @@ export class SourceFile {
 				}
 
 				try {
-					let sourceFile = ts.createSourceFile(path.basename(filepath), contents, ts.ScriptTarget.ES5, true);
+					const sourceFile = ts.createSourceFile(path.basename(filepath), contents, ts.ScriptTarget.ES5, true) as ISourceFile;
+					sourceFile.fullpath = filepath;
 
-					resolve(<SourceFile>{
-						path: filepath,
-						sourceFile
-					});
+					resolve(new SourceFile(sourceFile));
 				} catch (e) {
 					// tslint:disable-next-line:no-console
 					console.log(`
@@ -30,4 +31,8 @@ Please report this as a bug and include failing component if possible (remove or
 			});
 		});
 	}
+}
+
+export interface ISourceFile extends ts.SourceFile {
+	fullpath?: string;
 }

@@ -15,13 +15,9 @@ export class Component {
 	public controllerAs: string;
 
 	public static parse(file: SourceFile, controllers: Controller[]): Promise<Component[]> {
-		return new Promise<Component[]>((resolve, _reject) => {
+		return new Promise<Component[]>(async (resolve, _reject) => {
 			try {
-				let results: Component[] = Component.parseWithApi(file, controllers).map(c => {
-					c.path = file.path;
-					c.htmlName = decamelize(c.name, '-');
-					return c;
-				});
+				const results: Component[] = await Component.parseWithApi(file, controllers);
 
 				resolve(results);
 			} catch (e) {
@@ -36,10 +32,10 @@ ${e}`.trim());
 		});
 	}
 
-	private static parseWithApi(file: SourceFile, controllers: Controller[]) {
-		let parser = new ComponentParser(file, controllers);
+	private static async parseWithApi(file: SourceFile, controllers: Controller[]) {
+		const parser = new ComponentParser(file, controllers);
 
-		return parser.parse();
+		return await parser.parse();
 	}
 }
 
