@@ -12,26 +12,39 @@ const getTestFilePath = (filename: string) => path.join(TEST_FILES_ROOT, filenam
 
 describe('Give Component class', () => {
 	describe('when calling parse in AST mode', () => {
-		let files = ['component_simple.ts', 'component_comments.ts', 'test.component.js', 'component_consts.ts', 'component_staticFields.ts'];
+		const files = ['component_simple.ts', 'component_comments.ts', 'test.component.js', 'component_consts.ts', 'component_staticFields.ts'];
 
 		testFiles(files);
 
 		it('and controllerAs property exists then controller alias is set', async () => {
-			let path = getTestFilePath('component_ctrlAlias.ts');
-			let sourceFile = ts.createSourceFile('component_ctrlAlias.ts', fs.readFileSync(path, 'utf8'), ts.ScriptTarget.ES5, true);
+			const path = getTestFilePath('component_ctrlAlias.ts');
+			const sourceFile = ts.createSourceFile('component_ctrlAlias.ts', fs.readFileSync(path, 'utf8'), ts.ScriptTarget.ES5, true);
 
-			let component = await Component.parse({ path, sourceFile }, []);
+			const component = await Component.parse({ path, sourceFile }, []);
 
 			assert.equal(component[0].controllerAs, 'vm');
 		});
 
 		it('and controllerAs property does not exist then default controller alias is set', async () => {
-			let path = getTestFilePath('component_noCtrlAlias.ts');
-			let sourceFile = ts.createSourceFile('component_noCtrlAlias.ts', fs.readFileSync(path, 'utf8'), ts.ScriptTarget.ES5, true);
+			const path = getTestFilePath('component_noCtrlAlias.ts');
+			const sourceFile = ts.createSourceFile('component_noCtrlAlias.ts', fs.readFileSync(path, 'utf8'), ts.ScriptTarget.ES5, true);
 
-			let component = await Component.parse({ path, sourceFile }, []);
+			const component = await Component.parse({ path, sourceFile }, []);
 
 			assert.equal(component[0].controllerAs, '$ctrl');
+		});
+
+		it('with component_importLiteral.ts file then a properly parsed component is returned', async () => {
+			const path = getTestFilePath('component_importLiteral.ts');
+			const sourceFile = ts.createSourceFile('component_importLiteral.ts', fs.readFileSync(path, 'utf8'), ts.ScriptTarget.ES5, true);
+
+			const component = await Component.parse({ path, sourceFile }, []);
+
+			assert.equal(component.length, 1);
+			assert.equal(component[0].name, 'exampleComponent');
+			assert.equal(component[0].bindings.length, 1);
+			assert.equal(component[0].bindings[0].name, 'exampleBinding');
+			assert.equal(component[0].bindings[0].type, '<');
 		});
 	});
 });
@@ -39,25 +52,25 @@ describe('Give Component class', () => {
 function testFiles(files: string[]) {
 	files.forEach((file) => {
 		it(`with '${file}' file then a properly parsed component is returned`, async () => {
-			let path = getTestFilePath(file);
-			let sourceFile = ts.createSourceFile(file, fs.readFileSync(path, 'utf8'), ts.ScriptTarget.ES5, true);
+			const path = getTestFilePath(file);
+			const sourceFile = ts.createSourceFile(file, fs.readFileSync(path, 'utf8'), ts.ScriptTarget.ES5, true);
 
-			let component = await Component.parse({ path, sourceFile }, []);
+			const component = await Component.parse({ path, sourceFile }, []);
 
 			assert.equal(component.length, 1);
 			assert.equal(component[0].name, 'exampleComponent');
-			let bindings = component[0].bindings.map(b => _.pick(b, ['name', 'htmlName', 'type']));
+			const bindings = component[0].bindings.map(b => _.pick(b, ['name', 'htmlName', 'type']));
 			assert.deepEqual(bindings, [
-				<IComponentBinding>{
+				{
 					name: "config",
 					htmlName: "config",
 					type: "<"
-				},
-				<IComponentBinding>{
+				} as IComponentBinding,
+				{
 					name: "data",
 					htmlName: "data",
 					type: "<"
-				}
+				} as IComponentBinding
 			]);
 		});
 	});
