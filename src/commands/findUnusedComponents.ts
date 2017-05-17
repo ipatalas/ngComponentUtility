@@ -13,15 +13,15 @@ export class FindUnusedComponentsCommand {
 	}
 
 	public execute = () => {
-		let usedComponents = Object.keys(this.htmlReferences);
-		let unusedComponents = this.components.filter(c => usedComponents.indexOf(c.htmlName) === -1);
+		const usedComponents = Object.keys(this.htmlReferences);
+		const unusedComponents = this.components.filter(c => usedComponents.indexOf(c.htmlName) === -1);
 
 		if (unusedComponents.length === 0) {
 			vsc.window.showInformationMessage("All of your components are used. Good for you :-)");
 			return;
 		}
 
-		let items = unusedComponents.map(c => ({ ...c, label: c.name, description: c.htmlName }));
+		const items = unusedComponents.map(c => ({ ...c, label: c.name, description: c.htmlName }));
 
 		vsc.window.showQuickPick(items, {matchOnDescription: true, placeHolder: "Search among unused components"}).then(component => {
 			if (!component) {
