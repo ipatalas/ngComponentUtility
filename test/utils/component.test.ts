@@ -46,6 +46,19 @@ describe('Give Component class', () => {
 			assert.equal(component[0].bindings[0].name, 'exampleBinding');
 			assert.equal(component[0].bindings[0].type, '<');
 		});
+
+		it('with component_importClass.ts file then a properly parsed component is returned', async () => {
+			const path = getTestFilePath('component_importClass.ts');
+			const sourceFile = ts.createSourceFile('component_importClass.ts', fs.readFileSync(path, 'utf8'), ts.ScriptTarget.ES5, true);
+
+			const component = await Component.parse({ path, sourceFile }, []);
+
+			assert.equal(component.length, 1);
+			assert.equal(component[0].name, 'exampleComponent');
+			assert.equal(component[0].bindings.length, 1);
+			assert.equal(component[0].bindings[0].name, 'exampleBinding');
+			assert.equal(component[0].bindings[0].type, '<');
+		});
 	});
 });
 
