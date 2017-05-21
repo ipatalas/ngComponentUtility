@@ -1,5 +1,4 @@
 import * as vsc from 'vscode';
-import * as path from 'path';
 
 export type CallbackFunc = (uri: vsc.Uri) => void;
 

@@ -130,6 +130,7 @@ export class HtmlReferencesCache implements vsc.Disposable {
 			this.htmlReferences = results;
 			return this.htmlReferences;
 		} catch (err) {
+			// tslint:disable-next-line:no-console
 			console.error(err);
 			vsc.window.showErrorMessage("There was an error refreshing html components cache, check console for errors");
 			return {};

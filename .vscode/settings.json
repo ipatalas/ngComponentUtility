@@ -11,5 +11,5 @@
 	"editor.insertSpaces": false,
 	"editor.detectIndentation": false,
 	"typescript.tsdk": "./node_modules/typescript/lib",
-	"vsicons.presets.angular": false
+	"tslint.configFile": "tslint.json"
 }

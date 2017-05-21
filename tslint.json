@@ -33,7 +33,9 @@
 			170
 		],
 		"object-literal-sort-keys": false,
-		"trailing-comma": false,
+		"trailing-comma": [
+			false
+		],
 		"member-ordering": [
 			false
 		],
