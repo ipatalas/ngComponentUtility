@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.6.2 (May 21, 2017)
+
+* Fixed [issue #2](https://github.com/ipatalas/ngComponentUtility/issues/2) - Components are not found when imported with `import` clause
+* Fixed issue with file watcher - there have been some changes in VSCode API which must have broken it recently
+* Minor improvement when showing intellisense for model members
+
 ## 0.6.1 (April 12, 2017)
 
 * Fixed [issue #6](https://github.com/ipatalas/ngComponentUtility/issues/6) - high CPU usage when idle on some machines
