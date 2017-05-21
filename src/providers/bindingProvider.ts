@@ -9,9 +9,9 @@ export class BindingProvider implements vsc.CompletionItemProvider {
 		this.components = components;
 	}
 	public provideCompletionItems = (document: vsc.TextDocument, position: vsc.Position/*, token: vsc.CancellationToken*/): vsc.CompletionItem[] => {
-		let line = document.lineAt(position.line).text;
+		const line = document.lineAt(position.line).text;
 		let startIndex = line.indexOf(',') - 1;
-		let isAllowedCharacter = /[a-z-]/i;
+		const isAllowedCharacter = /[a-z-]/i;
 
 		for (let i = startIndex; i >= 0; i--) {
 			if (!isAllowedCharacter.test(line[i])) {
@@ -21,25 +21,25 @@ export class BindingProvider implements vsc.CompletionItemProvider {
 			startIndex = 0;
 		}
 
-		let firstCommaIndex = line.indexOf(',', startIndex);
-		let lastCommaIndex = line.lastIndexOf(',');
-		let componentName = line.substring(startIndex, firstCommaIndex);
+		const firstCommaIndex = line.indexOf(',', startIndex);
+		const lastCommaIndex = line.lastIndexOf(',');
+		const componentName = line.substring(startIndex, firstCommaIndex);
 
-		let component = this.components.find(x => x.htmlName === componentName);
+		const component = this.components.find(x => x.htmlName === componentName);
 
 		if (!component) {
 			return [];
 		}
 
-		let existingBindings = {};
+		const existingBindings = {};
 		if (firstCommaIndex !== lastCommaIndex) {
-			let existing = line.substring(firstCommaIndex + 1, lastCommaIndex).split(',');
+			const existing = line.substring(firstCommaIndex + 1, lastCommaIndex).split(',');
 			existing.forEach(b => {
-				let split = b.split('=');
+				const split = b.split('=');
 				let value = split[1] || '';
 				if (!value) {
 					// tslint:disable-next-line:no-shadowed-variable
-					let binding = component.bindings.find(b => b.htmlName === split[0]);
+					const binding = component.bindings.find(b => b.htmlName === split[0]);
 					if (binding) {
 						value = `${component.controllerAs}.${binding.name}`;
 					}
@@ -54,13 +54,13 @@ export class BindingProvider implements vsc.CompletionItemProvider {
 		return this.provideBindingCompletions(component, existingBindings, position, startIndex);
 	}
 
-	private provideBindingCompletions = (component: Component, existingBindings: Object, position: vsc.Position, startIndex: number): vsc.CompletionItem[] => {
-		let attributes = _(Object.keys(existingBindings));
+	private provideBindingCompletions = (component: Component, existingBindings: object, position: vsc.Position, startIndex: number): vsc.CompletionItem[] => {
+		const attributes = _(Object.keys(existingBindings));
 
-		let result = component.bindings
+		const result = component.bindings
 			.filter(b => !attributes.includes(b.htmlName))
 			.map(b => {
-				let item = new vsc.CompletionItem(b.htmlName, vsc.CompletionItemKind.Field);
+				const item = new vsc.CompletionItem(b.htmlName, vsc.CompletionItemKind.Field);
 				item.insertText = `${b.htmlName}=`;
 				item.detail = "Component binding";
 				item.documentation = `Binding type: ${b.type}`;
@@ -69,7 +69,7 @@ export class BindingProvider implements vsc.CompletionItemProvider {
 				return item;
 			});
 
-		let commandItem = new vsc.CompletionItem(' Resolve component', vsc.CompletionItemKind.Function);
+		const commandItem = new vsc.CompletionItem(' Resolve component', vsc.CompletionItemKind.Function);
 		commandItem.insertText = `<${component.htmlName} ${attributes.map(key => key + '="' + existingBindings[key] + '"').join(' ')}></${component.htmlName}>`;
 		commandItem.additionalTextEdits = [
 			vsc.TextEdit.delete(new vsc.Range(position.line, startIndex, position.line, position.character))

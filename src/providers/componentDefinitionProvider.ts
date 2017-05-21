@@ -12,31 +12,31 @@ export class ComponentDefinitionProvider implements vsc.DefinitionProvider {
 	}
 
 	public provideDefinition(document: vsc.TextDocument, position: vsc.Position, _token: vsc.CancellationToken): vsc.Definition {
-		let bracketsBeforeCursor = HtmlDocumentHelper.findTagBrackets(document, position, 'backward');
-		let bracketsAfterCursor = HtmlDocumentHelper.findTagBrackets(document, position, 'forward');
+		const bracketsBeforeCursor = HtmlDocumentHelper.findTagBrackets(document, position, 'backward');
+		const bracketsAfterCursor = HtmlDocumentHelper.findTagBrackets(document, position, 'forward');
 
 		if (HtmlDocumentHelper.isInsideAClosedTag(bracketsBeforeCursor, bracketsAfterCursor)) {
 			// get everything from starting < tag till ending >
-			let tagTextRange = new vsc.Range(bracketsBeforeCursor.opening, bracketsAfterCursor.closing);
-			let text = document.getText(tagTextRange);
+			const tagTextRange = new vsc.Range(bracketsBeforeCursor.opening, bracketsAfterCursor.closing);
+			const text = document.getText(tagTextRange);
 
-			let wordPos = document.getWordRangeAtPosition(position);
-			let word = document.getText(wordPos);
+			const wordPos = document.getWordRangeAtPosition(position);
+			const word = document.getText(wordPos);
 
-			let { tag } = HtmlDocumentHelper.parseTag(text);
+			const { tag } = HtmlDocumentHelper.parseTag(text);
 
-			let component = this.components.find(c => c.htmlName === tag);
+			const component = this.components.find(c => c.htmlName === tag);
 			if (component) {
-				let binding = component.bindings.find(b => b.htmlName === word);
+				const binding = component.bindings.find(b => b.htmlName === word);
 				if (binding) {
 					return getLocation({ path: component.path, pos: binding.pos });
 				}
 
 				if (word === component.htmlName) {
 					const config = vsc.workspace.getConfiguration("ngComponents");
-					let componentParts = <string[]>config.get("goToDefinition");
+					const componentParts = config.get("goToDefinition") as string[];
 
-					let results: vsc.Location[] = [];
+					const results: vsc.Location[] = [];
 
 					if (componentParts.some(p => p === "component")) {
 						results.push(getLocation(component));

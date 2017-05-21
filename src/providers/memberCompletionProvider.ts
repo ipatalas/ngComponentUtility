@@ -14,22 +14,22 @@ export class MemberCompletionProvider implements vsc.CompletionItemProvider {
 	}
 
 	public provideCompletionItems = (document: vsc.TextDocument, position: vsc.Position/*, token: vsc.CancellationToken*/): vsc.CompletionItem[] => {
-		let normalizedPath = this.normalizePath(document.uri.fsPath);
+		const normalizedPath = this.normalizePath(document.uri.fsPath);
 
 		if (!this.components.has(normalizedPath)) {
 			return [];
 		}
 
-		let component = this.components.get(normalizedPath);
+		const component = this.components.get(normalizedPath);
 
-		let line = document.lineAt(position.line).text;
-		let dotIdx = line.lastIndexOf('.', position.character);
-		let viewModelName = line.substring(dotIdx - component.controllerAs.length, dotIdx);
+		const line = document.lineAt(position.line).text;
+		const dotIdx = line.lastIndexOf('.', position.character);
+		const viewModelName = line.substring(dotIdx - component.controllerAs.length, dotIdx);
 
 		if (viewModelName === component.controllerAs) {
 			const config = vsc.workspace.getConfiguration("ngComponents");
-			const publicOnly = <boolean>config.get("controller.publicMembersOnly");
-			const excludedMembers = new RegExp(<string>config.get("controller.excludedMembers"));
+			const publicOnly = config.get("controller.publicMembersOnly") as boolean;
+			const excludedMembers = new RegExp(config.get("controller.excludedMembers") as string);
 
 			let members = component.controller.members.filter(m => !excludedMembers.test(m.name));
 			if (publicOnly) {

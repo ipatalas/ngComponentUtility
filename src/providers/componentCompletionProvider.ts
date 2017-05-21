@@ -14,13 +14,13 @@ export class ComponentCompletionProvider implements vsc.CompletionItemProvider {
 
 	public provideCompletionItems = (document: vsc.TextDocument, position: vsc.Position/*, token: vsc.CancellationToken*/): vsc.CompletionItem[] => {
 		let hasOpeningTagBefore = false;
-		let bracketsBeforeCursor = HtmlDocumentHelper.findTagBrackets(document, position, 'backward');
-		let bracketsAfterCursor = HtmlDocumentHelper.findTagBrackets(document, position, 'forward');
+		const bracketsBeforeCursor = HtmlDocumentHelper.findTagBrackets(document, position, 'backward');
+		const bracketsAfterCursor = HtmlDocumentHelper.findTagBrackets(document, position, 'forward');
 
 		if (bracketsBeforeCursor.opening && (!bracketsBeforeCursor.closing || bracketsBeforeCursor.closing.isBefore(bracketsBeforeCursor.opening))) {
 			// get everything from starting < tag till the cursor
-			let openingTagTextRange = new vsc.Range(bracketsBeforeCursor.opening, position);
-			let text = document.getText(openingTagTextRange);
+			const openingTagTextRange = new vsc.Range(bracketsBeforeCursor.opening, position);
+			const text = document.getText(openingTagTextRange);
 
 			if (text.startsWith("</")) {
 				return []; // we don't complete anything in closing tag
@@ -33,12 +33,12 @@ export class ComponentCompletionProvider implements vsc.CompletionItemProvider {
 
 		if (HtmlDocumentHelper.isInsideAClosedTag(bracketsBeforeCursor, bracketsAfterCursor)) {
 			// get everything from starting < tag till ending >
-			let tagTextRange = new vsc.Range(bracketsBeforeCursor.opening, bracketsAfterCursor.closing);
-			let text = document.getText(tagTextRange);
+			const tagTextRange = new vsc.Range(bracketsBeforeCursor.opening, bracketsAfterCursor.closing);
+			const text = document.getText(tagTextRange);
 
-			let { tag, attributes } = HtmlDocumentHelper.parseTag(text);
+			const { tag, attributes } = HtmlDocumentHelper.parseTag(text);
 
-			let component = this.components.find(c => c.htmlName === tag);
+			const component = this.components.find(c => c.htmlName === tag);
 			if (component) {
 				return this.provideAttributeCompletions(component, attributes);
 			}
@@ -46,18 +46,18 @@ export class ComponentCompletionProvider implements vsc.CompletionItemProvider {
 			return [];
 		}
 
-		let currentCharacter = document.lineAt(position).text.charAt(position.character);
+		const currentCharacter = document.lineAt(position).text.charAt(position.character);
 
 		return this.provideTagCompletions(hasOpeningTagBefore, currentCharacter === '<', position);
 	}
 
 	private provideAttributeCompletions = (component: Component, existingAttributes: string[]): vsc.CompletionItem[] => {
-		let attributes = _(existingAttributes);
+		const attributes = _(existingAttributes);
 
 		return component.bindings
 			.filter(b => !attributes.includes(b.htmlName))
 			.map(b => {
-				let item = new vsc.CompletionItem(b.htmlName, vsc.CompletionItemKind.Field);
+				const item = new vsc.CompletionItem(b.htmlName, vsc.CompletionItemKind.Field);
 				item.insertText = `${b.htmlName}=""`;
 				item.detail = "Component binding";
 				item.documentation = `Binding type: ${b.type}`;
@@ -69,9 +69,9 @@ export class ComponentCompletionProvider implements vsc.CompletionItemProvider {
 
 	private provideTagCompletions = (hasOpeningTagBefore: boolean, hasOpeningTagAfter: boolean, position: vsc.Position): vsc.CompletionItem[] => {
 		return this.components.map(c => {
-			let bindings = c.bindings.map(b => `${b.htmlName}=""`).join(' ');
+			const bindings = c.bindings.map(b => `${b.htmlName}=""`).join(' ');
 
-			let item = new vsc.CompletionItem(c.htmlName, vsc.CompletionItemKind.Class);
+			const item = new vsc.CompletionItem(c.htmlName, vsc.CompletionItemKind.Class);
 			item.insertText = `<${c.htmlName} ${bindings.trim()}></${c.htmlName}>`;
 
 			if (c.bindings.length > 0) {

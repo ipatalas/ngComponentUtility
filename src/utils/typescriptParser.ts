@@ -4,6 +4,10 @@ import { ISourceFile } from "./sourceFile";
 export class TypescriptParser {
 	private identifierNodes: Map<string, ts.Node[]> = new Map<string, ts.Node[]>();
 
+	get path() {
+		return this.sourceFile.fullpath;
+	}
+
 	constructor(public sourceFile: ISourceFile) {
 
 	}
@@ -103,14 +107,7 @@ export class TypescriptParser {
 		}
 	}
 
-	public translateObjectLiteral = (node: ts.ObjectLiteralExpression) => {
-		return node.properties.reduce((acc, current) => {
-			acc[current.name.getText(this.sourceFile)] = current as ts.PropertyAssignment;
-			return acc;
-		}, {}) as IObjectLiteral;
-	}
-
-	public getExportedVariable = (node: ts.Node, name: string) => {
+	public getExportedVariable = (node: ts.Node, name: string): ts.VariableDeclaration =>  {
 		if (node.kind === ts.SyntaxKind.Identifier && (node as ts.Identifier).text === name && node.parent.kind === ts.SyntaxKind.VariableDeclaration) {
 			const varStatement = this.closestParent<ts.VariableStatement>(node.parent, ts.SyntaxKind.VariableStatement);
 			if (varStatement && varStatement.modifiers.some(modifier => modifier.kind === ts.SyntaxKind.ExportKeyword)) {
@@ -118,12 +115,18 @@ export class TypescriptParser {
 			}
 		}
 
-		for (const child of node.getChildren()) {
-			const result = this.getExportedVariable(child, name);
-			if (result) {
-				return result;
+		return ts.forEachChild(node, n => this.getExportedVariable(n, name));
+	}
+
+	public getExportedClass = (node: ts.Node, name: string): ts.ClassDeclaration => {
+		if (node.kind === ts.SyntaxKind.Identifier && (node as ts.Identifier).text === name && node.parent.kind === ts.SyntaxKind.ClassDeclaration) {
+			const classDeclaration = this.closestParent<ts.ClassDeclaration>(node.parent, ts.SyntaxKind.ClassDeclaration);
+			if (classDeclaration && classDeclaration.modifiers.some(modifier => modifier.kind === ts.SyntaxKind.ExportKeyword)) {
+				return node.parent as ts.ClassDeclaration;
 			}
 		}
+
+		return ts.forEachChild(node, n => this.getExportedClass(n, name));
 	}
 }
 
