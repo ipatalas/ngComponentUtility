@@ -2,6 +2,7 @@ import * as ts from "typescript";
 import { SourceFile } from '../sourceFile';
 import { IMember } from './member';
 import { ControllerParser } from "./controllerParser";
+import { logParsingError } from '../vsc';
 
 export class Controller {
 	public name: string;
@@ -13,24 +14,18 @@ export class Controller {
 	public static parse(file: SourceFile): Promise<Controller[]> {
 		return new Promise<Controller[]>((resolve, _reject) => {
 			try {
-				let results: Controller[] = Controller.parseWithApi(file).map(c => {
-					c.path = file.path;
-					return c;
-				});
+				const results: Controller[] = Controller.parseWithApi(file);
 
 				resolve(results);
 			} catch (e) {
-				// tslint:disable-next-line:no-console
-				console.log(`
-There was an error analyzing ${file.sourceFile.fileName}.
-Please report this as a bug and include failing controller if possible (remove or change sensitive data).`.trim());
+				logParsingError(file.path, e);
 				resolve([]);
 			}
 		});
 	}
 
 	private static parseWithApi(file: SourceFile) {
-		let parser = new ControllerParser(file);
+		const parser = new ControllerParser(file);
 
 		return parser.parse();
 	}

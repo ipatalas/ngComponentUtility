@@ -1,6 +1,7 @@
-import * as vsc from 'vscode';
+import * as path from 'path';
 import * as ts from 'typescript';
 import * as _ from 'lodash';
+import * as vsc from 'vscode';
 
 export const workspaceRoot = vsc.workspace.rootPath;
 
@@ -54,4 +55,14 @@ export interface IConfigurationChangedEvent {
 	changedKeys: string[];
 
 	hasChanged(...keys: string[]): boolean;
+}
+
+export function logParsingError(fullpath: string, err: any) {
+	const relativePath = '.' + path.sep + path.relative(workspaceRoot, fullpath);
+
+	// tslint:disable-next-line:no-console
+	console.error(`[ngComponents] There was an error analyzing ${relativePath}.
+Please report this as a bug and include failing file if possible (remove or change sensitive data).
+
+${err}`.trim());
 }

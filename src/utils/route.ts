@@ -1,6 +1,7 @@
 import * as ts from "typescript";
 import { SourceFile } from './sourceFile';
 import { IComponentTemplate } from "./component/component";
+import { logParsingError } from './vsc';
 
 export class Route {
 	public name: string;
@@ -18,12 +19,7 @@ export class Route {
 
 				resolve(results);
 			} catch (e) {
-				// tslint:disable-next-line:no-console
-				console.log(`
-There was an error analyzing ${file.sourceFile.fileName}.
-Please report this as a bug and include failing component if possible (remove or change sensitive data).
-
-${e}`.trim());
+				logParsingError(file.path, e);
 				resolve([]);
 			}
 		});
