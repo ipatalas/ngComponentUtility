@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.6.3 (May 24, 2017)
+
+* Minor improvement for error logging to allow better identification of issues (optional update for troubleshooting)
+
 ## 0.6.2 (May 21, 2017)
 
 * Fixed [issue #2](https://github.com/ipatalas/ngComponentUtility/issues/2) - Components are not found when imported with `import` clause
