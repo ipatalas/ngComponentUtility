@@ -57,12 +57,14 @@ export interface IConfigurationChangedEvent {
 	hasChanged(...keys: string[]): boolean;
 }
 
-export function logParsingError(fullpath: string, err: any) {
+export function logParsingError(fullpath: string, err: Error) {
 	const relativePath = '.' + path.sep + path.relative(workspaceRoot, fullpath);
 
 	// tslint:disable-next-line:no-console
 	console.error(`[ngComponents] There was an error analyzing ${relativePath}.
 Please report this as a bug and include failing file if possible (remove or change sensitive data).
 
-${err}`.trim());
+${err.message}
+Stack trace:
+${err.stack}`.trim());
 }
