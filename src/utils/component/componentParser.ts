@@ -7,7 +7,7 @@ import { Controller } from "../controller/controller";
 import { Component, IComponentTemplate, IComponentBinding } from "./component";
 import { workspaceRoot } from '../vsc';
 import { TypescriptParser } from "../typescriptParser";
-import { ConfigParser } from './configParser';
+import { ConfigParser } from '../configParser';
 
 export class ComponentParser {
 	private results: Component[] = [];

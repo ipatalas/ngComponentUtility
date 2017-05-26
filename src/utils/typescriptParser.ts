@@ -36,6 +36,8 @@ export class TypescriptParser {
 	public getObjectLiteralValueFromNode = (node: ts.Expression): ts.ObjectLiteralExpression => {
 		if (node.kind === ts.SyntaxKind.ObjectLiteralExpression) {
 			return node as ts.ObjectLiteralExpression;
+		} else if (node.kind === ts.SyntaxKind.AsExpression) {
+			return (node as ts.AsExpression).expression as ts.ObjectLiteralExpression;
 		} else if (node.kind === ts.SyntaxKind.Identifier) {
 			return this.getObjectLiteralVariableValue(node as ts.Identifier);
 		} else if (node.kind === ts.SyntaxKind.PropertyAccessExpression) {

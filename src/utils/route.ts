@@ -2,6 +2,8 @@ import * as ts from "typescript";
 import { SourceFile } from './sourceFile';
 import { IComponentTemplate } from "./component/component";
 import { logParsingError } from './vsc';
+import { TypescriptParser } from './typescriptParser';
+import { ConfigParser } from './configParser';
 
 export class Route {
 	public name: string;
@@ -27,6 +29,7 @@ export class Route {
 
 	private static parseWithApi(file: SourceFile) {
 		const results: Route[] = [];
+		const tsParser = new TypescriptParser(file.sourceFile);
 
 		visitAllChildren(file.sourceFile);
 
@@ -40,7 +43,7 @@ export class Route {
 					&& (call.expression as ts.PropertyAccessExpression).name.text === 'state'
 					&& call.arguments.length === 2) {
 					const routeName = call.arguments[0] as ts.StringLiteral;
-					const configObj = call.arguments[1] as ts.ObjectLiteralExpression;
+					const configObj = call.arguments[1] as ts.Expression;
 					results.push(createRoute(routeName, configObj));
 
 					const expr = call.expression as ts.PropertyAccessExpression;
@@ -55,12 +58,15 @@ export class Route {
 			}
 		}
 
-		function createRoute(routeName: ts.StringLiteral, configObj: ts.ObjectLiteralExpression) {
+		function createRoute(routeName: ts.StringLiteral, configNode: ts.Expression) {
+			const configObj = tsParser.getObjectLiteralValueFromNode(configNode);
+			const config = new ConfigParser(configObj);
+
 			const route = new Route();
 			route.name = routeName.text;
 			route.pos = file.sourceFile.getLineAndCharacterOfPosition(routeName.pos);
 
-			route.template = createTemplate(findProperty(configObj, 'template'));
+			route.template = createTemplate(config.get('template'));
 
 			return route;
 		}
@@ -69,14 +75,14 @@ export class Route {
 			return obj.properties.find(v => v.name.getText(file.sourceFile) === name) as ts.PropertyAssignment;
 		}
 
-		function createTemplate(node: ts.PropertyAssignment): IComponentTemplate {
-			if (!node) {
+		function createTemplate(initializer: ts.Expression): IComponentTemplate {
+			if (!initializer) {
 				return undefined;
 			}
 
-			if (node.initializer.kind === ts.SyntaxKind.StringLiteral || node.initializer.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral) {
-				const pos = file.sourceFile.getLineAndCharacterOfPosition(node.initializer.getStart(file.sourceFile));
-				const literal = node.initializer as ts.LiteralExpression;
+			if (initializer.kind === ts.SyntaxKind.StringLiteral || initializer.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral) {
+				const pos = file.sourceFile.getLineAndCharacterOfPosition(initializer.getStart(file.sourceFile));
+				const literal = initializer as ts.LiteralExpression;
 
 				return { path: file.sourceFile.fullpath, pos, body: literal.text } as IComponentTemplate;
 			}
