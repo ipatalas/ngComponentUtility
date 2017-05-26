@@ -1,4 +1,3 @@
-import * as _ from 'lodash';
 import * as ts from 'typescript';
 
 export class ConfigParser {

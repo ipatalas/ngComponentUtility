@@ -1,6 +1,5 @@
 import * as path from 'path';
 import * as vsc from 'vscode';
-import * as _ from 'lodash';
 import { Component } from '../utils/component/component';
 
 export class MemberCompletionProvider implements vsc.CompletionItemProvider {

@@ -131,7 +131,3 @@ export class TypescriptParser {
 		return ts.forEachChild(node, n => this.getExportedClass(n, name));
 	}
 }
-
-interface IObjectLiteral {
-	[name: string]: ts.PropertyAssignment;
-}
