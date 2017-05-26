@@ -12,11 +12,11 @@ export class ClassMethod extends MemberBase {
 	}
 
 	public static fromNode(node: ts.PropertyDeclaration | ts.MethodDeclaration, sourceFile: ts.SourceFile) {
-		let result = new ClassMethod();
+		const result = new ClassMethod();
 		result.fillCommonFields(node, sourceFile);
 
 		if (isProperty(node)) {
-			let initializer = <ts.ArrowFunction>node.initializer;
+			const initializer = node.initializer as ts.ArrowFunction;
 			result.setReturnType(initializer.type);
 			result.parameters = initializer.parameters.map(this.createParameter);
 		} else {
@@ -29,12 +29,12 @@ export class ClassMethod extends MemberBase {
 	private static createParameter = (p: ts.ParameterDeclaration): IParameter => {
 		return {
 			name: p.name.getText(),
-			type: p.type.getText()
+			type: p.type && p.type.getText() || 'any'
 		};
 	}
 
 	public buildCompletionItem() {
-		let item = this.createCompletionItem();
+		const item = this.createCompletionItem();
 		item.kind = vsc.CompletionItemKind.Function;
 		item.documentation = `${this.name}(${this.parameters.map(p => p.name + ": " + p.type).join(", ")}): ${this.returnType}`;
 
@@ -43,7 +43,7 @@ export class ClassMethod extends MemberBase {
 }
 
 function isProperty(node: ts.PropertyDeclaration | ts.MethodDeclaration): node is ts.PropertyDeclaration {
-	return (<ts.PropertyDeclaration>node).initializer !== undefined;
+	return (node as ts.PropertyDeclaration).initializer !== undefined;
 }
 
 interface IParameter {
