@@ -71,10 +71,6 @@ export class Route {
 			return route;
 		}
 
-		function findProperty(obj: ts.ObjectLiteralExpression, name: string) {
-			return obj.properties.find(v => v.name.getText(file.sourceFile) === name) as ts.PropertyAssignment;
-		}
-
 		function createTemplate(initializer: ts.Expression): IComponentTemplate {
 			if (!initializer) {
 				return undefined;

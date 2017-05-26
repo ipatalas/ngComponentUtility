@@ -8,7 +8,9 @@
 		"module": "commonjs",
 		"moduleResolution": "node",
 		"outDir": "out",
-		"sourceMap": true
+		"sourceMap": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": false
 	},
 	"exclude": [
 		"node_modules",
