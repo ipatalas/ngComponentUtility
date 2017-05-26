@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.6.4 (May 26, 2017)
+
+* Fixed issue #8 - error analyzing controller members when parameters have no types
+* Fixed issue #9 - error analyzing route with typecast
+* Logging improvement (stack trace)
+
 ## 0.6.3 (May 24, 2017)
 
 * Minor improvement for error logging to allow better identification of issues (optional update for troubleshooting)

@@ -23,7 +23,7 @@
 
 # Synopsis
 
-This extension is a result of hackathon event done in the company we work for. We had an option to invest 2 days into anything we could possibly want.
+This extension is a result of hackathon event done in the company we work for. We had an opportunity to invest 2 days into anything we could possibly want.
 We chose to develop an extension for VS Code which would make our daily work easier. Our current project is an Angular 1.5 based web application. As Angular developers we wanted to have auto-completion for all custom components that are available in our application.
 Do not hesitate to [report](https://github.com/ipatalas/ngComponentUtility/issues) any issues you may find.
 

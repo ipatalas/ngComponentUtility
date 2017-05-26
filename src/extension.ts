@@ -45,6 +45,7 @@ export async function activate(context: vsc.ExtensionContext) {
 
 		await refreshComponents();
 	} catch (err) {
+		// tslint:disable-next-line:no-console
 		console.error(err);
 		vsc.window.showErrorMessage("Error initializing extension");
 	}
