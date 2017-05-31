@@ -182,13 +182,23 @@ export class ComponentParser {
 	}
 
 	private createBinding = (node: ts.PropertyAssignment): IComponentBinding => {
+		const {type, name} = this.parseType((node.initializer as ts.StringLiteral).text);
+
 		const binding = {} as IComponentBinding;
 		binding.name = node.name.getText(this.tsParser.sourceFile);
-		binding.type = (node.initializer as ts.StringLiteral).text;
-		binding.htmlName = decamelize(binding.name, '-');
+		binding.type = type;
+		binding.htmlName = decamelize(name || binding.name, '-');
 		binding.pos = this.tsParser.sourceFile.getLineAndCharacterOfPosition(node.initializer.pos);
 
 		return binding;
+	}
+
+	private parseType = (type: string) => {
+		const match = /^(.*?)(\w+)?$/g.exec(type);
+		return {
+			type: match[1],
+			name: match[2]
+		};
 	}
 
 	private createControllerAlias(node: ts.Expression): string {
