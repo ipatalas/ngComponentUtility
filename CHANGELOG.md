@@ -2,8 +2,8 @@
 
 ## 0.6.4 (May 26, 2017)
 
-* Fixed issue #8 - error analyzing controller members when parameters have no types
-* Fixed issue #9 - error analyzing route with typecast
+* Fixed [issue #8](https://github.com/ipatalas/ngComponentUtility/issues/8) - error analyzing controller members when parameters have no types
+* Fixed [issue #9](https://github.com/ipatalas/ngComponentUtility/issues/9) - error analyzing route with typecast
 * Logging improvement (stack trace)
 
 ## 0.6.3 (May 24, 2017)
