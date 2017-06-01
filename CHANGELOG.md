@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.6.5 (Jun 1, 2017)
+
+* Fixed [issue #11](https://github.com/ipatalas/ngComponentUtility/issues/11) - incorrect component binding name suggested in HTML
+* Fixed [issue #12](https://github.com/ipatalas/ngComponentUtility/issues/12) - better ES6 import handling
+* Fixed [issue #13](https://github.com/ipatalas/ngComponentUtility/issues/13) - multiple chained component registrations
+
 ## 0.6.4 (May 26, 2017)
 
 * Fixed [issue #8](https://github.com/ipatalas/ngComponentUtility/issues/8) - error analyzing controller members when parameters have no types
