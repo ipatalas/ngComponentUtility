@@ -87,7 +87,12 @@ export class ComponentParser {
 		if (importDeclaration) {
 			const module = importDeclaration.moduleSpecifier as ts.StringLiteral;
 			const extension = path.extname(this.file.path);
-			const modulePath = path.resolve(path.dirname(this.file.path), module.text + extension);
+
+			let modulePath = path.resolve(path.dirname(this.file.path), module.text + extension);
+			if (!fs.existsSync(modulePath)) {
+				modulePath = path.resolve(path.dirname(this.file.path), module.text + '/index' + extension);
+			}
+
 			if (fs.existsSync(modulePath)) {
 				const sourceFile = await SourceFile.parse(modulePath);
 				return Promise.resolve(new TypescriptParser(sourceFile.sourceFile));
@@ -182,7 +187,7 @@ export class ComponentParser {
 	}
 
 	private createBinding = (node: ts.PropertyAssignment): IComponentBinding => {
-		const {type, name} = this.parseType((node.initializer as ts.StringLiteral).text);
+		const { type, name } = this.parseType((node.initializer as ts.StringLiteral).text);
 
 		const binding = {} as IComponentBinding;
 		binding.name = node.name.getText(this.tsParser.sourceFile);
