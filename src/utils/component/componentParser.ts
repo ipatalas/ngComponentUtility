@@ -5,7 +5,7 @@ import * as decamelize from 'decamelize';
 import { SourceFile } from "../sourceFile";
 import { Controller } from "../controller/controller";
 import { Component, IComponentTemplate, IComponentBinding } from "./component";
-import { workspaceRoot } from '../vsc';
+import { workspaceRoot, logVerbose } from '../vsc';
 import { TypescriptParser } from '../typescriptParser';
 import { ConfigParser } from '../configParser';
 
@@ -139,8 +139,7 @@ export class ComponentParser {
 		if (this.controllers && this.controllers.length > 0) {
 			component.controller = this.createController(config.get('controller'));
 			if (!component.controller) {
-				// tslint:disable-next-line:no-console
-				console.log(`Controller for ${component.name} is not defined`);
+				logVerbose(`Controller for ${component.name} is not defined`);
 			}
 		}
 

@@ -8,7 +8,7 @@ import * as vsc from 'vscode';
 import * as prettyHrtime from 'pretty-hrtime';
 import { default as glob } from './glob';
 import { default as tags } from './htmlTags';
-import { workspaceRoot } from './vsc';
+import { workspaceRoot, log } from './vsc';
 import { IComponentTemplate } from "./component/component";
 import { FileWatcher } from "./fileWatcher";
 
@@ -124,8 +124,7 @@ export class HtmlReferencesCache implements vsc.Disposable {
 			await Promise.all(files.map(f => this.parseFile(workspaceRoot, f, results)));
 			parseTime = process.hrtime(parseTime);
 
-			// tslint:disable-next-line:no-console
-			console.log(`[ngComponents] HTML stats [files=${files.length}, glob=${prettyHrtime(globTime)}, parse=${prettyHrtime(parseTime)}]`);
+			log(`HTML stats [files=${files.length}, glob=${prettyHrtime(globTime)}, parse=${prettyHrtime(parseTime)}]`);
 
 			this.htmlReferences = results;
 			return this.htmlReferences;

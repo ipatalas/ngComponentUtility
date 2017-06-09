@@ -1,135 +1,145 @@
 {
-  "name": "vscode-angular-components-intellisense",
-  "displayName": "ng1.5 components utility",
-  "description": "Angular 1.5 components utility",
-  "author": "Ireneusz Patalas",
-  "license": "MIT",
-  "version": "0.6.5",
-  "publisher": "ipatalas",
-  "contributors": [
-    "Ireneusz Patalas",
-    "Kamil Haładus"
-  ],
-  "engines": {
-    "vscode": "^1.6.1"
-  },
-  "categories": [
-    "Languages",
-    "Other"
-  ],
-  "icon": "images/angular.png",
-  "galleryBanner": {
-    "color": "#0273D4",
-    "theme": "dark"
-  },
-  "activationEvents": [
-    "onLanguage:html",
-    "onLanguage:typescript"
-  ],
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/ipatalas/ngComponentUtility"
-  },
-  "main": "./out/src/extension",
-  "contributes": {
-    "commands": [
-      {
-        "command": "extension.refreshAngularComponents",
-        "title": "Refresh Components Cache"
-      },
-      {
-        "command": "extension.findUnusedAngularComponents",
-        "title": "Find unused Angular components"
-      }
-    ],
-    "configuration": {
-      "title": "ng1.5 components utility",
-      "type": "object",
-      "properties": {
-        "ngComponents.componentGlobs": {
-          "type": [
-            "array",
-            "string"
-          ],
-          "default": [
-            "**/*Component.ts"
-          ],
-          "description": "glob string used to search for files with components"
-        },
-        "ngComponents.controllerGlobs": {
-          "type": [
-            "array",
-            "string"
-          ],
-          "default": [
-            "**/*Controller.ts"
-          ],
-          "description": "glob string used to search for files with controllers"
-        },
-        "ngComponents.htmlGlobs": {
-          "type": [
-            "array",
-            "string"
-          ],
-          "default": [
-            "**/*.html"
-          ],
-          "description": "glob string used to search for HTML files for references of the components"
-        },
-        "ngComponents.routeGlobs": {
-          "type": [
-            "array",
-            "string"
-          ],
-          "default": [
-            "**/*route.ts"
-          ],
-          "description": "glob string used to search for angular-ui-router files for references of the components"
-        },
-        "ngComponents.goToDefinition": {
-          "type": [
-            "array",
-            "string"
-          ],
-          "default": [
-            "template",
-            "controller"
-          ],
-          "uniqueItems": true,
-          "description": "Specify which parts of the component should the Go To Definition action show"
-        },
-        "ngComponents.controller.publicMembersOnly": {
-          "type": "boolean",
-          "default": true,
-          "description": "Set to false to show all members in auto complete"
-        },
-        "ngComponents.controller.excludedMembers": {
-          "type": "string",
-          "default": "^\\$",
-          "description": "Regular expression which can exclude additional members (defaults to exclude Angular lifecycle hooks)"
-        }
-      }
-    }
-  },
-  "scripts": {
-    "vscode:prepublish": "tsc -p ./",
-    "compile": "tsc -watch -p ./",
-    "postinstall": "node ./node_modules/vscode/bin/install",
-    "test": "node ./node_modules/vscode/bin/test"
-  },
-  "devDependencies": {
-    "@types/glob": "^5.0.30",
-    "@types/lodash": "^4.14.55",
-    "@types/mocha": "^2.2.40",
-    "mocha": "^3.2.0",
-    "vscode": "^1.1.0"
-  },
-  "dependencies": {
-    "decamelize": "^1.2.0",
-    "glob": "^7.1.1",
-    "lodash": "^4.17.4",
-    "parse5": "^3.0.2",
-    "pretty-hrtime": "^1.0.3",
-    "typescript": "^2.2.1"
-  }
+	"name": "vscode-angular-components-intellisense",
+	"displayName": "ng1.5 components utility",
+	"description": "Angular 1.5 components utility",
+	"author": "Ireneusz Patalas",
+	"license": "MIT",
+	"version": "0.6.5",
+	"publisher": "ipatalas",
+	"contributors": [
+		"Ireneusz Patalas",
+		"Kamil Haładus"
+	],
+	"engines": {
+		"vscode": "^1.6.1"
+	},
+	"categories": [
+		"Languages",
+		"Other"
+	],
+	"icon": "images/angular.png",
+	"galleryBanner": {
+		"color": "#0273D4",
+		"theme": "dark"
+	},
+	"activationEvents": [
+		"onLanguage:html",
+		"onLanguage:typescript"
+	],
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/ipatalas/ngComponentUtility"
+	},
+	"main": "./out/src/extension",
+	"contributes": {
+		"commands": [
+			{
+				"command": "extension.refreshAngularComponents",
+				"title": "Refresh Components Cache"
+			},
+			{
+				"command": "extension.findUnusedAngularComponents",
+				"title": "Find unused Angular components"
+			}
+		],
+		"configuration": {
+			"title": "ng1.5 components utility",
+			"type": "object",
+			"properties": {
+				"ngComponents.componentGlobs": {
+					"type": [
+						"array",
+						"string"
+					],
+					"default": [
+						"**/*Component.ts"
+					],
+					"description": "glob string used to search for files with components"
+				},
+				"ngComponents.controllerGlobs": {
+					"type": [
+						"array",
+						"string"
+					],
+					"default": [
+						"**/*Controller.ts"
+					],
+					"description": "glob string used to search for files with controllers"
+				},
+				"ngComponents.htmlGlobs": {
+					"type": [
+						"array",
+						"string"
+					],
+					"default": [
+						"**/*.html"
+					],
+					"description": "glob string used to search for HTML files for references of the components"
+				},
+				"ngComponents.routeGlobs": {
+					"type": [
+						"array",
+						"string"
+					],
+					"default": [
+						"**/*route.ts"
+					],
+					"description": "glob string used to search for angular-ui-router files for references of the components"
+				},
+				"ngComponents.goToDefinition": {
+					"type": [
+						"array",
+						"string"
+					],
+					"default": [
+						"template",
+						"controller"
+					],
+					"uniqueItems": true,
+					"description": "Specify which parts of the component should the Go To Definition action show"
+				},
+				"ngComponents.controller.publicMembersOnly": {
+					"type": "boolean",
+					"default": true,
+					"description": "Set to false to show all members in auto complete"
+				},
+				"ngComponents.controller.excludedMembers": {
+					"type": "string",
+					"default": "^\\$",
+					"description": "Regular expression which can exclude additional members (defaults to exclude Angular lifecycle hooks)"
+				},
+				"ngComponents.logging.verbose": {
+					"type": "boolean",
+					"default": false,
+					"description": "Set to true to enable verbose logging in developers console"
+				},
+				"ngComponents.logging.redirectToFile": {
+					"type": "string",
+					"default": null,
+					"description": "Set path to which you want to redirect logging to"
+				}
+			}
+		}
+	},
+	"scripts": {
+		"vscode:prepublish": "tsc -p ./",
+		"compile": "tsc -watch -p ./",
+		"postinstall": "node ./node_modules/vscode/bin/install",
+		"test": "node ./node_modules/vscode/bin/test"
+	},
+	"devDependencies": {
+		"@types/glob": "^5.0.30",
+		"@types/lodash": "^4.14.55",
+		"@types/mocha": "^2.2.40",
+		"mocha": "^3.2.0",
+		"vscode": "^1.1.0"
+	},
+	"dependencies": {
+		"decamelize": "^1.2.0",
+		"glob": "^7.1.1",
+		"lodash": "^4.17.4",
+		"parse5": "^3.0.2",
+		"pretty-hrtime": "^1.0.3",
+		"typescript": "^2.2.1"
+	}
 }

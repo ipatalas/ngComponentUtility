@@ -34,6 +34,7 @@ export class ComponentsCache implements vsc.Disposable {
 
 		const idx = this.components.findIndex(c => this.normalizePath(c.path) === filepath);
 		if (idx === -1) {
+			// tslint:disable-next-line:no-console
 			console.warn("Component does not exist, cannot update it");
 			return;
 		}
@@ -72,6 +73,7 @@ export class ComponentsCache implements vsc.Disposable {
 
 			return this.components;
 		}).catch((err) => {
+			// tslint:disable-next-line:no-console
 			console.error(err);
 			vsc.window.showErrorMessage("There was an error refreshing components cache, check console for errors");
 			return [];

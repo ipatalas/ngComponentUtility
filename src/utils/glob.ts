@@ -1,10 +1,10 @@
 import * as glob from 'glob';
 
-const options = <IOptions>{
+const options = {
 	absolute: true
-};
+} as IOptions;
 
-export default function (pattern: string, opts?: IOptions) {
+export default function(pattern: string, opts?: IOptions) {
 	return new Promise<string[]>((resolve, reject) => {
 		glob(pattern, { ...options, ...opts }, (err, matches) => {
 			if (err) {
@@ -14,7 +14,7 @@ export default function (pattern: string, opts?: IOptions) {
 			resolve(matches);
 		});
 	});
-};
+}
 
 export const init = (cwd: string) => {
 	options.cwd = cwd;

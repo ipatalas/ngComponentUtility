@@ -9,8 +9,8 @@ import { ComponentDefinitionProvider } from './providers/componentDefinitionProv
 import { ReferencesProvider } from "./providers/referencesProvider";
 import { FindUnusedComponentsCommand } from "./commands/findUnusedComponents";
 
-import { ConfigurationChangeListener, IConfigurationChangedEvent } from './utils/vsc';
-import { IComponentTemplate } from "./utils/component/component";
+import { ConfigurationChangeListener, IConfigurationChangedEvent, logVerbose } from './utils/vsc';
+import { IComponentTemplate } from './utils/component/component';
 import { ComponentsCache } from './utils/component/componentsCache';
 import { HtmlReferencesCache } from "./utils/htmlReferencesCache";
 import { init as initGlob } from './utils/glob';
@@ -99,6 +99,8 @@ const refreshComponents = async (config?: vsc.WorkspaceConfiguration): Promise<v
 			bindingProvider.loadComponents(components);
 			definitionProvider.loadComponents(components);
 			memberDefinitionProvider.loadComponents(components);
+
+			components.forEach(c => logVerbose(`Found component: ${c.name} { ctrl: ${c.controller && c.controller.name} } (${c.path})`));
 
 			statusBar.text = `$(sync) ${components.length} components`;
 		} catch (err) {
