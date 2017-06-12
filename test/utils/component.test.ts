@@ -17,8 +17,7 @@ describe('Give Component class', () => {
 		testFiles(files);
 
 		it('and controllerAs property exists then controller alias is set', async () => {
-			const path = getTestFilePath('component_ctrlAlias.ts');
-			const sourceFile = ts.createSourceFile('component_ctrlAlias.ts', fs.readFileSync(path, 'utf8'), ts.ScriptTarget.ES5, true);
+			const { path, sourceFile } = getSourceFile('component_ctrlAlias.ts');
 
 			const component = await Component.parse({ path, sourceFile }, []);
 
@@ -26,8 +25,7 @@ describe('Give Component class', () => {
 		});
 
 		it('and controllerAs property does not exist then default controller alias is set', async () => {
-			const path = getTestFilePath('component_noCtrlAlias.ts');
-			const sourceFile = ts.createSourceFile('component_noCtrlAlias.ts', fs.readFileSync(path, 'utf8'), ts.ScriptTarget.ES5, true);
+			const { path, sourceFile } = getSourceFile('component_noCtrlAlias.ts');
 
 			const component = await Component.parse({ path, sourceFile }, []);
 
@@ -35,32 +33,53 @@ describe('Give Component class', () => {
 		});
 
 		it('with component_importLiteral.ts file then a properly parsed component is returned', async () => {
-			const path = getTestFilePath('component_importLiteral.ts');
-			const sourceFile = ts.createSourceFile('component_importLiteral.ts', fs.readFileSync(path, 'utf8'), ts.ScriptTarget.ES5, true);
+			const { path, sourceFile } = getSourceFile('component_importLiteral.ts');
 
-			const component = await Component.parse({ path, sourceFile }, []);
+			const components = await Component.parse({ path, sourceFile }, []);
 
-			assert.equal(component.length, 1);
-			assert.equal(component[0].name, 'exampleComponent');
-			assert.equal(component[0].bindings.length, 1);
-			assert.equal(component[0].bindings[0].name, 'exampleBinding');
-			assert.equal(component[0].bindings[0].type, '<');
+			assertComponent(components);
 		});
 
 		it('with component_importClass.ts file then a properly parsed component is returned', async () => {
-			const path = getTestFilePath('component_importClass.ts');
-			const sourceFile = ts.createSourceFile('component_importClass.ts', fs.readFileSync(path, 'utf8'), ts.ScriptTarget.ES5, true);
+			const { path, sourceFile } = getSourceFile('component_importClass.ts');
 
-			const component = await Component.parse({ path, sourceFile }, []);
+			const components = await Component.parse({ path, sourceFile }, []);
 
-			assert.equal(component.length, 1);
-			assert.equal(component[0].name, 'exampleComponent');
-			assert.equal(component[0].bindings.length, 1);
-			assert.equal(component[0].bindings[0].name, 'exampleBinding');
-			assert.equal(component[0].bindings[0].type, '<');
+			assertComponent(components);
+		});
+
+		it('with component_importReexportedLiteral.ts file then a properly parsed component is returned', async () => {
+			const { path, sourceFile } = getSourceFile('component_importReexportedLiteral.ts');
+
+			const components = await Component.parse({ path, sourceFile }, []);
+
+			assertComponent(components);
+		});
+
+		it('with component_importReexportedClass.ts file then a properly parsed component is returned', async () => {
+			const { path, sourceFile } = getSourceFile('component_importReexportedClass.ts');
+
+			const components = await Component.parse({ path, sourceFile }, []);
+
+			assertComponent(components);
 		});
 	});
 });
+
+function assertComponent(components: Component[]) {
+	assert.equal(components.length, 1);
+	assert.equal(components[0].name, 'exampleComponent');
+	assert.equal(components[0].bindings.length, 1);
+	assert.equal(components[0].bindings[0].name, 'exampleBinding');
+	assert.equal(components[0].bindings[0].type, '<');
+}
+
+function getSourceFile(name: string) {
+	const path = getTestFilePath(name);
+	const sourceFile = ts.createSourceFile(name, fs.readFileSync(path, 'utf8'), ts.ScriptTarget.ES5, true);
+
+	return { path, sourceFile };
+}
 
 function testFiles(files: string[]) {
 	files.forEach((file) => {
