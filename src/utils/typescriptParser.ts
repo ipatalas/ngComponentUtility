@@ -1,15 +1,19 @@
 import * as ts from 'typescript';
-import { ISourceFile } from "./sourceFile";
+import { SourceFile, ISourceFile } from './sourceFile';
+import * as path from 'path';
+import * as fs from 'fs';
 
 export class TypescriptParser {
-	private identifierNodes: Map<string, ts.Node[]> = new Map<string, ts.Node[]>();
+	private readonly identifierNodes: Map<string, ts.Node[]> = new Map<string, ts.Node[]>();
+
+	public readonly sourceFile: ISourceFile;
 
 	get path() {
-		return this.sourceFile.fullpath;
+		return this.file.path;
 	}
 
-	constructor(public sourceFile: ISourceFile) {
-
+	constructor(public file: SourceFile) {
+		this.sourceFile = file.sourceFile;
 	}
 
 	public addIdentifier = (node: ts.Identifier) => {
@@ -48,13 +52,49 @@ export class TypescriptParser {
 		}
 	}
 
-	public getImportDeclaration = (identifier: ts.Identifier): ts.ImportDeclaration => {
+	private getImportModuleSpecifier = (identifier: ts.Identifier): ts.Expression => {
 		if (this.identifierNodes.has(identifier.text)) {
 			const usages = this.identifierNodes.get(identifier.text);
 			const node = usages.find(u => u.parent.kind === ts.SyntaxKind.ImportSpecifier);
 
-			return this.closestParent<ts.ImportDeclaration>(node.parent, ts.SyntaxKind.ImportDeclaration);
+			const result = this.closestParent<ts.ImportDeclaration>(node.parent, ts.SyntaxKind.ImportDeclaration);
+
+			return result && result.moduleSpecifier;
+		} else {
+			const result = this.sourceFile.statements
+				.filter(s => s.kind === ts.SyntaxKind.ExportDeclaration)
+				.find((s: ts.ExportDeclaration) => this.isExportDeclarationFor(s, identifier)) as ts.ExportDeclaration;
+
+			return result && result.moduleSpecifier;
 		}
+	}
+
+	public getParserFromImport = async (identifier: ts.Identifier) => {
+		const module = this.getImportModuleSpecifier(identifier) as ts.StringLiteral;
+		if (module) {
+			const extension = path.extname(this.path);
+			let filename = module.text;
+
+			if (!filename.endsWith(extension)) {
+				filename += extension;
+			}
+
+			let modulePath = path.resolve(path.dirname(this.path), filename);
+			if (!fs.existsSync(modulePath)) {
+				modulePath = path.resolve(path.dirname(this.path), module.text + '/index' + extension);
+			}
+
+			if (fs.existsSync(modulePath)) {
+				const sourceFile = await SourceFile.parse(modulePath);
+				return Promise.resolve(new TypescriptParser(sourceFile));
+			}
+		}
+	}
+
+	private isExportDeclarationFor = (declaration: ts.ExportDeclaration, identifier: ts.Identifier): boolean => {
+		const exportClause = declaration.exportClause;
+
+		return exportClause.elements.some(spec => spec.name.text === identifier.text);
 	}
 
 	private closestParent = <TNode extends ts.Node>(node: ts.Node, kind: ts.SyntaxKind) => {

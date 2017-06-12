@@ -1,5 +1,4 @@
 import * as ts from 'typescript';
-import * as fs from 'fs';
 import * as path from "path";
 import * as decamelize from 'decamelize';
 import { SourceFile } from "../sourceFile";
@@ -16,7 +15,7 @@ export class ComponentParser {
 	private isImported: boolean = false;
 
 	constructor(private file: SourceFile, private controllers: Controller[]) {
-		this.tsParser = new TypescriptParser(file.sourceFile);
+		this.tsParser = new TypescriptParser(file);
 		this.componentTsParser = new Map<string, TypescriptParser>();
 	}
 
@@ -53,57 +52,46 @@ export class ComponentParser {
 	}
 
 	private getComponentConfig = async (configNode: ts.Expression, componentNameNode: ts.Expression): Promise<ts.ObjectLiteralExpression | ts.ClassDeclaration> => {
-		const componentName = this.tsParser.getStringValueFromNode(componentNameNode);
 		const componentConfigObj = this.tsParser.getObjectLiteralValueFromNode(configNode);
 
 		if (componentConfigObj) {
 			return Promise.resolve(componentConfigObj);
 		}
 
+		const componentName = this.tsParser.getStringValueFromNode(componentNameNode);
+
 		if (configNode.kind === ts.SyntaxKind.NewExpression) {
-			const newExpression = configNode as ts.NewExpression;
-			const parser = await this.getImportedFileParser(newExpression.expression as ts.Identifier);
-			if (parser) {
-				this.componentTsParser.set(componentName, parser);
-				const classDeclaration = parser.getExportedClass(parser.sourceFile, (newExpression.expression as ts.Identifier).text);
+			const identifier = (configNode as ts.NewExpression).expression as ts.Identifier;
+			let parser = await this.tsParser.getParserFromImport(identifier);
+
+			while (parser) {
+				const classDeclaration = parser.getExportedClass(parser.sourceFile, identifier.text);
 				if (classDeclaration) {
+					this.componentTsParser.set(componentName, parser);
 					this.isImported = true;
 					return Promise.resolve(classDeclaration);
+				} else {
+					parser = await parser.getParserFromImport(identifier as ts.Identifier);
 				}
 			}
 		}
 
 		if (configNode.kind === ts.SyntaxKind.Identifier) {
-			const parser = await this.getImportedFileParser(configNode as ts.Identifier);
-			if (parser) {
-				this.componentTsParser.set(componentName, parser);
+			let parser = await this.tsParser.getParserFromImport(configNode as ts.Identifier);
+
+			while (parser) {
 				const varDeclaration = parser.getExportedVariable(parser.sourceFile, (configNode as ts.Identifier).text);
 				if (varDeclaration && varDeclaration.initializer.kind === ts.SyntaxKind.ObjectLiteralExpression) {
+					this.componentTsParser.set(componentName, parser);
 					this.isImported = true;
 					return Promise.resolve(varDeclaration.initializer as ts.ObjectLiteralExpression);
+				} else {
+					parser = await parser.getParserFromImport(configNode as ts.Identifier);
 				}
 			}
 		}
 
 		return Promise.reject(new Error('This component configuration type is not supported yet - please raise an issue and provide an example'));
-	}
-
-	private getImportedFileParser = async (identifier: ts.Identifier) => {
-		const importDeclaration = this.tsParser.getImportDeclaration(identifier);
-		if (importDeclaration) {
-			const module = importDeclaration.moduleSpecifier as ts.StringLiteral;
-			const extension = path.extname(this.file.path);
-
-			let modulePath = path.resolve(path.dirname(this.file.path), module.text + extension);
-			if (!fs.existsSync(modulePath)) {
-				modulePath = path.resolve(path.dirname(this.file.path), module.text + '/index' + extension);
-			}
-
-			if (fs.existsSync(modulePath)) {
-				const sourceFile = await SourceFile.parse(modulePath);
-				return Promise.resolve(new TypescriptParser(sourceFile.sourceFile));
-			}
-		}
 	}
 
 	private createComponent = (componentNameNode: ts.Expression, configObj: ts.ObjectLiteralExpression | ts.ClassDeclaration) => {

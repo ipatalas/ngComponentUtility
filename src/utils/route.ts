@@ -29,7 +29,7 @@ export class Route {
 
 	private static parseWithApi(file: SourceFile) {
 		const results: Route[] = [];
-		const tsParser = new TypescriptParser(file.sourceFile);
+		const tsParser = new TypescriptParser(file);
 
 		visitAllChildren(file.sourceFile);
 
