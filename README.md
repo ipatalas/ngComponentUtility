@@ -149,6 +149,8 @@ This plugin contributes the following [settings](https://code.visualstudio.com/d
 - `ngComponents.debugConsole`: boolean value to show debug information. Default value is **false**
 - `ngComponents.controller.publicMembersOnly`: whether to suggest all members in view model auto complete. Default value is **true**
 - `ngComponents.controller.excludedMembers`: a regular expression excluding member from view model auto completion. Default value is **^\\$** (for Angular lifecycle methods)
+- `ngComponents.logging.verbose`: enable verbose logging (for troubleshooting)
+- `ngComponents.logging.redirectToFile`: path to redirect logs to - needed when console is flooded with too many messages and supresses them
 
 Whenever one of the globs changes components cache is automatically rebuilt. Additionally all component files are monitored for changes and they will be reflected immediately, ie. after adding a binding you can just save the file and go straight to template file to use that binding.
 

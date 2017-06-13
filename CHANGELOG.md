@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.6.6 (Jun 13, 2017)
+
+* Fixed [issue #14](https://github.com/ipatalas/ngComponentUtility/issues/14) - support for multi-level ES6 imports
+
 ## 0.6.5 (Jun 1, 2017)
 
 * Fixed [issue #11](https://github.com/ipatalas/ngComponentUtility/issues/11) - incorrect component binding name suggested in HTML
