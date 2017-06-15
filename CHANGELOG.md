@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.6.7 (Jun 15, 2017)
+
+* Fixed [issue #16](https://github.com/ipatalas/ngComponentUtility/issues/16) - components without a template will no longer break the extension
+* Improved logging when an extension breaking error occurs
+* Minor improvement for component parsing
+
 ## 0.6.6 (Jun 13, 2017)
 
 * Fixed [issue #14](https://github.com/ipatalas/ngComponentUtility/issues/14) - support for multi-level ES6 imports
