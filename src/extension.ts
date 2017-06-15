@@ -104,6 +104,8 @@ const refreshComponents = async (config?: vsc.WorkspaceConfiguration): Promise<v
 
 			statusBar.text = `$(sync) ${components.length} components`;
 		} catch (err) {
+			// tslint:disable-next-line:no-console
+			console.error(err);
 			vsc.window.showErrorMessage("Error refreshing components, check developer console");
 		}
 
