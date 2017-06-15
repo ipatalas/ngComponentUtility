@@ -120,6 +120,9 @@ export class ComponentParser {
 		component.template = this.createTemplateFromUrl(config.get('templateUrl'), parser);
 		if (!component.template) {
 			component.template = this.createTemplate(config.get('template'), parser);
+			if (!component.template) {
+				logVerbose(`Template for ${component.name} not found (member completion and Go To Definition for this component will not work)`);
+			}
 		}
 
 		component.controllerAs = this.createControllerAlias(config.get('controllerAs'));
@@ -127,7 +130,7 @@ export class ComponentParser {
 		if (this.controllers && this.controllers.length > 0) {
 			component.controller = this.createController(config.get('controller'));
 			if (!component.controller) {
-				logVerbose(`Controller for ${component.name} is not defined`);
+				logVerbose(`Controller for ${component.name} not found (member completion and Go To Definition for this component will not work)`);
 			}
 		}
 

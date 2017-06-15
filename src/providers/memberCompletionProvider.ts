@@ -7,7 +7,7 @@ export class MemberCompletionProvider implements vsc.CompletionItemProvider {
 
 	public loadComponents = (components: Component[]) => {
 		this.components.clear();
-		components.forEach(c => {
+		components.filter(c => c.template).forEach(c => {
 			this.components.set(this.normalizePath(c.template.path), c);
 		});
 	}

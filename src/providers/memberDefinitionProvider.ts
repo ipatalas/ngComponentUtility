@@ -9,29 +9,29 @@ export class MemberDefinitionProvider implements vsc.DefinitionProvider {
 
 	public loadComponents = (components: Component[]) => {
 		this.components.clear();
-		components.forEach(c => {
+		components.filter(c => c.template).forEach(c => {
 			this.components.set(this.normalizePath(c.template.path), c);
 		});
 	}
 
 	public provideDefinition(document: vsc.TextDocument, position: vsc.Position, _token: vsc.CancellationToken): vsc.Definition {
-		let normalizedPath = this.normalizePath(document.uri.fsPath);
+		const normalizedPath = this.normalizePath(document.uri.fsPath);
 
 		if (!this.components.has(normalizedPath)) {
 			return [];
 		}
 
-		let component = this.components.get(normalizedPath);
+		const component = this.components.get(normalizedPath);
 
-		let line = document.lineAt(position.line).text;
-		let dotIdx = line.lastIndexOf('.', position.character);
-		let viewModelName = line.substring(dotIdx - component.controllerAs.length, dotIdx);
+		const line = document.lineAt(position.line).text;
+		const dotIdx = line.lastIndexOf('.', position.character);
+		const viewModelName = line.substring(dotIdx - component.controllerAs.length, dotIdx);
 
 		if (viewModelName === component.controllerAs) {
-			let range = document.getWordRangeAtPosition(position);
-			let word = document.getText(range);
+			const range = document.getWordRangeAtPosition(position);
+			const word = document.getText(range);
 
-			let member = component.controller.members.find(m => m.name === word);
+			const member = component.controller.members.find(m => m.name === word);
 			if (member) {
 				return getLocation({
 					path: component.controller.path,
