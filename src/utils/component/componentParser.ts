@@ -62,10 +62,16 @@ export class ComponentParser {
 
 		if (configNode.kind === ts.SyntaxKind.NewExpression) {
 			const identifier = (configNode as ts.NewExpression).expression as ts.Identifier;
+
+			let classDeclaration = this.tsParser.getClassDefinition(identifier);
+			if (classDeclaration) {
+				return Promise.resolve(classDeclaration);
+			}
+
 			let parser = await this.tsParser.getParserFromImport(identifier);
 
 			while (parser) {
-				const classDeclaration = parser.getExportedClass(parser.sourceFile, identifier.text);
+				classDeclaration = parser.getExportedClass(parser.sourceFile, identifier.text);
 				if (classDeclaration) {
 					this.componentTsParser.set(componentName, parser);
 					this.isImported = true;

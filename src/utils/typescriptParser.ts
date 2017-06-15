@@ -115,6 +115,16 @@ export class TypescriptParser {
 		}
 	}
 
+	public getClassDefinition = (identifier: ts.Identifier) => {
+		if (this.identifierNodes.has(identifier.text)) {
+			const usages = this.identifierNodes.get(identifier.text);
+			const classDeclaration = usages.find(u => u.parent.kind === ts.SyntaxKind.ClassDeclaration);
+			if (classDeclaration) {
+				return classDeclaration.parent as ts.ClassDeclaration;
+			}
+		}
+	}
+
 	private getPropertyAccessMember = (pae: ts.PropertyAccessExpression) => {
 		if (pae.expression.kind === ts.SyntaxKind.Identifier) {
 			const className = (pae.expression as ts.Identifier).text;
