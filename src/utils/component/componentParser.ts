@@ -4,9 +4,10 @@ import * as decamelize from 'decamelize';
 import { SourceFile } from "../sourceFile";
 import { Controller } from "../controller/controller";
 import { Component, IComponentTemplate, IComponentBinding } from "./component";
-import { workspaceRoot, logVerbose } from '../vsc';
+import { workspaceRoot } from '../vsc';
 import { TypescriptParser } from '../typescriptParser';
 import { ConfigParser } from '../configParser';
+import { logVerbose } from '../logging';
 
 export class ComponentParser {
 	private results: Component[] = [];

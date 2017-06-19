@@ -2,7 +2,7 @@ import * as ts from "typescript";
 import { SourceFile } from '../sourceFile';
 import { Controller } from '../controller/controller';
 import { ComponentParser } from "./componentParser";
-import { logParsingError } from '../vsc';
+import { logParsingError } from '../logging';
 
 export class Component {
 	public name: string;

@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as ts from "typescript";
-import { logParsingError } from './vsc';
+import { logParsingError } from './logging';
 
 export class SourceFile {
 	public get path(): string {

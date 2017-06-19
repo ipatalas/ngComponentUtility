@@ -23,8 +23,7 @@
 		"theme": "dark"
 	},
 	"activationEvents": [
-		"onLanguage:html",
-		"onLanguage:typescript"
+		"*"
 	],
 	"repository": {
 		"type": "git",
@@ -40,6 +39,10 @@
 			{
 				"command": "extension.findUnusedAngularComponents",
 				"title": "Find unused Angular components"
+			},
+			{
+				"command": "extension.markAsAngularProject",
+				"title": "Force enable ngComponents utility on this workspace"
 			}
 		],
 		"configuration": {
@@ -117,6 +120,11 @@
 					"type": "string",
 					"default": null,
 					"description": "Set path to which you want to redirect logging to"
+				},
+				"ngComponents.forceEnable": {
+					"type": "boolean",
+					"default": false,
+					"description": "Use this setting to force enable the extension if AngularJS was not detected automatically"
 				}
 			}
 		}

@@ -8,9 +8,10 @@ import * as vsc from 'vscode';
 import * as prettyHrtime from 'pretty-hrtime';
 import { default as glob } from './glob';
 import { default as tags } from './htmlTags';
-import { workspaceRoot, log } from './vsc';
+import { workspaceRoot } from './vsc';
 import { IComponentTemplate } from "./component/component";
 import { FileWatcher } from "./fileWatcher";
+import { log } from './logging';
 
 const htmlTags = new Set<string>(tags);
 

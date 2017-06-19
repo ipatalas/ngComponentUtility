@@ -9,18 +9,22 @@ import { ComponentDefinitionProvider } from './providers/componentDefinitionProv
 import { ReferencesProvider } from "./providers/referencesProvider";
 import { FindUnusedComponentsCommand } from "./commands/findUnusedComponents";
 
-import { ConfigurationChangeListener, IConfigurationChangedEvent, logVerbose } from './utils/vsc';
 import { IComponentTemplate } from './utils/component/component';
 import { ComponentsCache } from './utils/component/componentsCache';
 import { HtmlReferencesCache } from "./utils/htmlReferencesCache";
 import { init as initGlob } from './utils/glob';
 import { RoutesCache } from "./utils/routesCache";
 import { MemberDefinitionProvider } from "./providers/memberDefinitionProvider";
+import { ConfigurationChangeListener, IConfigurationChangedEvent } from './utils/configurationChangeListener';
+import { logVerbose } from './utils/logging';
+import { shouldActivateExtension, notAngularProject, markAngularProject, alreadyAngularProject } from './utils/vsc';
 
 const HTML_DOCUMENT_SELECTOR: vsc.DocumentSelector = 'html';
 const TS_DOCUMENT_SELECTOR: vsc.DocumentSelector = 'typescript';
 const COMMAND_REFRESHCOMPONENTS: string = 'extension.refreshAngularComponents';
 const COMMAND_FINDUNUSEDCOMPONENTS: string = 'extension.findUnusedAngularComponents';
+const COMMAND_MARKASANGULAR: string = 'extension.markAsAngularProject';
+const COMMANDS = [COMMAND_FINDUNUSEDCOMPONENTS, COMMAND_REFRESHCOMPONENTS];
 
 const completionProvider = new ComponentCompletionProvider();
 const memberCompletionProvider = new MemberCompletionProvider();
@@ -38,7 +42,14 @@ const statusBar = vsc.window.createStatusBarItem(vsc.StatusBarAlignment.Left);
 const configListener = new ConfigurationChangeListener("ngComponents");
 
 export async function activate(context: vsc.ExtensionContext) {
+	if (!shouldActivateExtension()) {
+		COMMANDS.forEach(cmd => context.subscriptions.push(vsc.commands.registerCommand(cmd, notAngularProject)));
+		context.subscriptions.push(vsc.commands.registerCommand(COMMAND_MARKASANGULAR, markAngularProject));
+		return;
+	}
+
 	context.subscriptions.push(configListener, componentsCache, htmlReferencesCache, routesCache);
+	context.subscriptions.push(vsc.commands.registerCommand(COMMAND_MARKASANGULAR, alreadyAngularProject));
 
 	try {
 		initGlob(vsc.workspace.rootPath);

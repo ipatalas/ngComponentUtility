@@ -1,9 +1,9 @@
 import * as ts from "typescript";
 import { SourceFile } from './sourceFile';
 import { IComponentTemplate } from "./component/component";
-import { logParsingError } from './vsc';
 import { TypescriptParser } from './typescriptParser';
 import { ConfigParser } from './configParser';
+import { logParsingError } from './logging';
 
 export class Route {
 	public name: string;

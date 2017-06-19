@@ -3,7 +3,7 @@ import * as _ from 'lodash';
 import { SourceFile } from './sourceFile';
 import { default as glob } from './glob';
 import * as prettyHrtime from 'pretty-hrtime';
-import { log } from './vsc';
+import { log } from './logging';
 
 // tslint:disable:no-console
 export class SourceFilesScanner {

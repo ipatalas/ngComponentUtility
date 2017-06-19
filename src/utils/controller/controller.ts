@@ -2,7 +2,7 @@ import * as ts from "typescript";
 import { SourceFile } from '../sourceFile';
 import { IMember } from './member';
 import { ControllerParser } from "./controllerParser";
-import { logParsingError } from '../vsc';
+import { logParsingError } from '../logging';
 
 export class Controller {
 	public name: string;
