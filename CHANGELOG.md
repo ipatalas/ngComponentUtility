@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.6.8 (Jun 22, 2017)
+
+* Implemented [#18](https://github.com/ipatalas/ngComponentUtility/issues/18) - auto-detect AngularJS projects
+
 ## 0.6.7 (Jun 15, 2017)
 
 * Fixed [issue #16](https://github.com/ipatalas/ngComponentUtility/issues/16) - components without a template will no longer break the extension

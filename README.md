@@ -151,6 +151,7 @@ This plugin contributes the following [settings](https://code.visualstudio.com/d
 - `ngComponents.controller.excludedMembers`: a regular expression excluding member from view model auto completion. Default value is **^\\$** (for Angular lifecycle methods)
 - `ngComponents.logging.verbose`: enable verbose logging (for troubleshooting)
 - `ngComponents.logging.redirectToFile`: path to redirect logs to - needed when console is flooded with too many messages and supresses them
+- `ngComponents.forceEnable`: force enable the extension if AngularJS was not detected automatically
 
 Whenever one of the globs changes components cache is automatically rebuilt. Additionally all component files are monitored for changes and they will be reflected immediately, ie. after adding a binding you can just save the file and go straight to template file to use that binding.
 
@@ -160,6 +161,7 @@ This extension contributes the following commands to the Command palette.
 
 - `Refresh Components Cache`: refreshes components cache on demand
 - `Find unused Angular components`: searches for [unused components](#find-unused-components)
+- `Force enable ngComponents utility on this workspace`: see above for description of `ngComponents.forceEnable`
 
 # Performance note on configuration globs
 
