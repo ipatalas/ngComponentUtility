@@ -55,7 +55,7 @@ export class TypescriptParser {
 	private getImportModuleSpecifier = (identifier: ts.Identifier): ts.Expression => {
 		if (this.identifierNodes.has(identifier.text)) {
 			const usages = this.identifierNodes.get(identifier.text);
-			const node = usages.find(u => u.parent.kind === ts.SyntaxKind.ImportSpecifier);
+			const node = usages.find(u => u.parent.kind === ts.SyntaxKind.ImportSpecifier || u.parent.kind === ts.SyntaxKind.ImportClause);
 
 			const result = this.closestParent<ts.ImportDeclaration>(node.parent, ts.SyntaxKind.ImportDeclaration);
 
