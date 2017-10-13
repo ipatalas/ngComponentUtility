@@ -9,6 +9,6 @@ export let ExampleComponentLiteral: ng.IComponentOptions = {
 export class ExampleComponentClass implements ng.IComponentOptions {
 	public controller = 'ExampleCtrl';
 	public bindings = {
-		exampleBinding: "<"
+		exampleBinding: '<'
 	};
 }

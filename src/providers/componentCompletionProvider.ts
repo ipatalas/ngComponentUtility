@@ -22,7 +22,7 @@ export class ComponentCompletionProvider implements vsc.CompletionItemProvider {
 			const openingTagTextRange = new vsc.Range(bracketsBeforeCursor.opening, position);
 			const text = document.getText(openingTagTextRange);
 
-			if (text.startsWith("</")) {
+			if (text.startsWith('</')) {
 				return []; // we don't complete anything in closing tag
 			}
 
@@ -59,7 +59,7 @@ export class ComponentCompletionProvider implements vsc.CompletionItemProvider {
 			.map(b => {
 				const item = new vsc.CompletionItem(b.htmlName, vsc.CompletionItemKind.Field);
 				item.insertText = `${b.htmlName}=""`;
-				item.detail = "Component binding";
+				item.detail = 'Component binding';
 				item.documentation = `Binding type: ${b.type}`;
 				item.label = ` ${b.htmlName}`; // space at the beginning so that these bindings are first on the list
 
@@ -75,8 +75,8 @@ export class ComponentCompletionProvider implements vsc.CompletionItemProvider {
 			item.insertText = `<${c.htmlName} ${bindings.trim()}></${c.htmlName}>`;
 
 			if (c.bindings.length > 0) {
-				item.documentation = "Component bindings:\n"
-					+ c.bindings.map(b => `  ${b.htmlName}: ${b.type}`).join("\n");
+				item.documentation = 'Component bindings:\n'
+					+ c.bindings.map(b => `  ${b.htmlName}: ${b.type}`).join('\n');
 			}
 
 			item.additionalTextEdits = [];

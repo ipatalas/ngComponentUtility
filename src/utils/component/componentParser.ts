@@ -1,9 +1,9 @@
 import * as ts from 'typescript';
-import * as path from "path";
+import * as path from 'path';
 import * as decamelize from 'decamelize';
-import { SourceFile } from "../sourceFile";
-import { Controller } from "../controller/controller";
-import { Component, IComponentTemplate, IComponentBinding } from "./component";
+import { SourceFile } from '../sourceFile';
+import { Controller } from '../controller/controller';
+import { Component, IComponentTemplate, IComponentBinding } from './component';
 import { workspaceRoot } from '../vsc';
 import { TypescriptParser } from '../typescriptParser';
 import { ConfigParser } from '../configParser';
@@ -114,7 +114,7 @@ export class ComponentParser {
 		component.name = componentName;
 		component.htmlName = decamelize(componentName, '-');
 		component.pos = parser.sourceFile.getLineAndCharacterOfPosition(
-			this.isImported ? (configObj.name || configObj).pos : componentNameNode.pos
+			this.isImported ? ((configObj as ts.ClassDeclaration).name || configObj).pos : componentNameNode.pos
 		);
 
 		const config = new ConfigParser(configObj);
@@ -169,7 +169,7 @@ export class ComponentParser {
 		} else if (node.kind === ts.SyntaxKind.CallExpression) {
 			// handle require('./template.html')
 			const call = node as ts.CallExpression;
-			if (call.arguments.length === 1 && call.expression.kind === ts.SyntaxKind.Identifier && call.expression.getText() === "require") {
+			if (call.arguments.length === 1 && call.expression.kind === ts.SyntaxKind.Identifier && call.expression.getText() === 'require') {
 				const relativePath = (call.arguments[0] as ts.StringLiteral).text;
 				const templatePath = path.join(path.dirname(parser.path), relativePath);
 

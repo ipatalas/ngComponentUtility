@@ -27,9 +27,9 @@ export class MemberCompletionProvider implements vsc.CompletionItemProvider {
 		const viewModelName = line.substring(dotIdx - component.controllerAs.length, dotIdx);
 
 		if (viewModelName === component.controllerAs && /^([a-z]+)?$/i.test(charsBetweenTheDotAndTheCursor)) {
-			const config = vsc.workspace.getConfiguration("ngComponents");
-			const publicOnly = config.get("controller.publicMembersOnly") as boolean;
-			const excludedMembers = new RegExp(config.get("controller.excludedMembers") as string);
+			const config = vsc.workspace.getConfiguration('ngComponents');
+			const publicOnly = config.get('controller.publicMembersOnly') as boolean;
+			const excludedMembers = new RegExp(config.get('controller.excludedMembers') as string);
 
 			let members = component.controller.members.filter(m => !excludedMembers.test(m.name));
 			if (publicOnly) {

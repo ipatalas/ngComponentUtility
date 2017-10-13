@@ -45,11 +45,11 @@ export function logVerbose(text: string) {
 }
 
 function isVerboseLogging() {
-	const config = vsc.workspace.getConfiguration("ngComponents.logging");
+	const config = vsc.workspace.getConfiguration('ngComponents.logging');
 	return config.get('verbose', false) as boolean;
 }
 
 function redirectToFile() {
-	const config = vsc.workspace.getConfiguration("ngComponents.logging");
+	const config = vsc.workspace.getConfiguration('ngComponents.logging');
 	return config.get('redirectToFile') as string;
 }

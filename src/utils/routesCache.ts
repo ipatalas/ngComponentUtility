@@ -3,9 +3,9 @@
 import * as path from 'path';
 import * as vsc from 'vscode';
 import { SourceFilesScanner } from './sourceFilesScanner';
-import { Route } from "./route";
-import { SourceFile } from "./sourceFile";
-import { FileWatcher } from "./fileWatcher";
+import { Route } from './route';
+import { SourceFile } from './sourceFile';
+import { FileWatcher } from './fileWatcher';
 
 export class RoutesCache implements vsc.Disposable {
 	private scanner = new SourceFilesScanner();
@@ -33,7 +33,7 @@ export class RoutesCache implements vsc.Disposable {
 		const idx = this.routes.findIndex(c => this.normalizePath(c.path) === filepath);
 		if (idx === -1) {
 			// tslint:disable-next-line:no-console
-			console.warn("Component does not exist, cannot update it");
+			console.warn('Component does not exist, cannot update it');
 			return;
 		}
 
@@ -59,18 +59,18 @@ export class RoutesCache implements vsc.Disposable {
 	}
 
 	public refresh = async (config?: vsc.WorkspaceConfiguration): Promise<Route[]> => {
-		config = config || vsc.workspace.getConfiguration("ngComponents");
+		config = config || vsc.workspace.getConfiguration('ngComponents');
 
 		this.setupWatchers(config);
 
-		return this.scanner.findFiles("routeGlobs", Route.parse, "Route").then((result: Route[]) => {
+		return this.scanner.findFiles('routeGlobs', Route.parse, 'Route').then((result: Route[]) => {
 			this.routes = result;
 
 			return this.routes;
 		}).catch((err) => {
 			// tslint:disable-next-line:no-console
 			console.error(err);
-			vsc.window.showErrorMessage("There was an error refreshing components cache, check console for errors");
+			vsc.window.showErrorMessage('There was an error refreshing components cache, check console for errors');
 			return [];
 		});
 	}

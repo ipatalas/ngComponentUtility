@@ -2,9 +2,9 @@ import * as path from 'path';
 import * as _ from 'lodash';
 import * as vsc from 'vscode';
 import { HtmlDocumentHelper } from '../utils/htmlDocumentHelper';
-import { IHtmlReferences, IComponentReference, IComponentReferences } from "../utils/htmlReferencesCache";
-import { workspaceRoot, getLocation } from "../utils/vsc";
-import { Component } from "../utils/component/component";
+import { IHtmlReferences, IComponentReference, IComponentReferences } from '../utils/htmlReferencesCache';
+import { workspaceRoot, getLocation } from '../utils/vsc';
+import { Component } from '../utils/component/component';
 type DocumentHandlerDelegate = (document: vsc.TextDocument, position: vsc.Position) => vsc.Location[];
 
 export class ReferencesProvider implements vsc.ReferenceProvider {
@@ -27,7 +27,7 @@ export class ReferencesProvider implements vsc.ReferenceProvider {
 
 	// tslint:disable-next-line:member-access
 	provideReferences(document: vsc.TextDocument, position: vsc.Position, _context: vsc.ReferenceContext, _token: vsc.CancellationToken): vsc.Location[] {
-		let handler = this.documentHandlers.get(document.languageId);
+		const handler = this.documentHandlers.get(document.languageId);
 		if (handler) {
 			return handler(document, position);
 		}
@@ -36,12 +36,12 @@ export class ReferencesProvider implements vsc.ReferenceProvider {
 	}
 
 	private provideControllerReferences = (document: vsc.TextDocument, position: vsc.Position): vsc.Location[] => {
-		let wordPos = document.getWordRangeAtPosition(position);
-		let word = document.getText(wordPos);
+		const wordPos = document.getWordRangeAtPosition(position);
+		const word = document.getText(wordPos);
 
-		let component = this.components.find(c => (c.controller && c.controller.className === word) || c.name === word);
+		const component = this.components.find(c => (c.controller && c.controller.className === word) || c.name === word);
 		if (component) {
-			let references = this.htmlReferences[component.htmlName];
+			const references = this.htmlReferences[component.htmlName];
 			if (references) {
 				return this.convertReferencesToLocations(references);
 			}
@@ -51,14 +51,14 @@ export class ReferencesProvider implements vsc.ReferenceProvider {
 	}
 
 	private provideHtmlReferences = (document: vsc.TextDocument, position: vsc.Position): vsc.Location[] => {
-		let bracketsBeforeCursor = HtmlDocumentHelper.findTagBrackets(document, position, 'backward');
-		let bracketsAfterCursor = HtmlDocumentHelper.findTagBrackets(document, position, 'forward');
+		const bracketsBeforeCursor = HtmlDocumentHelper.findTagBrackets(document, position, 'backward');
+		const bracketsAfterCursor = HtmlDocumentHelper.findTagBrackets(document, position, 'forward');
 
 		if (HtmlDocumentHelper.isInsideAClosedTag(bracketsBeforeCursor, bracketsAfterCursor)) {
-			let wordPos = document.getWordRangeAtPosition(position);
-			let word = document.getText(wordPos);
+			const wordPos = document.getWordRangeAtPosition(position);
+			const word = document.getText(wordPos);
 
-			let references = this.htmlReferences[word];
+			const references = this.htmlReferences[word];
 			if (references) {
 				return this.convertReferencesToLocations(references);
 			}
@@ -71,7 +71,7 @@ export class ReferencesProvider implements vsc.ReferenceProvider {
 		return _(references)
 			.toPairs()
 			.flatMap((item: [string, IComponentReference[]]) => {
-				let [relativePath, matches] = item;
+				const [relativePath, matches] = item;
 				return matches.map(pos => ({
 					path: path.join(workspaceRoot, relativePath),
 					pos: {

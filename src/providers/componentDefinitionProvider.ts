@@ -33,20 +33,20 @@ export class ComponentDefinitionProvider implements vsc.DefinitionProvider {
 				}
 
 				if (word === component.htmlName) {
-					const config = vsc.workspace.getConfiguration("ngComponents");
-					const componentParts = config.get("goToDefinition") as string[];
+					const config = vsc.workspace.getConfiguration('ngComponents');
+					const componentParts = config.get('goToDefinition') as string[];
 
 					const results: vsc.Location[] = [];
 
-					if (componentParts.some(p => p === "component")) {
+					if (componentParts.some(p => p === 'component')) {
 						results.push(getLocation(component));
 					}
 
-					if (componentParts.some(p => p === "template") && component.template) {
+					if (componentParts.some(p => p === 'template') && component.template) {
 						results.push(getLocation(component.template));
 					}
 
-					if (componentParts.some(p => p === "controller") && component.controller) {
+					if (componentParts.some(p => p === 'controller') && component.controller) {
 						results.push(getLocation(component.controller));
 					}
 

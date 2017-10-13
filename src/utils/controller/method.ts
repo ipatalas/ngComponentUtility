@@ -1,4 +1,4 @@
-import * as ts from "typescript";
+import * as ts from 'typescript';
 import * as vsc from 'vscode';
 import { MemberType, MemberBase } from './member';
 
@@ -36,7 +36,7 @@ export class ClassMethod extends MemberBase {
 	public buildCompletionItem() {
 		const item = this.createCompletionItem();
 		item.kind = vsc.CompletionItemKind.Function;
-		item.documentation = `${this.name}(${this.parameters.map(p => p.name + ": " + p.type).join(", ")}): ${this.returnType}`;
+		item.documentation = `${this.name}(${this.parameters.map(p => p.name + ': ' + p.type).join(', ')}): ${this.returnType}`;
 
 		return item;
 	}

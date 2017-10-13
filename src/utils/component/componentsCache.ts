@@ -6,7 +6,7 @@ import { Component } from './component';
 import { Controller } from '../controller/controller';
 import { SourceFile } from '../sourceFile';
 import { SourceFilesScanner } from '../sourceFilesScanner';
-import { FileWatcher } from "../fileWatcher";
+import { FileWatcher } from '../fileWatcher';
 
 export class ComponentsCache implements vsc.Disposable {
 	private scanner = new SourceFilesScanner();
@@ -18,6 +18,7 @@ export class ComponentsCache implements vsc.Disposable {
 		const globs = config.get('componentGlobs') as string[];
 
 		this.dispose();
+		// TODO: watch controller files as well - probably need to refresh all components using changed controller
 		this.watcher = new FileWatcher(globs, this.onAdded, this.onChanged, this.onDeleted);
 	}
 
@@ -35,7 +36,7 @@ export class ComponentsCache implements vsc.Disposable {
 		const idx = this.components.findIndex(c => this.normalizePath(c.path) === filepath);
 		if (idx === -1) {
 			// tslint:disable-next-line:no-console
-			console.warn("Component does not exist, cannot update it");
+			console.warn('Component does not exist, cannot update it');
 			return;
 		}
 
@@ -61,21 +62,21 @@ export class ComponentsCache implements vsc.Disposable {
 	}
 
 	public refresh = async (config?: vsc.WorkspaceConfiguration): Promise<Component[]> => {
-		config = config || vsc.workspace.getConfiguration("ngComponents");
+		config = config || vsc.workspace.getConfiguration('ngComponents');
 
 		this.setupWatchers(config);
-		this.controllers = await this.scanner.findFiles("controllerGlobs", Controller.parse, "Controller");
+		this.controllers = await this.scanner.findFiles('controllerGlobs', Controller.parse, 'Controller');
 
 		const parseComponent = (src: SourceFile) => Component.parse(src, this.controllers);
 
-		return this.scanner.findFiles("componentGlobs", parseComponent, "Component").then((result: Component[]) => {
+		return this.scanner.findFiles('componentGlobs', parseComponent, 'Component').then((result: Component[]) => {
 			this.components = result;
 
 			return this.components;
 		}).catch((err) => {
 			// tslint:disable-next-line:no-console
 			console.error(err);
-			vsc.window.showErrorMessage("There was an error refreshing components cache, check console for errors");
+			vsc.window.showErrorMessage('There was an error refreshing components cache, check console for errors');
 			return [];
 		});
 	}

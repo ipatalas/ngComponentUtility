@@ -10,7 +10,7 @@ export class SourceFilesScanner {
 	public findFiles = <SourceFileType>(configKey: string, callbackFn: (src: SourceFile) => Promise<SourceFileType[]>, fileType: string) => {
 		return new Promise<SourceFileType[]>(async (resolve, reject) => {
 			let total = process.hrtime();
-			const config = vsc.workspace.getConfiguration("ngComponents");
+			const config = vsc.workspace.getConfiguration('ngComponents');
 			const globs = config.get(configKey) as string[];
 
 			try {

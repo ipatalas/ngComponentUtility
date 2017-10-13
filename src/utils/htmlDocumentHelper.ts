@@ -4,10 +4,13 @@ import * as _ from 'lodash';
 const REGEX_TAG_NAME = /<\/?([a-z0-9-]+)/i;
 const REGEX_ATTRIBUTE_NAME = /([a-z-]+)=/gi;
 
-export type BracketsPosition = { opening: vsc.Position, closing: vsc.Position };
+export interface IBracketsPosition {
+	opening: vsc.Position;
+	closing: vsc.Position;
+}
 
 export class HtmlDocumentHelper {
-	public static findTagBrackets = (document: vsc.TextDocument, startFrom: vsc.Position, direction: 'backward' | 'forward'): BracketsPosition => {
+	public static findTagBrackets = (document: vsc.TextDocument, startFrom: vsc.Position, direction: 'backward' | 'forward'): IBracketsPosition => {
 		let openingPosition: vsc.Position;
 		let closingPosition: vsc.Position;
 		let linesToSearch: number[];
@@ -32,10 +35,10 @@ export class HtmlDocumentHelper {
 		let startPosition = startFrom.character;
 
 		while (linesToSearch.length > 0) {
-			let line = document.lineAt(linesToSearch.shift());
+			const line = document.lineAt(linesToSearch.shift());
 
-			let openingTag = searchFunc.apply(line.text, ["<", startPosition]);
-			let closingTag = searchFunc.apply(line.text, [">", startPosition]);
+			const openingTag = searchFunc.apply(line.text, ['<', startPosition]);
+			const closingTag = searchFunc.apply(line.text, ['>', startPosition]);
 
 			startPosition = undefined; // should be applied only to first searched line
 
@@ -72,9 +75,9 @@ export class HtmlDocumentHelper {
 	public static parseTag = (text: string) => {
 		let match: RegExpExecArray;
 		match = REGEX_TAG_NAME.exec(text);
-		let tag = match[1];
+		const tag = match[1];
 
-		let existingAttributes = [];
+		const existingAttributes = [];
 
 		// tslint:disable-next-line:no-conditional-assignment
 		while (match = REGEX_ATTRIBUTE_NAME.exec(text)) {
@@ -84,7 +87,7 @@ export class HtmlDocumentHelper {
 		return { tag, attributes: existingAttributes };
 	}
 
-	public static isInsideAClosedTag = (beforeCursor: BracketsPosition, afterCursor: BracketsPosition) => {
+	public static isInsideAClosedTag = (beforeCursor: IBracketsPosition, afterCursor: IBracketsPosition) => {
 		return beforeCursor.opening && (!beforeCursor.closing || beforeCursor.closing.isBefore(beforeCursor.opening))
 			&& afterCursor.closing && (!afterCursor.opening || afterCursor.closing.isBefore(afterCursor.opening));
 	}

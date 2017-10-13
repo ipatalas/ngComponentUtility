@@ -1,6 +1,6 @@
 import * as ts from 'typescript';
-import { SourceFile } from "../sourceFile";
-import { Controller } from "./controller";
+import { SourceFile } from '../sourceFile';
+import { Controller } from './controller';
 import { ClassMethod } from './method';
 import { ClassProperty } from './property';
 

@@ -26,7 +26,9 @@
 			"tabs"
 		],
 		"quotemark": [
-			"single"
+			true,
+			"single",
+			"avoid-escape"
 		],
 		"max-line-length": [
 			true,
@@ -51,6 +53,7 @@
 		"arrow-parens": false,
 		"ordered-imports": [
 			false
-		]
+		],
+		"no-angle-bracket-type-assertion": false
 	}
 }

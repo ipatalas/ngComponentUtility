@@ -1,5 +1,5 @@
 import * as glob from 'glob';
-import { IOptions } from "glob";
+import { IOptions } from 'glob';
 
 const options = {
 	absolute: true

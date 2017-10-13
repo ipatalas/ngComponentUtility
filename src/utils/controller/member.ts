@@ -16,11 +16,11 @@ export abstract class MemberBase implements IMember {
 	}
 
 	protected setReturnType = (type: ts.TypeNode) => {
-		this.returnType = (type && type.getText()) || "void";
+		this.returnType = (type && type.getText()) || 'void';
 	}
 
 	protected createCompletionItem = (): vsc.CompletionItem => {
-		let item =  new vsc.CompletionItem(this.name);
+		const item =  new vsc.CompletionItem(this.name);
 		item.detail = MemberType[this.type];
 
 		return item;

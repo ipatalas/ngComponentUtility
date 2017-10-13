@@ -1,7 +1,7 @@
-import * as ts from "typescript";
+import * as ts from 'typescript';
 import { SourceFile } from '../sourceFile';
 import { Controller } from '../controller/controller';
-import { ComponentParser } from "./componentParser";
+import { ComponentParser } from './componentParser';
 import { logParsingError } from '../logging';
 
 export class Component {

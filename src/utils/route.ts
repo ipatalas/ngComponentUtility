@@ -1,6 +1,6 @@
-import * as ts from "typescript";
+import * as ts from 'typescript';
 import { SourceFile } from './sourceFile';
-import { IComponentTemplate } from "./component/component";
+import { IComponentTemplate } from './component/component';
 import { TypescriptParser } from './typescriptParser';
 import { ConfigParser } from './configParser';
 import { logParsingError } from './logging';

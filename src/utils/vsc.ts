@@ -17,7 +17,7 @@ export function shouldActivateExtension() {
 		logVerbose('forceEnable is true for this workspace, skipping auto-detection');
 	} else {
 		logVerbose('Detecting Angular in workspace');
-		const result = isValidAngularProject(workspaceRoot);
+		const result = workspaceRoot && isValidAngularProject(workspaceRoot);
 
 		if (!result) {
 			log('Angular was not detected in the project');

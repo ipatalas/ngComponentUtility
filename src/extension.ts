@@ -6,21 +6,21 @@ import { ComponentCompletionProvider } from './providers/componentCompletionProv
 import { MemberCompletionProvider } from './providers/memberCompletionProvider';
 import { BindingProvider } from './providers/bindingProvider';
 import { ComponentDefinitionProvider } from './providers/componentDefinitionProvider';
-import { ReferencesProvider } from "./providers/referencesProvider";
-import { FindUnusedComponentsCommand } from "./commands/findUnusedComponents";
+import { ReferencesProvider } from './providers/referencesProvider';
+import { FindUnusedComponentsCommand } from './commands/findUnusedComponents';
 
 import { IComponentTemplate } from './utils/component/component';
 import { ComponentsCache } from './utils/component/componentsCache';
-import { HtmlReferencesCache } from "./utils/htmlReferencesCache";
+import { HtmlReferencesCache } from './utils/htmlReferencesCache';
 import { init as initGlob } from './utils/glob';
-import { RoutesCache } from "./utils/routesCache";
-import { MemberDefinitionProvider } from "./providers/memberDefinitionProvider";
+import { RoutesCache } from './utils/routesCache';
+import { MemberDefinitionProvider } from './providers/memberDefinitionProvider';
 import { ConfigurationChangeListener, IConfigurationChangedEvent } from './utils/configurationChangeListener';
 import { logVerbose } from './utils/logging';
 import { shouldActivateExtension, notAngularProject, markAngularProject, alreadyAngularProject } from './utils/vsc';
 
-const HTML_DOCUMENT_SELECTOR: vsc.DocumentSelector = 'html';
-const TS_DOCUMENT_SELECTOR: vsc.DocumentSelector = 'typescript';
+const HTML_DOCUMENT_SELECTOR = 'html';
+const TS_DOCUMENT_SELECTOR = 'typescript';
 const COMMAND_REFRESHCOMPONENTS: string = 'extension.refreshAngularComponents';
 const COMMAND_FINDUNUSEDCOMPONENTS: string = 'extension.findUnusedAngularComponents';
 const COMMAND_MARKASANGULAR: string = 'extension.markAsAngularProject';
@@ -39,7 +39,7 @@ const htmlReferencesCache = new HtmlReferencesCache();
 const routesCache = new RoutesCache();
 
 const statusBar = vsc.window.createStatusBarItem(vsc.StatusBarAlignment.Left);
-const configListener = new ConfigurationChangeListener("ngComponents");
+const configListener = new ConfigurationChangeListener('ngComponents');
 
 export async function activate(context: vsc.ExtensionContext) {
 	if (!shouldActivateExtension()) {
@@ -58,7 +58,7 @@ export async function activate(context: vsc.ExtensionContext) {
 	} catch (err) {
 		// tslint:disable-next-line:no-console
 		console.error(err);
-		vsc.window.showErrorMessage("Error initializing extension");
+		vsc.window.showErrorMessage('Error initializing extension');
 	}
 
 	context.subscriptions.push(vsc.commands.registerCommand(COMMAND_REFRESHCOMPONENTS, () => {
@@ -70,7 +70,7 @@ export async function activate(context: vsc.ExtensionContext) {
 	context.subscriptions.push(vsc.commands.registerCommand(COMMAND_FINDUNUSEDCOMPONENTS, () => findUnusedAngularComponents.execute()));
 
 	context.subscriptions.push(configListener.onDidChange((event: IConfigurationChangedEvent) => {
-		if (event.hasChanged("controllerGlobs", "componentGlobs", "htmlGlobs")) {
+		if (event.hasChanged('controllerGlobs', 'componentGlobs', 'htmlGlobs')) {
 			vsc.commands.executeCommand(COMMAND_REFRESHCOMPONENTS);
 		}
 	}));
@@ -117,7 +117,7 @@ const refreshComponents = async (config?: vsc.WorkspaceConfiguration): Promise<v
 		} catch (err) {
 			// tslint:disable-next-line:no-console
 			console.error(err);
-			vsc.window.showErrorMessage("Error refreshing components, check developer console");
+			vsc.window.showErrorMessage('Error refreshing components, check developer console');
 		}
 
 		resolve();

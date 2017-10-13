@@ -1,12 +1,12 @@
 import * as assert from 'assert';
 import * as path from 'path';
-import * as ts from "typescript";
+import * as ts from 'typescript';
 import * as fs from 'fs';
 import * as _ from 'lodash';
 
 import { Controller } from '../../src/utils/controller/controller';
-import { MemberBase, MemberType } from "../../src/utils/controller/member";
-import { ClassMethod } from "../../src/utils/controller/method";
+import { MemberBase, MemberType } from '../../src/utils/controller/member';
+import { ClassMethod } from '../../src/utils/controller/method';
 
 const TEST_FILES_ROOT = path.join(__dirname, '../../../test/test_files');
 
@@ -17,35 +17,35 @@ describe('Give Controller class', () => {
 		const testCases = [{
 			test_file: 'controller_simple.ts',
 			expected_results: [{
-				className: "TestController",
-				name: "TestController"
+				className: 'TestController',
+				name: 'TestController'
 			}]
 		}, {
 			test_file: 'controller_differentName.ts',
 			expected_results: [{
-				className: "TestController",
-				name: "differentName"
+				className: 'TestController',
+				name: 'differentName'
 			}]
 		}, {
 			test_file: 'controller_multiple.ts',
 			expected_results: [{
-				className: "TestController",
-				name: "1"
+				className: 'TestController',
+				name: '1'
 			}, {
-				className: "TestController2",
-				name: "2"
+				className: 'TestController2',
+				name: '2'
 			}]
 		}];
 
 		testFiles(testCases);
 
-		it("with controller with members then all members are properly parsed", async () => {
-			let path = getTestFilePath('controller_members.ts');
-			let sourceFile = ts.createSourceFile('controller_members.ts', fs.readFileSync(path, 'utf8'), ts.ScriptTarget.ES5, true);
+		it('with controller with members then all members are properly parsed', async () => {
+			const path = getTestFilePath('controller_members.ts');
+			const sourceFile = ts.createSourceFile('controller_members.ts', fs.readFileSync(path, 'utf8'), ts.ScriptTarget.ES5, true);
 
-			let ctrl = (await Controller.parse({ path, sourceFile }))[0];
+			const ctrl = (await Controller.parse({ path, sourceFile }))[0];
 
-			let members = ctrl.members.map(m => <MemberBase>m);
+			const members = ctrl.members.map(m => <MemberBase>m);
 
 			assertField(members, 'privateField', 'string', false);
 			assertField(members, 'publicField', 'string', true);
@@ -63,7 +63,7 @@ const assertField = (members: MemberBase[], name: string, returnType: string, is
 };
 
 const assertMethod = (members: MemberBase[], name: string, returnType: string, isPublic: boolean, params?: Array<{name: string, type: string}>) => {
-	let member = <ClassMethod>assertMember(members, name, MemberType.Method, returnType, isPublic);
+	const member = <ClassMethod>assertMember(members, name, MemberType.Method, returnType, isPublic);
 
 	if (params) {
 		assert.deepEqual(member.parameters, params);
@@ -71,7 +71,7 @@ const assertMethod = (members: MemberBase[], name: string, returnType: string, i
 };
 
 function assertMember(members: MemberBase[], name: string, type: MemberType, returnType: string, isPublic: boolean) {
-	let member = members.find(m => m.name === name);
+	const member = members.find(m => m.name === name);
 	assert.notEqual(member, undefined, `Cannot find member '${name}'`);
 
 	assert.equal(member.type, type, `type for field '${name}' does not match`);
@@ -84,14 +84,14 @@ function assertMember(members: MemberBase[], name: string, type: MemberType, ret
 function testFiles(cases: Array<{ test_file: string, expected_results: Array<{ className: string, name: string }> }>) {
 	cases.forEach(test => {
 		it(`with '${test.test_file}' file then a properly parsed controller is returned`, async () => {
-			let path = getTestFilePath(test.test_file);
-			let sourceFile = ts.createSourceFile(test.test_file, fs.readFileSync(path, 'utf8'), ts.ScriptTarget.ES5, true);
+			const path = getTestFilePath(test.test_file);
+			const sourceFile = ts.createSourceFile(test.test_file, fs.readFileSync(path, 'utf8'), ts.ScriptTarget.ES5, true);
 
-			let controllers = await Controller.parse({ path, sourceFile });
+			const controllers = await Controller.parse({ path, sourceFile });
 
 			assert.equal(controllers.length, test.expected_results.length);
 
-			let results = controllers.map(b => _.pick(b, ['className', 'name']));
+			const results = controllers.map(b => _.pick(b, ['className', 'name']));
 
 			assert.deepEqual(results, test.expected_results);
 		});

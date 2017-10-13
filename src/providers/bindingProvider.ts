@@ -62,7 +62,7 @@ export class BindingProvider implements vsc.CompletionItemProvider {
 			.map(b => {
 				const item = new vsc.CompletionItem(b.htmlName, vsc.CompletionItemKind.Field);
 				item.insertText = `${b.htmlName}=`;
-				item.detail = "Component binding";
+				item.detail = 'Component binding';
 				item.documentation = `Binding type: ${b.type}`;
 				item.label = `  ${b.htmlName}`; // space at the beginning so that these bindings are first on the list
 
