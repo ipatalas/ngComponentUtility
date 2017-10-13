@@ -58,7 +58,7 @@ export class ComponentCompletionProvider implements vsc.CompletionItemProvider {
 			.filter(b => !attributes.includes(b.htmlName))
 			.map(b => {
 				const item = new vsc.CompletionItem(b.htmlName, vsc.CompletionItemKind.Field);
-				item.insertText = `${b.htmlName}=""`;
+				item.insertText = new vsc.SnippetString(`${b.htmlName}="$1"$0`);
 				item.detail = 'Component binding';
 				item.documentation = `Binding type: ${b.type}`;
 				item.label = ` ${b.htmlName}`; // space at the beginning so that these bindings are first on the list
