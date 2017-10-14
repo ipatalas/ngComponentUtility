@@ -1,14 +1,14 @@
 import * as assert from 'assert';
-import * as path from 'path';
-import * as ts from "typescript";
+import * as _path from 'path';
+import * as ts from 'typescript';
 import * as fs from 'fs';
 import * as _ from 'lodash';
 
 import { Component, IComponentBinding } from '../../src/utils/component/component';
 
-const TEST_FILES_ROOT = path.join(__dirname, '../../../test/test_files');
+const TEST_FILES_ROOT = _path.join(__dirname, '../../../test/test_files');
 
-const getTestFilePath = (filename: string) => path.join(TEST_FILES_ROOT, filename);
+const getTestFilePath = (filename: string) => _path.join(TEST_FILES_ROOT, filename);
 
 describe('Give Component class', () => {
 	describe('when calling parse in AST mode', () => {
@@ -94,14 +94,14 @@ function testFiles(files: string[]) {
 			const bindings = component[0].bindings.map(b => _.pick(b, ['name', 'htmlName', 'type']));
 			assert.deepEqual(bindings, [
 				{
-					name: "config",
-					htmlName: "config",
-					type: "<"
+					name: 'config',
+					htmlName: 'config',
+					type: '<'
 				} as IComponentBinding,
 				{
-					name: "data",
-					htmlName: "data",
-					type: "<"
+					name: 'data',
+					htmlName: 'data',
+					type: '<'
 				} as IComponentBinding
 			]);
 		});
