@@ -13,6 +13,8 @@ export class Component {
 	public template: IComponentTemplate;
 	public controller: Controller;
 	public controllerAs: string;
+	public controllerName: string;
+	public controllerClassName: string;
 
 	public static parse(file: SourceFile, controllers: Controller[]): Promise<Component[]> {
 		return new Promise<Component[]>(async (resolve, _reject) => {

@@ -135,7 +135,16 @@ export class ComponentParser {
 		component.controllerAs = this.createControllerAlias(config.get('controllerAs'));
 
 		if (this.controllers && this.controllers.length > 0) {
-			component.controller = this.createController(config.get('controller'));
+			const name = config.get('controller');
+
+			if (name.kind === ts.SyntaxKind.StringLiteral) {
+				component.controllerName = (name as ts.StringLiteral).text;
+			} else if (name.kind === ts.SyntaxKind.Identifier) {
+				component.controllerClassName = (name as ts.Identifier).text;
+			}
+
+			component.controller = this.createController(component);
+
 			if (!component.controller) {
 				logVerbose(`Controller for ${component.name} not found (member completion and Go To Definition for this component will not work)`);
 			}
@@ -144,15 +153,11 @@ export class ComponentParser {
 		return component;
 	}
 
-	private createController = (node: ts.Expression): Controller => {
-		if (!node) {
-			return undefined;
-		}
-
-		if (node.kind === ts.SyntaxKind.StringLiteral) {
-			return this.controllers.find(c => c.name === (node as ts.StringLiteral).text);
-		} else if (node.kind === ts.SyntaxKind.Identifier) {
-			return this.controllers.find(c => c.className === (node as ts.Identifier).text);
+	private createController = (component: Component): Controller => {
+		if (component.controllerName) {
+			return this.controllers.find(c => c.name === component.controllerName);
+		} else if (component.controllerClassName) {
+			return this.controllers.find(c => c.className === component.controllerClassName);
 		}
 	}
 

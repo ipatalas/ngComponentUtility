@@ -1,6 +1,7 @@
 'use strict';
 
 import * as path from 'path';
+import * as _ from 'lodash';
 import * as vsc from 'vscode';
 import { Component } from './component';
 import { Controller } from '../controller/controller';
@@ -12,17 +13,73 @@ export class ComponentsCache implements vsc.Disposable {
 	private scanner = new SourceFilesScanner();
 	private components: Component[] = [];
 	private controllers: Controller[] = [];
-	private watcher: FileWatcher;
+	private componentWatcher: FileWatcher;
+	private controllerWatcher: FileWatcher;
 
 	private setupWatchers = (config: vsc.WorkspaceConfiguration) => {
-		const globs = config.get('componentGlobs') as string[];
+		const componentGlobs = config.get('componentGlobs') as string[];
+		const controllerGlobs = config.get('controllerGlobs') as string[];
 
 		this.dispose();
-		// TODO: watch controller files as well - probably need to refresh all components using changed controller
-		this.watcher = new FileWatcher(globs, this.onAdded, this.onChanged, this.onDeleted);
+
+		this.componentWatcher = new FileWatcher(componentGlobs, this.onComponentAdded, this.onComponentChanged, this.onComponentDeleted);
+		this.controllerWatcher = new FileWatcher(controllerGlobs, this.onControllerAdded, this.onControllerChanged, this.onControllerDeleted);
 	}
 
-	private onAdded = async (uri: vsc.Uri) => {
+	private onControllerAdded = async (uri: vsc.Uri) => {
+		const filepath = this.normalizePath(uri.fsPath);
+		const src = await SourceFile.parse(filepath);
+		const controllers = await Controller.parse(src);
+
+		this.controllers.push.apply(this.controllers, controllers);
+		this.reassignControllers(controllers);
+	}
+
+	private onControllerDeleted = (uri: vsc.Uri) => {
+		const filepath = this.normalizePath(uri.fsPath);
+		const controllersInFile = this.controllers.filter(c => this.normalizePath(c.path) === filepath);
+
+		this.components
+			.filter(c => controllersInFile.some(ctrl => ctrl === c.controller))
+			.forEach(c => c.controller = null);
+
+		this.deleteFile(this.controllers, filepath);
+	}
+
+	private onControllerChanged = async (uri: vsc.Uri) => {
+		const filepath = this.normalizePath(uri.fsPath);
+
+		const idx = this.controllers.findIndex(c => this.normalizePath(c.path) === filepath);
+		if (idx === -1) {
+			// tslint:disable-next-line:no-console
+			console.warn('Controller does not exist, cannot update it');
+			return;
+		}
+
+		const src = await SourceFile.parse(filepath);
+		const controllers = await Controller.parse(src);
+
+		this.deleteFile(this.controllers, filepath);
+		this.controllers.push.apply(this.controllers, controllers);
+
+		this.reassignControllers(controllers);
+	}
+
+	private reassignControllers = (changedControllers: Controller[]) => {
+		// check if there are any components already using these new controllers and assign them if so
+		const ctrlNames = _.keyBy(changedControllers, c => c.name);
+		const ctrlClassNames = _.keyBy(changedControllers, c => c.className);
+
+		this.components
+			.filter(c => c.controllerName && ctrlNames[c.controllerName] != null)
+			.forEach(c => c.controller = ctrlNames[c.controllerName]);
+
+		this.components
+			.filter(c => c.controllerClassName && ctrlClassNames[c.controllerClassName] != null)
+			.forEach(c => c.controller = ctrlClassNames[c.controllerClassName]);
+	}
+
+	private onComponentAdded = async (uri: vsc.Uri) => {
 		const filepath = this.normalizePath(uri.fsPath);
 		const src = await SourceFile.parse(filepath);
 		const components = await Component.parse(src, this.controllers);
@@ -30,7 +87,7 @@ export class ComponentsCache implements vsc.Disposable {
 		this.components.push.apply(this.components, components);
 	}
 
-	private onChanged = async (uri: vsc.Uri) => {
+	private onComponentChanged = async (uri: vsc.Uri) => {
 		const filepath = this.normalizePath(uri.fsPath);
 
 		const idx = this.components.findIndex(c => this.normalizePath(c.path) === filepath);
@@ -43,20 +100,20 @@ export class ComponentsCache implements vsc.Disposable {
 		const src = await SourceFile.parse(filepath);
 		const components = await Component.parse(src, this.controllers);
 
-		this.deleteComponentFile(filepath);
+		this.deleteFile(this.components, filepath);
 		this.components.push.apply(this.components, components);
 	}
 
-	private onDeleted = (uri: vsc.Uri) => {
-		this.deleteComponentFile(this.normalizePath(uri.fsPath));
+	private onComponentDeleted = (uri: vsc.Uri) => {
+		this.deleteFile(this.components, this.normalizePath(uri.fsPath));
 	}
 
-	private deleteComponentFile = (filepath: string) => {
+	private deleteFile = (collection: Array<{ path: string }>, filepath: string) => {
 		let idx;
 		do {
-			idx = this.components.findIndex(c => this.normalizePath(c.path) === filepath);
+			idx = collection.findIndex(c => this.normalizePath(c.path) === filepath);
 			if (idx > -1) {
-				this.components.splice(idx, 1);
+				collection.splice(idx, 1);
 			}
 		} while (idx > -1);
 	}
@@ -82,8 +139,12 @@ export class ComponentsCache implements vsc.Disposable {
 	}
 
 	public dispose() {
-		if (this.watcher) {
-			this.watcher.dispose();
+		if (this.componentWatcher) {
+			this.componentWatcher.dispose();
+		}
+
+		if (this.controllerWatcher) {
+			this.controllerWatcher.dispose();
 		}
 	}
 
