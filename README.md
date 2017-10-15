@@ -15,6 +15,7 @@
 		- [Templates](#templates)
 	- [Find All References (**introduced in 0.5.0**)](#find-all-references)
 	- [Find unused components (**introduced in 0.5.0**)](#find-unused-components-experimental)
+	- [Watch file changes (**introduced in 0.6.0**)](#watch-file-changes)
 - [Configuration](#configuration)
 - [Commands](#commands)
 - [Performance note on configuration globs](#performance-note-on-configuration-globs)
@@ -126,6 +127,11 @@ In controller file cursor has to be on the class name:
 
 ![Find unused components](images/find-all-references-3.png)
 
+**New in 0.7.0**
+
+Find all references now works also for controller members, ie. they will be found in components' templates as well:
+
+![Find unused components](images/find-all-references-4.png)
 
 ## Find unused components (experimental)
 
@@ -136,6 +142,13 @@ Selecting one of the unused components will navigate to it in the editor.
 It does understand HTML a bit so commented out parts will be taken into account. See screenshot below:
 
 ![Find unused components](images/find-unused.png)
+
+## Watch file changes
+
+To avoid a need to manually refresh components cache every time a change is introduced a new mechanism of file watching has been introduced. It watches all parts of the component - ie. component itself, template and controller.
+Whenever one of the file is changed it should automatically rebuild the cache so that all features relying on that file should immediately reflect the changes. It will work for intellisense, Find All References, Go To Definition and the others.
+
+It is not perfect yet and may not always work as desired. One known issue is when a project changes the branch. It sometimes loses the changes and for that case it's still better to call `Refresh Components Cache` command. For normal development it should work just fine.
 
 # Configuration
 

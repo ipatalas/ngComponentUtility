@@ -1,5 +1,12 @@
 # Change Log
 
+## 0.7.0 (Oct 16, 2017)
+
+* Find All References now also finds controller members inside components html view
+* Automatically refresh controller when file changes - field changes are reflected immediately in autocompletion
+* Improved the way bindings are completed - cursor is now placed inside quotes instead of after them
+* Fixed [#19](https://github.com/ipatalas/ngComponentUtility/issues/19) - fixed ES6 imports
+
 ## 0.6.8 (Jun 22, 2017)
 
 * Implemented [#18](https://github.com/ipatalas/ngComponentUtility/issues/18) - auto-detect AngularJS projects
