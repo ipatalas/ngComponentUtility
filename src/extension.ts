@@ -18,6 +18,7 @@ import { MemberDefinitionProvider } from './providers/memberDefinitionProvider';
 import { ConfigurationChangeListener, IConfigurationChangedEvent } from './utils/configurationChangeListener';
 import { logVerbose } from './utils/logging';
 import { shouldActivateExtension, notAngularProject, markAngularProject, alreadyAngularProject } from './utils/vsc';
+import { MemberReferencesProvider } from './providers/memberReferencesProvider';
 
 const HTML_DOCUMENT_SELECTOR = 'html';
 const TS_DOCUMENT_SELECTOR = 'typescript';
@@ -31,6 +32,7 @@ const memberCompletionProvider = new MemberCompletionProvider();
 const bindingProvider = new BindingProvider();
 const definitionProvider = new ComponentDefinitionProvider();
 const referencesProvider = new ReferencesProvider();
+const memberReferencesProvider = new MemberReferencesProvider();
 const memberDefinitionProvider = new MemberDefinitionProvider();
 const findUnusedAngularComponents = new FindUnusedComponentsCommand();
 
@@ -61,26 +63,26 @@ export async function activate(context: vsc.ExtensionContext) {
 		vsc.window.showErrorMessage('Error initializing extension');
 	}
 
-	context.subscriptions.push(vsc.commands.registerCommand(COMMAND_REFRESHCOMPONENTS, () => {
-		refreshComponents().then(() => {
-			vsc.window.showInformationMessage('Components cache has been rebuilt');
-		});
-	}));
-
-	context.subscriptions.push(vsc.commands.registerCommand(COMMAND_FINDUNUSEDCOMPONENTS, () => findUnusedAngularComponents.execute()));
-
-	context.subscriptions.push(configListener.onDidChange((event: IConfigurationChangedEvent) => {
-		if (event.hasChanged('controllerGlobs', 'componentGlobs', 'htmlGlobs')) {
-			vsc.commands.executeCommand(COMMAND_REFRESHCOMPONENTS);
-		}
-	}));
-
-	context.subscriptions.push(vsc.languages.registerCompletionItemProvider(HTML_DOCUMENT_SELECTOR, completionProvider, '<'));
-	context.subscriptions.push(vsc.languages.registerCompletionItemProvider(HTML_DOCUMENT_SELECTOR, bindingProvider, ','));
-	context.subscriptions.push(vsc.languages.registerCompletionItemProvider(HTML_DOCUMENT_SELECTOR, memberCompletionProvider, '.'));
-	context.subscriptions.push(vsc.languages.registerDefinitionProvider(HTML_DOCUMENT_SELECTOR, definitionProvider));
-	context.subscriptions.push(vsc.languages.registerDefinitionProvider(HTML_DOCUMENT_SELECTOR, memberDefinitionProvider));
-	context.subscriptions.push(vsc.languages.registerReferenceProvider([HTML_DOCUMENT_SELECTOR, TS_DOCUMENT_SELECTOR], referencesProvider));
+	context.subscriptions.push.apply(context.subscriptions, [
+		vsc.commands.registerCommand(COMMAND_REFRESHCOMPONENTS, () => {
+			refreshComponents().then(() => {
+				vsc.window.showInformationMessage('Components cache has been rebuilt');
+			});
+		}),
+		configListener.onDidChange((event: IConfigurationChangedEvent) => {
+			if (event.hasChanged('controllerGlobs', 'componentGlobs', 'htmlGlobs')) {
+				vsc.commands.executeCommand(COMMAND_REFRESHCOMPONENTS);
+			}
+		}),
+		vsc.commands.registerCommand(COMMAND_FINDUNUSEDCOMPONENTS, () => findUnusedAngularComponents.execute()),
+		vsc.languages.registerCompletionItemProvider(HTML_DOCUMENT_SELECTOR, completionProvider, '<'),
+		vsc.languages.registerCompletionItemProvider(HTML_DOCUMENT_SELECTOR, bindingProvider, ','),
+		vsc.languages.registerCompletionItemProvider(HTML_DOCUMENT_SELECTOR, memberCompletionProvider, '.'),
+		vsc.languages.registerDefinitionProvider(HTML_DOCUMENT_SELECTOR, definitionProvider),
+		vsc.languages.registerDefinitionProvider(HTML_DOCUMENT_SELECTOR, memberDefinitionProvider),
+		vsc.languages.registerReferenceProvider([HTML_DOCUMENT_SELECTOR, TS_DOCUMENT_SELECTOR], referencesProvider),
+		vsc.languages.registerReferenceProvider(TS_DOCUMENT_SELECTOR, memberReferencesProvider)
+	]);
 
 	statusBar.tooltip = 'Refresh Angular components';
 	statusBar.command = COMMAND_REFRESHCOMPONENTS;
@@ -104,6 +106,7 @@ const refreshComponents = async (config?: vsc.WorkspaceConfiguration): Promise<v
 
 			findUnusedAngularComponents.load(references, components);
 			referencesProvider.load(references, components);
+			memberReferencesProvider.load(references, components);
 
 			completionProvider.loadComponents(components);
 			memberCompletionProvider.loadComponents(components);

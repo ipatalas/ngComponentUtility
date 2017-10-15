@@ -24,6 +24,25 @@ export class TypescriptParser {
 		this.identifierNodes.get(node.text).push(node);
 	}
 
+	public findNode = (position: number) => {
+		let found: ts.Node = null;
+
+		this.sourceFile.forEachChild(visitNode);
+
+		return found;
+
+		function visitNode(node: ts.Node) {
+			if (node.pos < position && position < node.end) {
+				if (node.getChildCount() === 0) {
+					found = node;
+					return;
+				}
+
+				node.forEachChild(visitNode);
+			}
+		}
+	}
+
 	public getStringValueFromNode = (node: ts.Expression) => {
 		if (node.kind === ts.SyntaxKind.StringLiteral || node.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral) {
 			return (node as ts.LiteralExpression).text;
@@ -97,7 +116,7 @@ export class TypescriptParser {
 		return exportClause.elements.some(spec => spec.name.text === identifier.text);
 	}
 
-	private closestParent = <TNode extends ts.Node>(node: ts.Node, kind: ts.SyntaxKind) => {
+	public closestParent = <TNode extends ts.Node>(node: ts.Node, kind: ts.SyntaxKind) => {
 		while (node && node.kind !== kind) {
 			node = node.parent;
 		}
@@ -159,7 +178,7 @@ export class TypescriptParser {
 		}
 	}
 
-	public getExportedVariable = (node: ts.Node, name: string): ts.VariableDeclaration =>  {
+	public getExportedVariable = (node: ts.Node, name: string): ts.VariableDeclaration => {
 		if (node.kind === ts.SyntaxKind.Identifier && (node as ts.Identifier).text === name && node.parent.kind === ts.SyntaxKind.VariableDeclaration) {
 			const varStatement = this.closestParent<ts.VariableStatement>(node.parent, ts.SyntaxKind.VariableStatement);
 			if (varStatement && varStatement.modifiers.some(modifier => modifier.kind === ts.SyntaxKind.ExportKeyword)) {
