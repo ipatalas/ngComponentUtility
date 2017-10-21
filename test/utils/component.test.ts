@@ -37,7 +37,7 @@ describe('Give Component class', () => {
 
 			const components = await Component.parse({ path, sourceFile }, []);
 
-			assertComponent(components);
+			assertComponents(components);
 		});
 
 		it('with component_importClass.ts file then a properly parsed component is returned', async () => {
@@ -45,7 +45,23 @@ describe('Give Component class', () => {
 
 			const components = await Component.parse({ path, sourceFile }, []);
 
-			assertComponent(components);
+			assertComponents(components);
+		});
+
+		it('with component_class.ts file then a properly parsed component is returned', async () => {
+			const { path, sourceFile } = getSourceFile('component_class.ts');
+
+			const components = await Component.parse({ path, sourceFile }, []);
+
+			assertComponents(components);
+		});
+
+		it('with component_literal.ts file then a properly parsed component is returned', async () => {
+			const { path, sourceFile } = getSourceFile('component_literal.ts');
+
+			const components = await Component.parse({ path, sourceFile }, []);
+
+			assertComponents(components);
 		});
 
 		it('with component_importReexportedLiteral.ts file then a properly parsed component is returned', async () => {
@@ -53,7 +69,7 @@ describe('Give Component class', () => {
 
 			const components = await Component.parse({ path, sourceFile }, []);
 
-			assertComponent(components);
+			assertComponents(components);
 		});
 
 		it('with component_importReexportedClass.ts file then a properly parsed component is returned', async () => {
@@ -61,17 +77,21 @@ describe('Give Component class', () => {
 
 			const components = await Component.parse({ path, sourceFile }, []);
 
-			assertComponent(components);
+			assertComponents(components);
 		});
 	});
 });
 
-function assertComponent(components: Component[]) {
-	assert.equal(components.length, 1);
-	assert.equal(components[0].name, 'exampleComponent');
-	assert.equal(components[0].bindings.length, 1);
-	assert.equal(components[0].bindings[0].name, 'exampleBinding');
-	assert.equal(components[0].bindings[0].type, '<');
+function assertComponents(components: Component[], names?: string[]) {
+	const expectedComponentsCount = (names && names.length) || 1;
+
+	assert.equal(components.length, expectedComponentsCount);
+	for (let i = 0; i < expectedComponentsCount; i++) {
+		assert.equal(components[i].name, (names && names[i]) || 'exampleComponent');
+		assert.equal(components[i].bindings.length, 1);
+		assert.equal(components[i].bindings[0].name, 'exampleBinding');
+		assert.equal(components[i].bindings[0].type, '<');
+	}
 }
 
 function getSourceFile(name: string) {
