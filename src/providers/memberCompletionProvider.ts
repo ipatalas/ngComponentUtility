@@ -1,6 +1,7 @@
 import * as path from 'path';
 import * as vsc from 'vscode';
 import { Component } from '../utils/component/component';
+import * as _ from 'lodash';
 
 export class MemberCompletionProvider implements vsc.CompletionItemProvider {
 	private components = new Map<string, Component>();
@@ -31,12 +32,15 @@ export class MemberCompletionProvider implements vsc.CompletionItemProvider {
 			const publicOnly = config.get('controller.publicMembersOnly') as boolean;
 			const excludedMembers = new RegExp(config.get('controller.excludedMembers') as string);
 
-			let members = component.controller.members.filter(m => !excludedMembers.test(m.name));
+			let members = component.controller && component.controller.members.filter(m => !excludedMembers.test(m.name)) || [];
 			if (publicOnly) {
 				members = members.filter(m => m.isPublic);
 			}
 
-			return members.map(member => member.buildCompletionItem());
+			return _.uniqBy([
+				...members.map(member => member.buildCompletionItem(component.bindings)),
+				...component.bindings.map(b => b.buildCompletionItem())
+			], item => item.label);
 		}
 
 		return [new vsc.CompletionItem(component.controllerAs, vsc.CompletionItemKind.Field)];

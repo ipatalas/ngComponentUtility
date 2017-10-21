@@ -3,11 +3,12 @@ import * as path from 'path';
 import * as decamelize from 'decamelize';
 import { SourceFile } from '../sourceFile';
 import { Controller } from '../controller/controller';
-import { Component, IComponentTemplate, IComponentBinding } from './component';
+import { Component, IComponentTemplate } from './component';
 import { workspaceRoot } from '../vsc';
 import { TypescriptParser } from '../typescriptParser';
 import { ConfigParser } from '../configParser';
 import { logVerbose } from '../logging';
+import { ComponentBinding } from './componentBinding';
 
 interface IComponentToImport {
 	nameNode: ts.Expression;
@@ -159,7 +160,7 @@ export class ComponentParser {
 		const bindingsObj = config.get('bindings');
 		if (bindingsObj) {
 			const bindingsProps = bindingsObj as ts.ObjectLiteralExpression;
-			component.bindings.push(...bindingsProps.properties.map(b => this.createBinding(b as ts.PropertyAssignment, parser)));
+			component.bindings.push(...bindingsProps.properties.map(b => new ComponentBinding(b as ts.PropertyAssignment, parser)));
 		}
 
 		component.template = this.createTemplateFromUrl(config.get('templateUrl'), parser);
@@ -233,26 +234,6 @@ export class ComponentParser {
 
 			return { path: templatePath, pos: { line: 0, character: 0 } } as IComponentTemplate;
 		}
-	}
-
-	private createBinding = (node: ts.PropertyAssignment, parser: TypescriptParser): IComponentBinding => {
-		const { type, name } = this.parseType((node.initializer as ts.StringLiteral).text);
-
-		const binding = {} as IComponentBinding;
-		binding.name = node.name.getText(parser.sourceFile);
-		binding.type = type;
-		binding.htmlName = decamelize(name || binding.name, '-');
-		binding.pos = parser.sourceFile.getLineAndCharacterOfPosition(node.initializer.pos);
-
-		return binding;
-	}
-
-	private parseType = (type: string) => {
-		const match = /^(.*?)(\w+)?$/g.exec(type);
-		return {
-			type: match[1],
-			name: match[2]
-		};
 	}
 
 	private createControllerAlias(node: ts.Expression): string {

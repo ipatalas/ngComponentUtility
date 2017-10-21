@@ -3,6 +3,7 @@ import { SourceFile } from '../sourceFile';
 import { Controller } from '../controller/controller';
 import { ComponentParser } from './componentParser';
 import { logParsingError } from '../logging';
+import * as vsc from 'vscode';
 
 export class Component {
 	public name: string;
@@ -47,4 +48,6 @@ export interface IComponentBinding {
 	htmlName: string;
 	type: string;
 	pos: ts.LineAndCharacter;
+
+	buildCompletionItem(): vsc.CompletionItem;
 }

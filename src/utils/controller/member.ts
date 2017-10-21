@@ -1,5 +1,6 @@
 import * as vsc from 'vscode';
 import * as ts from 'typescript';
+import { IComponentBinding } from '../component/component';
 
 export abstract class MemberBase implements IMember {
 	public name: string;
@@ -26,7 +27,7 @@ export abstract class MemberBase implements IMember {
 		return item;
 	}
 
-	public abstract buildCompletionItem(): vsc.CompletionItem;
+	public abstract buildCompletionItem(bindings: IComponentBinding[]): vsc.CompletionItem;
 }
 
 export interface IMember {
@@ -35,7 +36,7 @@ export interface IMember {
 	isPublic: boolean;
 	pos: ts.LineAndCharacter;
 
-	buildCompletionItem(): vsc.CompletionItem;
+	buildCompletionItem(bindings: IComponentBinding[]): vsc.CompletionItem;
 }
 
 export enum MemberType {
