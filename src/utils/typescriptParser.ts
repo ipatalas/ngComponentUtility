@@ -43,7 +43,7 @@ export class TypescriptParser {
 		}
 	}
 
-	public getStringValueFromNode = (node: ts.Expression) => {
+	public getStringValueFromNode = (node: ts.Expression): string => {
 		if (node.kind === ts.SyntaxKind.StringLiteral || node.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral) {
 			return (node as ts.LiteralExpression).text;
 		} else if (node.kind === ts.SyntaxKind.Identifier) {
@@ -105,7 +105,7 @@ export class TypescriptParser {
 
 			if (fs.existsSync(modulePath)) {
 				const sourceFile = await SourceFile.parse(modulePath);
-				return Promise.resolve(new TypescriptParser(sourceFile));
+				return new TypescriptParser(sourceFile);
 			}
 		}
 	}

@@ -4,7 +4,7 @@ import * as path from 'path';
 import { isValidAngularProject } from './angular';
 import { logVerbose, log } from './logging';
 
-export const workspaceRoot = vsc.workspace.workspaceFolders[0].uri.fsPath;
+export const workspaceRoot = vsc.workspace.workspaceFolders && vsc.workspace.workspaceFolders[0].uri.fsPath;
 
 export function getLocation(location: { path: string, pos: ts.LineAndCharacter }) {
 	return new vsc.Location(vsc.Uri.file(location.path), new vsc.Position(location.pos.line, location.pos.character));

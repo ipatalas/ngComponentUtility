@@ -29,10 +29,10 @@ export class Component {
 		});
 	}
 
-	private static async parseWithApi(file: SourceFile, controllers: Controller[]) {
+	private static parseWithApi(file: SourceFile, controllers: Controller[]) {
 		const parser = new ComponentParser(file, controllers);
 
-		return await parser.parse();
+		return parser.parse();
 	}
 }
 

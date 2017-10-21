@@ -18,6 +18,7 @@ import { ConfigurationChangeListener, IConfigurationChangedEvent } from './utils
 import { logVerbose } from './utils/logging';
 import { shouldActivateExtension, notAngularProject, markAngularProject, alreadyAngularProject } from './utils/vsc';
 import { MemberReferencesProvider } from './providers/memberReferencesProvider';
+import * as prettyHrtime from 'pretty-hrtime';
 
 const HTML_DOCUMENT_SELECTOR = 'html';
 const TS_DOCUMENT_SELECTOR = 'typescript';
@@ -62,8 +63,10 @@ export async function activate(context: vsc.ExtensionContext) {
 
 	context.subscriptions.push.apply(context.subscriptions, [
 		vsc.commands.registerCommand(COMMAND_REFRESHCOMPONENTS, () => {
+			let t = process.hrtime();
 			refreshComponents().then(() => {
-				vsc.window.showInformationMessage('Components cache has been rebuilt');
+				t = process.hrtime(t);
+				vsc.window.showInformationMessage(`Components cache has been rebuilt (${prettyHrtime(t)})`);
 			});
 		}),
 		configListener.onDidChange((event: IConfigurationChangedEvent) => {

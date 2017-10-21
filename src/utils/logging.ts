@@ -5,7 +5,7 @@ import * as os from 'os';
 import { workspaceRoot } from './vsc';
 
 export function logParsingError(fullpath: string, err: Error) {
-	const relativePath = '.' + path.sep + path.relative(workspaceRoot, fullpath);
+	const relativePath = '.' + path.sep + path.relative(workspaceRoot || '', fullpath);
 
 	// tslint:disable-next-line:no-console
 	console.error(`[ngComponents] There was an error analyzing ${relativePath}.
