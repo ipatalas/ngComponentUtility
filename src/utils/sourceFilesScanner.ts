@@ -1,9 +1,9 @@
 import * as vsc from 'vscode';
 import * as _ from 'lodash';
 import { SourceFile } from './sourceFile';
-import { default as glob } from './glob';
 import * as prettyHrtime from 'pretty-hrtime';
 import { log } from './logging';
+import { findFiles } from './vsc';
 
 // tslint:disable:no-console
 export class SourceFilesScanner {
@@ -15,7 +15,7 @@ export class SourceFilesScanner {
 
 			try {
 				let globTime = process.hrtime();
-				const files = _.flatten(await Promise.all(globs.map(pattern => glob(pattern, { absolute: true }))));
+				const files = _.flatten(await Promise.all(globs.map(g => findFiles(g))));
 				globTime = process.hrtime(globTime);
 
 				let parse = process.hrtime();

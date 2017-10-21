@@ -12,7 +12,6 @@ import { FindUnusedComponentsCommand } from './commands/findUnusedComponents';
 import { IComponentTemplate } from './utils/component/component';
 import { ComponentsCache } from './utils/component/componentsCache';
 import { HtmlReferencesCache } from './utils/htmlReferencesCache';
-import { init as initGlob } from './utils/glob';
 import { RoutesCache } from './utils/routesCache';
 import { MemberDefinitionProvider } from './providers/memberDefinitionProvider';
 import { ConfigurationChangeListener, IConfigurationChangedEvent } from './utils/configurationChangeListener';
@@ -54,8 +53,6 @@ export async function activate(context: vsc.ExtensionContext) {
 	context.subscriptions.push(vsc.commands.registerCommand(COMMAND_MARKASANGULAR, alreadyAngularProject));
 
 	try {
-		initGlob(vsc.workspace.rootPath);
-
 		await refreshComponents();
 	} catch (err) {
 		// tslint:disable-next-line:no-console

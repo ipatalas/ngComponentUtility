@@ -6,9 +6,8 @@ import * as parse5 from 'parse5';
 import * as fs from 'fs';
 import * as vsc from 'vscode';
 import * as prettyHrtime from 'pretty-hrtime';
-import { default as glob } from './glob';
 import { default as tags } from './htmlTags';
-import { workspaceRoot } from './vsc';
+import { workspaceRoot, findFiles } from './vsc';
 import { IComponentTemplate } from './component/component';
 import { FileWatcher } from './fileWatcher';
 import { log } from './logging';
@@ -117,7 +116,8 @@ export class HtmlReferencesCache implements vsc.Disposable {
 			const htmlGlobs = config.get('htmlGlobs') as string[];
 
 			let globTime = process.hrtime();
-			const promises = htmlGlobs.map(pattern => glob(pattern, { absolute: false }));
+
+			const promises = htmlGlobs.map(g => findFiles(g, true));
 			const files = _.flatten(await Promise.all(promises));
 			globTime = process.hrtime(globTime);
 

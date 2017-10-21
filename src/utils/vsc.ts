@@ -1,9 +1,10 @@
 import * as ts from 'typescript';
 import * as vsc from 'vscode';
+import * as path from 'path';
 import { isValidAngularProject } from './angular';
 import { logVerbose, log } from './logging';
 
-export const workspaceRoot = vsc.workspace.rootPath;
+export const workspaceRoot = vsc.workspace.workspaceFolders[0].uri.fsPath;
 
 export function getLocation(location: { path: string, pos: ts.LineAndCharacter }) {
 	return new vsc.Location(vsc.Uri.file(location.path), new vsc.Position(location.pos.line, location.pos.character));
@@ -48,4 +49,16 @@ export function markAngularProject() {
 	config.update('forceEnable', true, false).then(_ => {
 		vsc.commands.executeCommand('workbench.action.reloadWindow');
 	});
+}
+
+export function findFiles(pattern: string, relative?: boolean) {
+	const workspacePattern = new vsc.RelativePattern(vsc.workspace.workspaceFolders[0], pattern);
+
+	return vsc.workspace.findFiles(workspacePattern).then(matches => matches.map(m => {
+		if (relative) {
+			return path.relative(workspaceRoot, m.fsPath);
+		} else {
+			return m.fsPath;
+		}
+	}));
 }
