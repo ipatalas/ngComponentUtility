@@ -181,10 +181,14 @@ This extension contributes the following commands to the Command palette.
 Please use as specific globs as possible. Parsing files is only a fraction of the whole process.
 Vast majority of time is consumed on "globbing" for files to be processed so the more precise the globs are the better performance you can expect.
 
+
 In my example project there are around 22k files and 3k folders. Given default glob pattern it takes slightly above a second to scan all these folders to find all component files.
 Restricting the pattern to one single subfolder (ie. **subdir/\*\*/\*Component.ts**) which contains only 3k files and 500 folders it goes down to around 200-300ms on my machine being almost a second faster than the default.
 
 The bigger the project the greater the impact so in general it is better to use multiple specific patterns rather than *one pattern to glob them all* :)
+
+> **New in 0.7.0:** glob library has been fully replaced with built-in VSCode API to find files and it's simply much better  
+> No longer needs to be so specific with glob patterns - it should perform very well on default settings as well (well, it does for me)
 
 # Changelog
 

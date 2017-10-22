@@ -1,5 +1,13 @@
 # Change Log
 
+## 0.7.1 (Oct 22, 2017)
+
+* Performance improvements:
+  * Removed glob dependency in favor of built-in VSCode mechanism - it's faster and finally allows relative patterns
+  * Components analysis was broken by me while introducing some features recently - got it fixed again (went from ~3s down to 200-300ms in my reference project to analyze all components)
+* Minor improvement when showing intellisense for model members - show bindings even if they are not specified in the controller
+* Fixed console errors when component has no controller (my bad!)
+
 ## 0.7.0 (Oct 16, 2017)
 
 * Find All References now also finds controller members inside components html view
