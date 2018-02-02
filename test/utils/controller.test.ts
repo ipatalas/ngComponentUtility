@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import * as path from 'path';
+import { join as path_join } from 'path';
 import * as ts from 'typescript';
 import * as fs from 'fs';
 import * as _ from 'lodash';
@@ -8,9 +8,9 @@ import { Controller } from '../../src/utils/controller/controller';
 import { MemberBase, MemberType } from '../../src/utils/controller/member';
 import { ClassMethod } from '../../src/utils/controller/method';
 
-const TEST_FILES_ROOT = path.join(__dirname, '../../../test/test_files');
+const TEST_FILES_ROOT = path_join(__dirname, '../../../test/test_files');
 
-const getTestFilePath = (filename: string) => path.join(TEST_FILES_ROOT, filename);
+const getTestFilePath = (filename: string) => path_join(TEST_FILES_ROOT, filename);
 
 describe('Give Controller class', () => {
 	describe('when calling parse', () => {
@@ -35,6 +35,12 @@ describe('Give Controller class', () => {
 				className: 'TestController2',
 				name: '2'
 			}]
+		}, {
+			test_file: 'controller_chained.ts',
+			expected_results: [1, 2, 3].map(i => ({
+				className: `TestController${i}`,
+				name: `TestController${i}`
+			}))
 		}];
 
 		testFiles(testCases);
@@ -52,8 +58,8 @@ describe('Give Controller class', () => {
 			assertField(members, 'implicitlyPublicField', 'string', true);
 			assertField(members, 'customType', 'IReturnType', true);
 
-			assertMethod(members, 'testMethod', 'number', true, [{name: 'p1', type: 'string'}]);
-			assertMethod(members, 'arrowFunction', 'number', true, [{name: 'p1', type: 'string'}, {name: 'p2', type: 'number'}]);
+			assertMethod(members, 'testMethod', 'number', true, [{ name: 'p1', type: 'string' }]);
+			assertMethod(members, 'arrowFunction', 'number', true, [{ name: 'p1', type: 'string' }, { name: 'p2', type: 'number' }]);
 		});
 	});
 });
@@ -62,7 +68,7 @@ const assertField = (members: MemberBase[], name: string, returnType: string, is
 	assertMember(members, name, MemberType.Property, returnType, isPublic);
 };
 
-const assertMethod = (members: MemberBase[], name: string, returnType: string, isPublic: boolean, params?: Array<{name: string, type: string}>) => {
+const assertMethod = (members: MemberBase[], name: string, returnType: string, isPublic: boolean, params?: Array<{ name: string, type: string }>) => {
 	const member = <ClassMethod>assertMember(members, name, MemberType.Method, returnType, isPublic);
 
 	if (params) {

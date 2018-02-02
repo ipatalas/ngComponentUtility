@@ -4,13 +4,10 @@ import { Controller } from './controller';
 import { ClassMethod } from './method';
 import { ClassProperty } from './property';
 
-const ANGULAR_MODULE = /^angular\s*\.\s*module\((['"])[^'"]*\1\)$/i;
-
 export class ControllerParser {
 	private results: Controller[] = [];
 
 	constructor(private file: SourceFile) {
-
 	}
 
 	public parse = () => {
@@ -41,12 +38,11 @@ export class ControllerParser {
 		} else if (node.kind === ts.SyntaxKind.CallExpression) {
 			const call = node as ts.CallExpression;
 
-			if (call.expression.kind === ts.SyntaxKind.PropertyAccessExpression) {
-				const module = (call.expression as ts.PropertyAccessExpression).expression.getText();
-
-				if (ANGULAR_MODULE.test(module) && (call.expression as ts.PropertyAccessExpression).name.text === 'controller' && call.arguments.length === 2) {
-					const controllerName = call.arguments[0] as ts.StringLiteral;
-					const controllerIdentifier = call.arguments[1] as ts.Identifier;
+			if (this.isAngularModule(call.expression)) {
+				const controllerCall = this.findControllerRegistration(call.parent);
+				if (controllerCall) {
+					const controllerName = controllerCall.arguments[0] as ts.StringLiteral;
+					const controllerIdentifier = controllerCall.arguments[1] as ts.Identifier;
 
 					if (controllerName.text !== controllerIdentifier.text) {
 						const ctrl = this.results.find(c => c.className === controllerIdentifier.text);
@@ -61,6 +57,30 @@ export class ControllerParser {
 		} else {
 			node.getChildren().forEach(this.parseChildren);
 		}
+	}
+
+	private findControllerRegistration = (node: ts.Node): ts.CallExpression => {
+		if (node.kind === ts.SyntaxKind.PropertyAccessExpression) {
+			const pae = node as ts.PropertyAccessExpression;
+			if (pae.name.text === 'controller' && pae.parent && pae.parent.kind === ts.SyntaxKind.CallExpression) {
+				const call = pae.parent as ts.CallExpression;
+				if (call.arguments.length === 2) {
+					return call;
+				}
+			}
+		}
+
+		if (node.parent) {
+			return this.findControllerRegistration(node.parent);
+		}
+	}
+
+	private isAngularModule = (expression: ts.Expression) => {
+		const pae = expression as ts.PropertyAccessExpression;
+
+		return expression.kind === ts.SyntaxKind.PropertyAccessExpression &&
+			(pae.expression.kind === ts.SyntaxKind.Identifier && pae.name.kind === ts.SyntaxKind.Identifier) &&
+			(pae.expression as ts.Identifier).text === 'angular' && (pae.name as ts.Identifier).text === 'module';
 	}
 
 	private createMember = (member: ts.ClassElement) => {
