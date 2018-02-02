@@ -106,7 +106,7 @@ const refreshComponents = async (config?: vsc.WorkspaceConfiguration): Promise<v
 
 			findUnusedAngularComponents.load(references, components);
 			referencesProvider.load(references, components);
-			memberReferencesProvider.load(references, components);
+			memberReferencesProvider.load(components);
 
 			completionProvider.loadComponents(components);
 			memberCompletionProvider.loadComponents(components);

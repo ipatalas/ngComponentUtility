@@ -8,6 +8,8 @@
 	"extends": "tslint:recommended",
 	"rules": {
 		"no-string-literal": false,
+		"no-unused-expression": true,
+		"strict-type-predicates": true,
 		"variable-name": [
 			true,
 			"ban-keywords",

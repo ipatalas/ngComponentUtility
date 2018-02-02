@@ -2,7 +2,6 @@ import * as _ from 'lodash';
 import * as vsc from 'vscode';
 import * as ts from 'typescript';
 import * as fs from 'fs';
-import { IHtmlReferences } from '../utils/htmlReferencesCache';
 import { getLocation } from '../utils/vsc';
 import { Component } from '../utils/component/component';
 import { SourceFile } from '../utils/sourceFile';
@@ -10,11 +9,9 @@ import { TypescriptParser } from '../utils/typescriptParser';
 
 export class MemberReferencesProvider implements vsc.ReferenceProvider {
 
-	private htmlReferences: IHtmlReferences;
 	private components: Component[];
 
-	public load = (references: IHtmlReferences, components: Component[]) => {
-		this.htmlReferences = references;
+	public load = (components: Component[]) => {
 		this.components = components;
 	}
 
@@ -35,7 +32,7 @@ export class MemberReferencesProvider implements vsc.ReferenceProvider {
 
 					return Promise
 						.all(components.map(c => this.getLocations(c, node)))
-						.then(_.flatten);
+						.then(x => _.flatten(x));
 				}
 			}
 		}
