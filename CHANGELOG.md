@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.7.2 (Feb 02, 2018)
+
+* Fixed [#20](https://github.com/ipatalas/ngComponentUtility/issues/20) - Member completion doesn't work
+
 ## 0.7.1 (Oct 22, 2017)
 
 * Performance improvements:
