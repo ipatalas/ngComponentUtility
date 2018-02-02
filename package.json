@@ -136,8 +136,8 @@
     "test": "node ./node_modules/vscode/bin/test"
   },
   "devDependencies": {
-    "@types/lodash": "^4.14.77",
-    "@types/mocha": "^2.2.43",
+    "@types/lodash": "^4.14.100",
+    "@types/mocha": "^2.2.48",
     "mocha": "^3.4.2",
     "vscode": "^1.1.6"
   },
@@ -146,6 +146,6 @@
     "lodash": "^4.17.4",
     "parse5": "^3.0.2",
     "pretty-hrtime": "^1.0.3",
-    "typescript": "^2.5.3"
+    "typescript": "^2.7.1"
   }
 }
