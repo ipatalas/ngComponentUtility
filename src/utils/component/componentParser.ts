@@ -183,10 +183,10 @@ export class ComponentParser {
 				}
 
 				component.controller = this.createController(component);
-			}
 
-			if (!component.controller) {
-				logVerbose(`Controller for ${component.name} not found (member completion and Go To Definition for this component will not work)`);
+				if (!component.controller) {
+					logVerbose(`Controller for ${component.name} not found (member completion and Go To Definition for this component will not work)`);
+				}
 			}
 		}
 
