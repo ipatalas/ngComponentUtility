@@ -220,6 +220,14 @@ export class ComponentParser {
 
 				return { path: templatePath, pos: { line: 0, character: 0 } } as IComponentTemplate;
 			}
+		} else if (node.kind === ts.SyntaxKind.Identifier) {
+			// handle template: template
+			const variableStatement = parser.sourceFile.statements
+				.find(statement => statement.kind === ts.SyntaxKind.VariableStatement) as ts.VariableStatement;
+			const declarations = variableStatement.declarationList.declarations;
+			const declaration = declarations.find(declaration => declaration.name.getText() === node.getText());
+			// pass CallExpression (e.g. require('./template.html'))
+			return this.createTemplate(declaration.initializer, parser);
 		}
 	}
 
