@@ -225,9 +225,9 @@ export class ComponentParser {
 			const variableStatement = parser.sourceFile.statements
 				.find(statement => statement.kind === ts.SyntaxKind.VariableStatement) as ts.VariableStatement;
 			const declarations = variableStatement.declarationList.declarations;
-			const declaration = declarations.find(declaration => declaration.name.getText() === node.getText());
+			const templateDeclaration = declarations.find(declaration => declaration.name.getText() === node.getText());
 			// pass CallExpression (e.g. require('./template.html'))
-			return this.createTemplate(declaration.initializer, parser);
+			return this.createTemplate(templateDeclaration.initializer, parser);
 		}
 	}
 

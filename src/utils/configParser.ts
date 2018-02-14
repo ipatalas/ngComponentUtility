@@ -1,5 +1,5 @@
 import * as ts from 'typescript';
-import { ExpressionStatement, BinaryExpression, PropertyAccessExpression } from 'typescript';
+import { BinaryExpression, PropertyAccessExpression } from 'typescript';
 
 export class ConfigParser {
 	private properties: {[index: string]: ts.Expression};
@@ -17,7 +17,7 @@ export class ConfigParser {
 							.forEach(m => {
 								const expression = ((m as ts.ExpressionStatement).expression as BinaryExpression);
 								acc[(expression.left as PropertyAccessExpression).name.getText()] = expression.right;
-							})
+							});
 					}
 					return acc;
 				}, {});
