@@ -79,6 +79,24 @@ describe('Give Component class', () => {
 
 			assertComponents(components);
 		});
+
+		it('with component_required_template.ts file then a properly parsed component is returned', async () => {
+			const { path, sourceFile } = getSourceFile('component_required_template.ts');
+
+			const components = await Component.parse({ path, sourceFile }, []);
+
+			const expectedTemplatePath = getTestFilePath('template.html');
+			assert.equal(components[0].template.path, expectedTemplatePath);
+		});
+
+		it('with component_constructor_init.ts file then a properly parsed component is returned', async () => {
+			const { path, sourceFile } = getSourceFile('component_constructor_init.ts');
+
+			const components = await Component.parse({ path, sourceFile }, []);
+
+			const expectedTemplatePath = getTestFilePath('example-template.html');
+			assert.equal(components[0].template.path, expectedTemplatePath);
+		});
 	});
 });
 
