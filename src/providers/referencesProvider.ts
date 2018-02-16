@@ -56,11 +56,11 @@ export class ReferencesProvider implements vsc.ReferenceProvider {
 
 		if (HtmlDocumentHelper.isInsideAClosedTag(bracketsBeforeCursor, bracketsAfterCursor)) {
 			const wordPos = document.getWordRangeAtPosition(position);
-			const word = document.getText(wordPos);
+			const componentName = document.getText(wordPos);
 
-			const references = this.htmlReferences[word];
-			if (references) {
-				return this.convertReferencesToLocations(references);
+			const componentReferences = this.htmlReferences[componentName];
+			if (componentReferences) {
+				return this.convertReferencesToLocations(componentReferences);
 			}
 		}
 

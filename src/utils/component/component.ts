@@ -20,7 +20,8 @@ export class Component {
 	public static parse(file: SourceFile, controllers: Controller[]): Promise<Component[]> {
 		return new Promise<Component[]>(async (resolve, _reject) => {
 			try {
-				const results: Component[] = await Component.parseWithApi(file, controllers);
+				const parser = new ComponentParser(file, controllers);
+				const results: Component[] = await parser.parse();
 
 				resolve(results);
 			} catch (e) {
@@ -28,12 +29,6 @@ export class Component {
 				resolve([]);
 			}
 		});
-	}
-
-	private static parseWithApi(file: SourceFile, controllers: Controller[]) {
-		const parser = new ComponentParser(file, controllers);
-
-		return parser.parse();
 	}
 }
 

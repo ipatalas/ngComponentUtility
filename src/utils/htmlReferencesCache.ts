@@ -55,7 +55,7 @@ export class HtmlReferencesCache implements vsc.Disposable {
 		emptyKeys.forEach(key => delete this.htmlReferences[key]);
 	}
 
-	private createParser = (resolve, reject, results, filepath, locationCb): parse5.SAXParser => {
+	private createParser = (resolve, reject, results: IHtmlReferences, filepath: string, locationCb): parse5.SAXParser => {
 		const parser = new parse5.SAXParser({ locationInfo: true });
 
 		parser.on('startTag', (name, _attrs, _self, location) => {
@@ -77,7 +77,7 @@ export class HtmlReferencesCache implements vsc.Disposable {
 		return parser;
 	}
 
-	private parseFile = (projectPath, filePath, results) => {
+	private parseFile = (projectPath, filePath, results: IHtmlReferences) => {
 		return new Promise<void>((resolve, reject) => {
 			const getLocation = (location: parse5.MarkupData.StartTagLocation) => ({ line: location.line - 1, col: location.col - 1 });
 			const parser = this.createParser(resolve, reject, results, filePath, getLocation);
@@ -86,7 +86,7 @@ export class HtmlReferencesCache implements vsc.Disposable {
 		});
 	}
 
-	private parseTemplate = (template: IComponentTemplate, results) => {
+	private parseTemplate = (template: IComponentTemplate, results: IHtmlReferences) => {
 		return new Promise<void>((resolve, reject) => {
 			const filePath = this.normalizePath(template.path);
 
