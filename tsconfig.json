@@ -15,6 +15,6 @@
 	"exclude": [
 		"node_modules",
 		"server",
-		"test/test_files/*.ts"
+		"test/test_files/**/*.ts"
 	]
 }

@@ -8,7 +8,7 @@ import { Controller } from '../../src/utils/controller/controller';
 import { MemberBase, MemberType } from '../../src/utils/controller/member';
 import { ClassMethod } from '../../src/utils/controller/method';
 
-const TEST_FILES_ROOT = path_join(__dirname, '../../../test/test_files');
+const TEST_FILES_ROOT = path_join(__dirname, '../../../test/test_files/controllers');
 
 const getTestFilePath = (filename: string) => path_join(TEST_FILES_ROOT, filename);
 

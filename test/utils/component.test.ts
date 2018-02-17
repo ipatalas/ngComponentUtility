@@ -6,7 +6,7 @@ import * as _ from 'lodash';
 
 import { Component, IComponentBinding } from '../../src/utils/component/component';
 
-const TEST_FILES_ROOT = _path.join(__dirname, '../../../test/test_files');
+const TEST_FILES_ROOT = _path.join(__dirname, '../../../test/test_files/components');
 
 const getTestFilePath = (filename: string) => _path.join(TEST_FILES_ROOT, filename);
 

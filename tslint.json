@@ -2,7 +2,8 @@
 	"extends": "tslint:recommended",
 	"linterOptions": {
 		"exclude": [
-			"test/index.ts"
+			"test/index.ts",
+			"test/test_files/**/*.ts"
 		]
 	},
 	"rules": {
