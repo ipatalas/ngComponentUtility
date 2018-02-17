@@ -7,7 +7,7 @@ import * as fs from 'fs';
 import * as vsc from 'vscode';
 import * as prettyHrtime from 'pretty-hrtime';
 import { default as tags } from './htmlTags';
-import { workspaceRoot, findFiles } from './vsc';
+import { angularRoot, findFiles } from './vsc';
 import { IComponentTemplate } from './component/component';
 import { FileWatcher } from './fileWatcher';
 import { log } from './logging';
@@ -27,14 +27,14 @@ export class HtmlReferencesCache implements vsc.Disposable {
 
 	private onAdded = async (uri: vsc.Uri) => {
 		const filepath = this.normalizePath(uri.fsPath);
-		this.parseFile(workspaceRoot, filepath, this.htmlReferences);
+		this.parseFile(filepath, this.htmlReferences);
 	}
 
 	private onChanged = async (uri: vsc.Uri) => {
 		const filepath = this.normalizePath(uri.fsPath);
 
 		this.deleteFileReferences(filepath);
-		this.parseFile(workspaceRoot, filepath, this.htmlReferences);
+		this.parseFile(filepath, this.htmlReferences);
 	}
 
 	private onDeleted = (uri: vsc.Uri) => {
@@ -77,12 +77,12 @@ export class HtmlReferencesCache implements vsc.Disposable {
 		return parser;
 	}
 
-	private parseFile = (projectPath, filePath, results: IHtmlReferences) => {
+	private parseFile = (filePath, results: IHtmlReferences) => {
 		return new Promise<void>((resolve, reject) => {
 			const getLocation = (location: parse5.MarkupData.StartTagLocation) => ({ line: location.line - 1, col: location.col - 1 });
 			const parser = this.createParser(resolve, reject, results, filePath, getLocation);
 
-			fs.createReadStream(path.join(projectPath, filePath)).pipe(parser);
+			fs.createReadStream(path.join(angularRoot, filePath)).pipe(parser);
 		});
 	}
 
@@ -122,7 +122,7 @@ export class HtmlReferencesCache implements vsc.Disposable {
 			globTime = process.hrtime(globTime);
 
 			let parseTime = process.hrtime();
-			await Promise.all(files.map(f => this.parseFile(workspaceRoot, f, results)));
+			await Promise.all(files.map(f => this.parseFile(f, results)));
 			parseTime = process.hrtime(parseTime);
 
 			log(`HTML stats [files=${files.length}, glob=${prettyHrtime(globTime)}, parse=${prettyHrtime(parseTime)}]`);
@@ -144,7 +144,7 @@ export class HtmlReferencesCache implements vsc.Disposable {
 	}
 
 	// glob returns paths with forward slash on Windows whereas gaze returns them with OS specific separator
-	private normalizePath = (p: string) => path.relative(workspaceRoot, p).replace('\\', '/');
+	private normalizePath = (p: string) => path.relative(angularRoot, p).replace('\\', '/');
 }
 
 export interface IHtmlReferences {

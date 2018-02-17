@@ -16,7 +16,7 @@ import { RoutesCache } from './utils/routesCache';
 import { MemberDefinitionProvider } from './providers/memberDefinitionProvider';
 import { ConfigurationChangeListener, IConfigurationChangedEvent } from './utils/configurationChangeListener';
 import { logVerbose } from './utils/logging';
-import { shouldActivateExtension, notAngularProject, markAngularProject, alreadyAngularProject } from './utils/vsc';
+import { shouldActivateExtension, notAngularProject, markAsAngularProject, alreadyAngularProject } from './utils/vsc';
 import { MemberReferencesProvider } from './providers/memberReferencesProvider';
 import * as prettyHrtime from 'pretty-hrtime';
 
@@ -46,7 +46,7 @@ const configListener = new ConfigurationChangeListener('ngComponents');
 export async function activate(context: vsc.ExtensionContext) {
 	if (!shouldActivateExtension()) {
 		COMMANDS.forEach(cmd => context.subscriptions.push(vsc.commands.registerCommand(cmd, notAngularProject)));
-		context.subscriptions.push(vsc.commands.registerCommand(COMMAND_MARKASANGULAR, markAngularProject));
+		context.subscriptions.push(vsc.commands.registerCommand(COMMAND_MARKASANGULAR, markAsAngularProject));
 		return;
 	}
 

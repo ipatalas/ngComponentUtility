@@ -4,7 +4,7 @@ import * as decamelize from 'decamelize';
 import { SourceFile } from '../sourceFile';
 import { Controller } from '../controller/controller';
 import { Component, IComponentTemplate } from './component';
-import { workspaceRoot } from '../vsc';
+import { angularRoot } from '../vsc';
 import { TypescriptParser } from '../typescriptParser';
 import { ConfigParser } from '../configParser';
 import { logVerbose } from '../logging';
@@ -238,7 +238,7 @@ export class ComponentParser {
 
 		const value = parser.getStringValueFromNode(node);
 		if (value) {
-			const templatePath = path.join(workspaceRoot, value);
+			const templatePath = path.join(angularRoot, value);
 
 			return { path: templatePath, pos: { line: 0, character: 0 } } as IComponentTemplate;
 		}

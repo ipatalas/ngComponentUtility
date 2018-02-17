@@ -3,7 +3,7 @@ import * as _ from 'lodash';
 import * as vsc from 'vscode';
 import { HtmlDocumentHelper } from '../utils/htmlDocumentHelper';
 import { IHtmlReferences, IComponentReference, IComponentReferences } from '../utils/htmlReferencesCache';
-import { workspaceRoot, getLocation } from '../utils/vsc';
+import { getLocation, angularRoot } from '../utils/vsc';
 import { Component } from '../utils/component/component';
 type DocumentHandlerDelegate = (document: vsc.TextDocument, position: vsc.Position) => vsc.Location[];
 
@@ -73,7 +73,7 @@ export class ReferencesProvider implements vsc.ReferenceProvider {
 			.flatMap((item: [string, IComponentReference[]]) => {
 				const [relativePath, matches] = item;
 				return matches.map(pos => ({
-					path: path.join(workspaceRoot, relativePath),
+					path: path.join(angularRoot, relativePath),
 					pos: {
 						line: pos.line,
 						character: pos.col

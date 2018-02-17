@@ -2,10 +2,10 @@ import * as vsc from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as os from 'os';
-import { workspaceRoot } from './vsc';
+import { angularRoot } from './vsc';
 
 export function logParsingError(fullpath: string, err: Error) {
-	const relativePath = '.' + path.sep + path.relative(workspaceRoot || '', fullpath);
+	const relativePath = '.' + path.sep + path.relative(angularRoot || '', fullpath);
 
 	// tslint:disable-next-line:no-console
 	console.error(`[ngComponents] There was an error analyzing ${relativePath}.
@@ -18,7 +18,15 @@ ${err.stack}`.trim());
 
 let lastError = false;
 
-export function log(text: string) {
+export function logError(text: string) {
+	log(`⚠️${text}`, console.error);
+}
+
+export function logWarning(text: string) {
+	log(`⚠️${text}`, console.warn);
+}
+
+export function log(text: string, logFunction?: (message?: any) => void) {
 	const logPath = redirectToFile();
 	if (logPath) {
 		fs.appendFile(logPath, text + os.EOL, err => {
@@ -33,8 +41,7 @@ export function log(text: string) {
 			}
 		});
 	} else {
-		// tslint:disable-next-line:no-console
-		console.log(`[ngComponents] ${text}`);
+		(logFunction || console.log)(`[ngComponents] ${text}`);
 	}
 }
 
