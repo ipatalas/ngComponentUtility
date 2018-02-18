@@ -1,6 +1,7 @@
 [![Build Status](https://travis-ci.org/ipatalas/ngComponentUtility.svg?branch=master)](https://travis-ci.org/ipatalas/ngComponentUtility)
 [![bitHound Dependencies](https://www.bithound.io/github/ipatalas/ngComponentUtility/badges/dependencies.svg)](https://www.bithound.io/github/ipatalas/ngComponentUtility/master/dependencies/npm)
 [![bitHound Code](https://www.bithound.io/github/ipatalas/ngComponentUtility/badges/code.svg)](https://www.bithound.io/github/ipatalas/ngComponentUtility)
+[![Visual Studio Marketplace](https://img.shields.io/vscode-marketplace/d/ipatalas.vscode-angular-components-intellisense.svg)](https://marketplace.visualstudio.com/items?itemName=ipatalas.vscode-angular-components-intellisense)
 
 # Table of contents
 
@@ -165,6 +166,7 @@ This plugin contributes the following [settings](https://code.visualstudio.com/d
 - `ngComponents.logging.verbose`: enable verbose logging (for troubleshooting)
 - `ngComponents.logging.redirectToFile`: path to redirect logs to - needed when console is flooded with too many messages and supresses them
 - `ngComponents.forceEnable`: force enable the extension if AngularJS was not detected automatically
+- `ngComponents.angularRoot`: custom Angular root folder relative to workspace root (defaults to workspace root) - use when your workspace contains more projects and Angular project is in a subfolder
 
 Whenever one of the globs changes components cache is automatically rebuilt. Additionally all component files are monitored for changes and they will be reflected immediately, ie. after adding a binding you can just save the file and go straight to template file to use that binding.
 

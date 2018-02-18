@@ -1,158 +1,162 @@
 {
-  "name": "vscode-angular-components-intellisense",
-  "displayName": "ng1.5 components utility",
-  "description": "Angular 1.5 components utility",
-  "author": "Ireneusz Patalas",
-  "license": "MIT",
-  "version": "0.7.2",
-  "publisher": "ipatalas",
-  "contributors": [
-    "Ireneusz Patalas",
-    "Kamil Haładus"
-  ],
-  "engines": {
-    "vscode": "^1.17.0"
-  },
-  "categories": [
-    "Languages",
-    "Other"
-  ],
-  "icon": "images/angular.png",
-  "galleryBanner": {
-    "color": "#0273D4",
-    "theme": "dark"
-  },
-  "activationEvents": [
-    "*"
-  ],
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/ipatalas/ngComponentUtility"
-  },
-  "main": "./out/src/extension",
-  "contributes": {
-    "commands": [
-      {
-        "command": "extension.refreshAngularComponents",
-        "title": "Refresh Components Cache"
-      },
-      {
-        "command": "extension.findUnusedAngularComponents",
-        "title": "Find unused Angular components"
-      },
-      {
-        "command": "extension.markAsAngularProject",
-        "title": "Force enable ngComponents utility on this workspace"
-      }
-    ],
-    "configuration": {
-      "title": "ng1.5 components utility",
-      "type": "object",
-      "properties": {
-        "ngComponents.componentGlobs": {
-          "type": [
-            "array",
-            "string"
-          ],
-          "default": [
-            "**/*Component.ts"
-          ],
-          "description": "glob string used to search for files with components"
-        },
-        "ngComponents.controllerGlobs": {
-          "type": [
-            "array",
-            "string"
-          ],
-          "default": [
-            "**/*Controller.ts"
-          ],
-          "description": "glob string used to search for files with controllers"
-        },
-        "ngComponents.htmlGlobs": {
-          "type": [
-            "array",
-            "string"
-          ],
-          "default": [
-            "**/*.html"
-          ],
-          "description": "glob string used to search for HTML files for references of the components"
-        },
-        "ngComponents.routeGlobs": {
-          "type": [
-            "array",
-            "string"
-          ],
-          "default": [
-            "**/*route.ts"
-          ],
-          "description": "glob string used to search for angular-ui-router files for references of the components"
-        },
-        "ngComponents.goToDefinition": {
-          "type": [
-            "array",
-            "string"
-          ],
-          "default": [
-            "template",
-            "controller"
-          ],
-          "uniqueItems": true,
-          "description": "Specify which parts of the component should the Go To Definition action show"
-        },
-        "ngComponents.controller.publicMembersOnly": {
-          "type": "boolean",
-          "default": true,
-          "description": "Set to false to show all members in auto complete"
-        },
-        "ngComponents.controller.excludedMembers": {
-          "type": "string",
-          "default": "^\\$",
-          "description": "Regular expression which can exclude additional members (defaults to exclude Angular lifecycle hooks)"
-        },
-        "ngComponents.logging.verbose": {
-          "type": "boolean",
-          "default": false,
-          "description": "Set to true to enable verbose logging in developers console"
-        },
-        "ngComponents.logging.redirectToFile": {
-          "type": "string",
-          "default": null,
-          "description": "Set path to which you want to redirect logging to"
-        },
-        "ngComponents.forceEnable": {
-          "type": "boolean",
-          "default": false,
-          "description": "Use this setting to force enable the extension if AngularJS was not detected automatically"
-        },
-        "ngComponents.angularRoot": {
-          "type": "string",
-          "default": null,
-          "description": "Custom Angular root folder relative to workspace root (defaults to workspace root)"
-        }
-      }
-    }
-  },
-  "scripts": {
-    "vscode:prepublish": "tsc -p ./",
-    "compile": "tsc -watch -p ./",
-    "postinstall": "node ./node_modules/vscode/bin/install",
-    "test": "node ./node_modules/vscode/bin/test",
-    "linter": "tslint -p ."
-  },
-  "devDependencies": {
-    "@types/lodash": "^4.14.100",
-    "@types/mocha": "^2.2.48",
-    "mocha": "^5.0.0",
-    "tslint": "^5.9.1",
-    "vscode": "^1.1.10"
-  },
-  "dependencies": {
-    "decamelize": "^2.0.0",
-    "lodash": "^4.17.4",
-    "parse5": "^3.0.2",
-    "pretty-hrtime": "^1.0.3",
-    "typescript": "^2.7.1"
-  }
+	"name": "vscode-angular-components-intellisense",
+	"displayName": "ng1.5 components utility",
+	"description": "Angular 1.5 components utility",
+	"author": "Ireneusz Patalas",
+	"license": "MIT",
+	"version": "0.7.3",
+	"publisher": "ipatalas",
+	"contributors": [
+		"Ireneusz Patalas",
+		"Kamil Haładus"
+	],
+	"engines": {
+		"vscode": "^1.17.0"
+	},
+	"categories": [
+		"Languages",
+		"Other"
+	],
+	"keywords": [
+		"angular",
+		"AngularJS"
+	],
+	"icon": "images/angular.png",
+	"galleryBanner": {
+		"color": "#0273D4",
+		"theme": "dark"
+	},
+	"activationEvents": [
+		"*"
+	],
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/ipatalas/ngComponentUtility"
+	},
+	"main": "./out/src/extension",
+	"contributes": {
+		"commands": [
+			{
+				"command": "extension.refreshAngularComponents",
+				"title": "Refresh Components Cache"
+			},
+			{
+				"command": "extension.findUnusedAngularComponents",
+				"title": "Find unused Angular components"
+			},
+			{
+				"command": "extension.markAsAngularProject",
+				"title": "Force enable ngComponents utility on this workspace"
+			}
+		],
+		"configuration": {
+			"title": "ng1.5 components utility",
+			"type": "object",
+			"properties": {
+				"ngComponents.componentGlobs": {
+					"type": [
+						"array",
+						"string"
+					],
+					"default": [
+						"**/*Component.ts"
+					],
+					"description": "glob string used to search for files with components"
+				},
+				"ngComponents.controllerGlobs": {
+					"type": [
+						"array",
+						"string"
+					],
+					"default": [
+						"**/*Controller.ts"
+					],
+					"description": "glob string used to search for files with controllers"
+				},
+				"ngComponents.htmlGlobs": {
+					"type": [
+						"array",
+						"string"
+					],
+					"default": [
+						"**/*.html"
+					],
+					"description": "glob string used to search for HTML files for references of the components"
+				},
+				"ngComponents.routeGlobs": {
+					"type": [
+						"array",
+						"string"
+					],
+					"default": [
+						"**/*route.ts"
+					],
+					"description": "glob string used to search for angular-ui-router files for references of the components"
+				},
+				"ngComponents.goToDefinition": {
+					"type": [
+						"array",
+						"string"
+					],
+					"default": [
+						"template",
+						"controller"
+					],
+					"uniqueItems": true,
+					"description": "Specify which parts of the component should the Go To Definition action show"
+				},
+				"ngComponents.controller.publicMembersOnly": {
+					"type": "boolean",
+					"default": true,
+					"description": "Set to false to show all members in auto complete"
+				},
+				"ngComponents.controller.excludedMembers": {
+					"type": "string",
+					"default": "^\\$",
+					"description": "Regular expression which can exclude additional members (defaults to exclude Angular lifecycle hooks)"
+				},
+				"ngComponents.logging.verbose": {
+					"type": "boolean",
+					"default": false,
+					"description": "Set to true to enable verbose logging in developers console"
+				},
+				"ngComponents.logging.redirectToFile": {
+					"type": "string",
+					"default": null,
+					"description": "Set path to which you want to redirect logging to"
+				},
+				"ngComponents.forceEnable": {
+					"type": "boolean",
+					"default": false,
+					"description": "Use this setting to force enable the extension if AngularJS was not detected automatically"
+				},
+				"ngComponents.angularRoot": {
+					"type": "string",
+					"default": null,
+					"description": "Custom Angular root folder relative to workspace root (defaults to workspace root)"
+				}
+			}
+		}
+	},
+	"scripts": {
+		"vscode:prepublish": "tsc -p ./",
+		"compile": "tsc -watch -p ./",
+		"postinstall": "node ./node_modules/vscode/bin/install",
+		"test": "node ./node_modules/vscode/bin/test",
+		"linter": "tslint -p ."
+	},
+	"devDependencies": {
+		"@types/lodash": "^4.14.100",
+		"@types/mocha": "^2.2.48",
+		"mocha": "^5.0.0",
+		"tslint": "^5.9.1",
+		"vscode": "^1.1.10"
+	},
+	"dependencies": {
+		"decamelize": "^2.0.0",
+		"lodash": "^4.17.4",
+		"parse5": "^3.0.2",
+		"pretty-hrtime": "^1.0.3",
+		"typescript": "^2.7.1"
+	}
 }

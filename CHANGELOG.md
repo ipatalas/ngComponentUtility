@@ -1,5 +1,12 @@
 # Change Log
 
+## 0.7.3 (Feb 18, 2018)
+
+* Fixed [#22](https://github.com/ipatalas/ngComponentUtility/issues/22) - custom Angular root folder
+* Merged [#21](https://github.com/ipatalas/ngComponentUtility/pull/21) - thanks to **[@ekulabuhov](https://github.com/ekulabuhov)**!
+  * Support for variable initialized template ([example](https://github.com/ipatalas/ngComponentUtility/blob/master/test/test_files/components/component_required_template.ts))
+  * Support for constructor initialization for components ([example](https://github.com/ipatalas/ngComponentUtility/blob/master/test/test_files/components/component_constructor_init.ts))
+
 ## 0.7.2 (Feb 02, 2018)
 
 * Fixed [#20](https://github.com/ipatalas/ngComponentUtility/issues/20) - Member completion doesn't work
