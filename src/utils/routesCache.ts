@@ -20,7 +20,7 @@ export class RoutesCache extends EventEmitter implements vsc.Disposable {
 		const globs = config.get('routeGlobs') as string[];
 
 		this.dispose();
-		this.watcher = new FileWatcher(globs, this.onAdded, this.onChanged, this.onDeleted);
+		this.watcher = new FileWatcher('Route', globs, this.onAdded, this.onChanged, this.onDeleted);
 	}
 
 	private onAdded = async (uri: vsc.Uri) => {

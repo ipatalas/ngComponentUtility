@@ -26,8 +26,8 @@ export class ComponentsCache extends EventEmitter implements vsc.Disposable {
 
 		this.dispose();
 
-		this.componentWatcher = new FileWatcher(componentGlobs, this.onComponentAdded, this.onComponentChanged, this.onComponentDeleted);
-		this.controllerWatcher = new FileWatcher(controllerGlobs, this.onControllerAdded, this.onControllerChanged, this.onControllerDeleted);
+		this.componentWatcher = new FileWatcher('Component', componentGlobs, this.onComponentAdded, this.onComponentChanged, this.onComponentDeleted);
+		this.controllerWatcher = new FileWatcher('Controller', controllerGlobs, this.onControllerAdded, this.onControllerChanged, this.onControllerDeleted);
 	}
 
 	private onControllerAdded = async (uri: vsc.Uri) => {

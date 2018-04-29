@@ -26,7 +26,7 @@ export class HtmlReferencesCache extends EventEmitter implements vsc.Disposable 
 		const globs = config.get('htmlGlobs') as string[];
 
 		this.dispose();
-		this.watcher = new FileWatcher(globs, this.onAdded, this.onChanged, this.onDeleted);
+		this.watcher = new FileWatcher('HTML template', globs, this.onAdded, this.onChanged, this.onDeleted);
 	}
 
 	private onAdded = async (uri: vsc.Uri) => {
