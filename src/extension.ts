@@ -9,16 +9,17 @@ import { ComponentDefinitionProvider } from './providers/componentDefinitionProv
 import { ReferencesProvider } from './providers/referencesProvider';
 import { FindUnusedComponentsCommand } from './commands/findUnusedComponents';
 
-import { IComponentTemplate } from './utils/component/component';
+import { IComponentTemplate, Component } from './utils/component/component';
 import { ComponentsCache } from './utils/component/componentsCache';
 import { HtmlReferencesCache } from './utils/htmlReferencesCache';
 import { RoutesCache } from './utils/routesCache';
 import { MemberDefinitionProvider } from './providers/memberDefinitionProvider';
 import { ConfigurationChangeListener, IConfigurationChangedEvent } from './utils/configurationChangeListener';
-import { logVerbose } from './utils/logging';
+import { logVerbose, log } from './utils/logging';
 import { shouldActivateExtension, notAngularProject, markAsAngularProject, alreadyAngularProject } from './utils/vsc';
 import { MemberReferencesProvider } from './providers/memberReferencesProvider';
 import * as prettyHrtime from 'pretty-hrtime';
+import { events } from './symbols';
 
 const HTML_DOCUMENT_SELECTOR = 'html';
 const TS_DOCUMENT_SELECTOR = 'typescript';
@@ -55,6 +56,8 @@ export async function activate(context: vsc.ExtensionContext) {
 
 	try {
 		await refreshComponents();
+
+		componentsCache.on(events.componentsChanged, componentsChanged);
 	} catch (err) {
 		// tslint:disable-next-line:no-console
 		console.error(err);
@@ -91,12 +94,22 @@ export async function activate(context: vsc.ExtensionContext) {
 	context.subscriptions.push(statusBar);
 }
 
+function componentsChanged(components: Component[]) {
+	completionProvider.loadComponents(components);
+	memberCompletionProvider.loadComponents(components);
+	bindingProvider.loadComponents(components);
+	definitionProvider.loadComponents(components);
+	memberDefinitionProvider.loadComponents(components);
+}
+
 const refreshComponents = async (config?: vsc.WorkspaceConfiguration): Promise<void> => {
 	return new Promise<void>(async (resolve, _reject) => {
 		try {
-			const references = await htmlReferencesCache.refresh(config);
+			const htmlReferences = await htmlReferencesCache.refresh(config);
 			const components = await componentsCache.refresh(config);
 			const routes = await routesCache.refresh(config);
+
+			let postprocessingTime = process.hrtime();
 
 			const inlineTemplates: IComponentTemplate[] = [];
 			inlineTemplates.push(...getTemplatesWithBody(components));
@@ -104,15 +117,15 @@ const refreshComponents = async (config?: vsc.WorkspaceConfiguration): Promise<v
 
 			htmlReferencesCache.loadInlineTemplates(inlineTemplates);
 
-			findUnusedAngularComponents.load(references, components);
-			referencesProvider.load(references, components);
+			findUnusedAngularComponents.load(htmlReferences, components);
+			referencesProvider.load(htmlReferences, components);
 			memberReferencesProvider.load(components);
 
-			completionProvider.loadComponents(components);
-			memberCompletionProvider.loadComponents(components);
-			bindingProvider.loadComponents(components);
-			definitionProvider.loadComponents(components);
-			memberDefinitionProvider.loadComponents(components);
+			// TODO: introduce events for all other caches as well - needs slight refactor first
+			componentsChanged(components);
+
+			postprocessingTime = process.hrtime(postprocessingTime);
+			log(`Postprocessing time: ${prettyHrtime(postprocessingTime)}`);
 
 			components.forEach(c => logVerbose(`Found component: ${c.name} { ctrl: ${c.controller && c.controller.name} } (${c.path})`));
 

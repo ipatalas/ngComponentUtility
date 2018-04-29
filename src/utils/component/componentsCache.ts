@@ -8,13 +8,17 @@ import { Controller } from '../controller/controller';
 import { SourceFile } from '../sourceFile';
 import { SourceFilesScanner } from '../sourceFilesScanner';
 import { FileWatcher } from '../fileWatcher';
+import { EventEmitter } from 'events';
+import { events } from '../../symbols';
 
-export class ComponentsCache implements vsc.Disposable {
+export class ComponentsCache extends EventEmitter implements vsc.Disposable {
 	private scanner = new SourceFilesScanner();
 	private components: Component[] = [];
 	private controllers: Controller[] = [];
 	private componentWatcher: FileWatcher;
 	private controllerWatcher: FileWatcher;
+
+	private emitComponentsChanged = () => this.emit(events.componentsChanged, this.components);
 
 	private setupWatchers = (config: vsc.WorkspaceConfiguration) => {
 		const componentGlobs = config.get('componentGlobs') as string[];
@@ -33,6 +37,7 @@ export class ComponentsCache implements vsc.Disposable {
 
 		this.controllers.push.apply(this.controllers, controllers);
 		this.reassignControllers(controllers);
+		this.emitComponentsChanged();
 	}
 
 	private onControllerDeleted = (uri: vsc.Uri) => {
@@ -44,6 +49,7 @@ export class ComponentsCache implements vsc.Disposable {
 			.forEach(c => c.controller = null);
 
 		this.deleteFile(this.controllers, filepath);
+		this.emitComponentsChanged();
 	}
 
 	private onControllerChanged = async (uri: vsc.Uri) => {
@@ -63,6 +69,7 @@ export class ComponentsCache implements vsc.Disposable {
 		this.controllers.push.apply(this.controllers, controllers);
 
 		this.reassignControllers(controllers);
+		this.emitComponentsChanged();
 	}
 
 	private reassignControllers = (changedControllers: Controller[]) => {
@@ -85,6 +92,7 @@ export class ComponentsCache implements vsc.Disposable {
 		const components = await Component.parse(src, this.controllers);
 
 		this.components.push.apply(this.components, components);
+		this.emitComponentsChanged();
 	}
 
 	private onComponentChanged = async (uri: vsc.Uri) => {
@@ -102,10 +110,12 @@ export class ComponentsCache implements vsc.Disposable {
 
 		this.deleteFile(this.components, filepath);
 		this.components.push.apply(this.components, components);
+		this.emitComponentsChanged();
 	}
 
 	private onComponentDeleted = (uri: vsc.Uri) => {
 		this.deleteFile(this.components, this.normalizePath(uri.fsPath));
+		this.emitComponentsChanged();
 	}
 
 	private deleteFile = (collection: Array<{ path: string }>, filepath: string) => {
