@@ -86,6 +86,8 @@ export class RoutesCache extends EventEmitter implements vsc.Disposable {
 		if (this.watcher) {
 			this.watcher.dispose();
 		}
+
+		this.removeAllListeners();
 	}
 
 	private normalizePath = (p: string) => path.normalize(p).toLowerCase();

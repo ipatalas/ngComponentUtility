@@ -156,6 +156,8 @@ export class ComponentsCache extends EventEmitter implements vsc.Disposable {
 		if (this.controllerWatcher) {
 			this.controllerWatcher.dispose();
 		}
+
+		this.removeAllListeners();
 	}
 
 	private normalizePath = (p: string) => path.normalize(p).toLowerCase();

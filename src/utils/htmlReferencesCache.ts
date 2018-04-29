@@ -148,6 +148,8 @@ export class HtmlReferencesCache extends EventEmitter implements vsc.Disposable 
 		if (this.watcher) {
 			this.watcher.dispose();
 		}
+
+		this.removeAllListeners();
 	}
 
 	// glob returns paths with forward slash on Windows whereas gaze returns them with OS specific separator
