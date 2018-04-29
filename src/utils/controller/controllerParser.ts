@@ -3,6 +3,7 @@ import { SourceFile } from '../sourceFile';
 import { Controller } from './controller';
 import { ClassMethod } from './method';
 import { ClassProperty } from './property';
+import _ = require('lodash');
 
 export class ControllerParser {
 	private results: Controller[] = [];
@@ -26,14 +27,12 @@ export class ControllerParser {
 			controller.pos = this.file.sourceFile.getLineAndCharacterOfPosition(functionDeclaration.name.pos);
 
 			this.results.push(controller);
-		} else if (node.kind === ts.SyntaxKind.ClassDeclaration) {
-			const classDeclaration = node as ts.ClassDeclaration;
-
+		} else if (this.isControllerClass(node)) {
 			const controller = new Controller();
 			controller.path = this.file.path;
-			controller.name = controller.className = classDeclaration.name.text;
-			controller.pos = this.file.sourceFile.getLineAndCharacterOfPosition(classDeclaration.members.pos);
-			controller.members = classDeclaration.members.map(this.createMember).filter(item => item); // filter out undefined (not implemented member types)
+			controller.name = controller.className = node.name.text;
+			controller.pos = this.file.sourceFile.getLineAndCharacterOfPosition(node.members.pos);
+			controller.members = node.members.map(this.createMember).filter(item => item); // filter out undefined (not implemented member types)
 
 			this.results.push(controller);
 		} else if (node.kind === ts.SyntaxKind.CallExpression) {
@@ -98,5 +97,22 @@ export class ControllerParser {
 				return ClassProperty.fromProperty(prop, this.file.sourceFile);
 			}
 		}
+	}
+
+	private isControllerClass(node: ts.Node): node is ts.ClassDeclaration {
+		const isClassDeclaration = node.kind === ts.SyntaxKind.ClassDeclaration;
+		const classDeclaration = node as ts.ClassDeclaration;
+
+		return isClassDeclaration && !this.implementsComponentOptions(classDeclaration);
+	}
+
+	private implementsComponentOptions(classDeclaration: ts.ClassDeclaration) {
+		if (!classDeclaration.heritageClauses) {
+			return false;
+		}
+
+		const typeNames = _.flatMap(classDeclaration.heritageClauses, x => x.types.map(t => t.getText()));
+
+		return typeNames.some(t => t.includes('IComponentOptions'));
 	}
 }

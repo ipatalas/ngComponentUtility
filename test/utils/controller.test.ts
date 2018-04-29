@@ -36,6 +36,12 @@ describe('Give Controller class', () => {
 				name: '2'
 			}]
 		}, {
+			test_file: 'controller_multiple_ignored.ts',
+			expected_results: [{
+				className: 'TestController',
+				name: 'TestController'
+			}]
+		}, {
 			test_file: 'controller_chained.ts',
 			expected_results: [1, 2, 3].map(i => ({
 				className: `TestController${i}`,
