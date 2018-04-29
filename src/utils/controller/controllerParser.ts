@@ -21,6 +21,7 @@ export class ControllerParser {
 			const functionDeclaration = node as ts.FunctionDeclaration;
 
 			const controller = new Controller();
+			controller.path = this.file.path;
 			controller.name = controller.className = functionDeclaration.name.text;
 			controller.pos = this.file.sourceFile.getLineAndCharacterOfPosition(functionDeclaration.name.pos);
 
