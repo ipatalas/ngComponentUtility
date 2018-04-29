@@ -6,11 +6,15 @@ import { SourceFilesScanner } from './sourceFilesScanner';
 import { Route } from './route';
 import { SourceFile } from './sourceFile';
 import { FileWatcher } from './fileWatcher';
+import { EventEmitter } from 'events';
+import { events } from '../symbols';
 
-export class RoutesCache implements vsc.Disposable {
+export class RoutesCache extends EventEmitter implements vsc.Disposable {
 	private scanner = new SourceFilesScanner();
 	private routes: Route[] = [];
 	private watcher: FileWatcher;
+
+	private emitRoutesChanged = () => this.emit(events.routesChanged, this.routes);
 
 	private setupWatchers = (config: vsc.WorkspaceConfiguration) => {
 		const globs = config.get('routeGlobs') as string[];
@@ -25,6 +29,7 @@ export class RoutesCache implements vsc.Disposable {
 		const routes = await Route.parse(src);
 
 		this.routes.push(...routes);
+		this.emitRoutesChanged();
 	}
 
 	private onChanged = async (uri: vsc.Uri) => {
@@ -42,10 +47,12 @@ export class RoutesCache implements vsc.Disposable {
 
 		this.deleteComponentFile(filepath);
 		this.routes.push(...routes);
+		this.emitRoutesChanged();
 	}
 
 	private onDeleted = (uri: vsc.Uri) => {
 		this.deleteComponentFile(this.normalizePath(uri.fsPath));
+		this.emitRoutesChanged();
 	}
 
 	private deleteComponentFile = (filepath: string) => {

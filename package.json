@@ -33,7 +33,7 @@
 		"type": "git",
 		"url": "https://github.com/ipatalas/ngComponentUtility"
 	},
-	"main": "./out/src/extension",
+	"main": "./out/src/main",
 	"contributes": {
 		"commands": [
 			{

@@ -11,12 +11,16 @@ import { angularRoot, findFiles } from './vsc';
 import { IComponentTemplate } from './component/component';
 import { FileWatcher } from './fileWatcher';
 import { log } from './logging';
+import { EventEmitter } from 'events';
+import { events } from '../symbols';
 
 const htmlTags = new Set<string>(tags);
 
-export class HtmlReferencesCache implements vsc.Disposable {
+export class HtmlReferencesCache extends EventEmitter implements vsc.Disposable {
 	private htmlReferences: IHtmlReferences;
 	private watcher: FileWatcher;
+
+	private emitReferencesChanged = () => this.emit(events.htmlReferencesChanged, this.htmlReferences);
 
 	private setupWatchers = (config: vsc.WorkspaceConfiguration) => {
 		const globs = config.get('htmlGlobs') as string[];
@@ -28,6 +32,7 @@ export class HtmlReferencesCache implements vsc.Disposable {
 	private onAdded = async (uri: vsc.Uri) => {
 		const filepath = this.normalizePath(uri.fsPath);
 		this.parseFile(filepath, this.htmlReferences);
+		this.emitReferencesChanged();
 	}
 
 	private onChanged = async (uri: vsc.Uri) => {
@@ -35,10 +40,12 @@ export class HtmlReferencesCache implements vsc.Disposable {
 
 		this.deleteFileReferences(filepath);
 		this.parseFile(filepath, this.htmlReferences);
+		this.emitReferencesChanged();
 	}
 
 	private onDeleted = (uri: vsc.Uri) => {
 		this.deleteFileReferences(this.normalizePath(uri.fsPath));
+		this.emitReferencesChanged();
 	}
 
 	private deleteFileReferences = (filepath: string) => {
