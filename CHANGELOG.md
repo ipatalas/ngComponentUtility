@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.7.4 (May 1, 2018)
+
+* Fixed [#24](https://github.com/ipatalas/ngComponentUtility/issues/24) - watch reload not working correctly
+
 ## 0.7.3 (Feb 18, 2018)
 
 * Fixed [#22](https://github.com/ipatalas/ngComponentUtility/issues/22) - custom Angular root folder
