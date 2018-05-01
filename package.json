@@ -148,7 +148,6 @@
 	"devDependencies": {
 		"@types/lodash": "^4.14.100",
 		"@types/mocha": "^5.2.0",
-		"@types/node": "^10.0.2",
 		"mocha": "^5.0.0",
 		"tslint": "^5.9.1",
 		"vscode": "^1.1.10"
