@@ -170,6 +170,8 @@ This plugin contributes the following [settings](https://code.visualstudio.com/d
 
 Whenever one of the globs changes components cache is automatically rebuilt. Additionally all component files are monitored for changes and they will be reflected immediately, ie. after adding a binding you can just save the file and go straight to template file to use that binding.
 
+> **Note:** all configuration settings using globs are actually using built-in globs described [here](https://code.visualstudio.com/docs/extensionAPI/vscode-api#GlobPattern) 
+
 # Commands
 
 This extension contributes the following commands to the Command palette.
