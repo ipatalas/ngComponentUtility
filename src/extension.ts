@@ -22,8 +22,8 @@ import * as prettyHrtime from 'pretty-hrtime';
 import { events } from './symbols';
 import { Route } from './utils/route';
 
-const HTML_DOCUMENT_SELECTOR = 'html';
-const TS_DOCUMENT_SELECTOR = 'typescript';
+const HTML_DOCUMENT_SELECTOR = <vsc.DocumentFilter>{ language: 'html', scheme: 'file' };
+const TS_DOCUMENT_SELECTOR = <vsc.DocumentFilter>{ language: 'typescript', scheme: 'file' };
 const COMMAND_REFRESHCOMPONENTS: string = 'extension.refreshAngularComponents';
 const COMMAND_FINDUNUSEDCOMPONENTS: string = 'extension.findUnusedAngularComponents';
 const COMMAND_MARKASANGULAR: string = 'extension.markAsAngularProject';
