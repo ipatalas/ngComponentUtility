@@ -17,7 +17,7 @@ import { events } from '../../symbols';
 const htmlTags = new Set<string>(tags);
 
 export class HtmlTemplateInfoCache extends EventEmitter implements vsc.Disposable {
-	private htmlReferences: IHtmlReferences;
+	private htmlReferences: IHtmlReferences = {};
 	private watcher: FileWatcher;
 
 	private emitReferencesChanged = () => this.emit(events.htmlReferencesChanged, this.htmlReferences);
@@ -103,14 +103,13 @@ export class HtmlTemplateInfoCache extends EventEmitter implements vsc.Disposabl
 			});
 
 			const parser = this.createHtmlReferencesParser(resolve, reject, htmlReferences, filePath, getLocation);
-
-			parser.write(template.body);
-			parser.end();
+			parser.end(template.body);
 		});
 	}
 
 	public loadInlineTemplates = async (templates: IComponentTemplate[]) => {
 		await Promise.all(templates.map(c => this.parseInlineTemplate(c, this.htmlReferences)));
+		return this.htmlReferences;
 	}
 
 	public refresh = async (config?: vsc.WorkspaceConfiguration): Promise<IHtmlReferences> => {

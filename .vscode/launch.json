@@ -24,6 +24,9 @@
 			"args": ["--extensionDevelopmentPath=${workspaceRoot}", "--extensionTestsPath=${workspaceRoot}/out/test" ],
 			"stopOnEntry": false,
 			"sourceMaps": true,
+			"env": {
+				"ANGULAR_ROOT_MOCK": ""
+			},
 			"outFiles": [
 				"${workspaceRoot}/out/**/*.js"
 			],
