@@ -7,12 +7,12 @@ import * as fs from 'fs';
 import * as vsc from 'vscode';
 import * as prettyHrtime from 'pretty-hrtime';
 import { default as tags } from './htmlTags';
-import { angularRoot, findFiles } from './vsc';
-import { IComponentTemplate } from './component/component';
-import { FileWatcher } from './fileWatcher';
-import { log } from './logging';
+import { angularRoot, findFiles } from '../vsc';
+import { IComponentTemplate } from '../component/component';
+import { FileWatcher } from '../fileWatcher';
+import { log } from '../logging';
 import { EventEmitter } from 'events';
-import { events } from '../symbols';
+import { events } from '../../symbols';
 
 const htmlTags = new Set<string>(tags);
 
@@ -87,13 +87,13 @@ export class HtmlReferencesCache extends EventEmitter implements vsc.Disposable 
 	private parseFile = (filePath, results: IHtmlReferences) => {
 		return new Promise<void>((resolve, reject) => {
 			const getLocation = (location: parse5.MarkupData.StartTagLocation) => ({ line: location.line - 1, col: location.col - 1 });
-			const parser = this.createParser(resolve, reject, results, filePath, getLocation);
+			const htmlParser = this.createParser(resolve, reject, results, filePath, getLocation);
 
-			fs.createReadStream(path.join(angularRoot, filePath)).pipe(parser);
+			fs.createReadStream(path.join(angularRoot, filePath)).pipe(htmlParser);
 		});
 	}
 
-	private parseTemplate = (template: IComponentTemplate, results: IHtmlReferences) => {
+	private parseInlineTemplate = (template: IComponentTemplate, results: IHtmlReferences) => {
 		return new Promise<void>((resolve, reject) => {
 			const filePath = this.normalizePath(template.path);
 
@@ -110,7 +110,7 @@ export class HtmlReferencesCache extends EventEmitter implements vsc.Disposable 
 	}
 
 	public loadInlineTemplates = async (templates: IComponentTemplate[]) => {
-		await Promise.all(templates.map(c => this.parseTemplate(c, this.htmlReferences)));
+		await Promise.all(templates.map(c => this.parseInlineTemplate(c, this.htmlReferences)));
 	}
 
 	public refresh = async (config?: vsc.WorkspaceConfiguration): Promise<IHtmlReferences> => {

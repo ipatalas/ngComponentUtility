@@ -1,5 +1,5 @@
 
-import { IHtmlReferences } from '../utils/htmlReferencesCache';
+import { IHtmlReferences } from '../utils/htmlTemplate/htmlReferencesCache';
 import { Component } from '../utils/component/component';
 import * as vsc from 'vscode';
 

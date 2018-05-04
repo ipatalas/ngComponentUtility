@@ -11,7 +11,7 @@ import { FindUnusedComponentsCommand } from './commands/findUnusedComponents';
 
 import { IComponentTemplate, Component } from './utils/component/component';
 import { ComponentsCache } from './utils/component/componentsCache';
-import { HtmlReferencesCache, IHtmlReferences } from './utils/htmlReferencesCache';
+import { HtmlReferencesCache, IHtmlReferences } from './utils/htmlTemplate/htmlReferencesCache';
 import { RoutesCache } from './utils/routesCache';
 import { MemberDefinitionProvider } from './providers/memberDefinitionProvider';
 import { ConfigurationChangeListener, IConfigurationChangedEvent } from './utils/configurationChangeListener';
