@@ -11,7 +11,7 @@ import { FindUnusedComponentsCommand } from './commands/findUnusedComponents';
 
 import { IComponentTemplate, Component } from './utils/component/component';
 import { ComponentsCache } from './utils/component/componentsCache';
-import { HtmlReferencesCache, IHtmlReferences } from './utils/htmlTemplate/htmlReferencesCache';
+import { HtmlTemplateInfoCache, IHtmlReferences } from './utils/htmlTemplate/htmlTemplateInfoCache';
 import { RoutesCache } from './utils/routesCache';
 import { MemberDefinitionProvider } from './providers/memberDefinitionProvider';
 import { ConfigurationChangeListener, IConfigurationChangedEvent } from './utils/configurationChangeListener';
@@ -40,7 +40,7 @@ export class Extension {
 	private findUnusedAngularComponents = new FindUnusedComponentsCommand();
 
 	private componentsCache = new ComponentsCache();
-	private htmlReferencesCache = new HtmlReferencesCache();
+	private htmlReferencesCache = new HtmlTemplateInfoCache();
 	private routesCache = new RoutesCache();
 
 	private statusBar = vsc.window.createStatusBarItem(vsc.StatusBarAlignment.Left);

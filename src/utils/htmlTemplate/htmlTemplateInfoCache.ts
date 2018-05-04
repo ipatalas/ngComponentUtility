@@ -16,7 +16,7 @@ import { events } from '../../symbols';
 
 const htmlTags = new Set<string>(tags);
 
-export class HtmlReferencesCache extends EventEmitter implements vsc.Disposable {
+export class HtmlTemplateInfoCache extends EventEmitter implements vsc.Disposable {
 	private htmlReferences: IHtmlReferences;
 	private watcher: FileWatcher;
 
@@ -62,7 +62,7 @@ export class HtmlReferencesCache extends EventEmitter implements vsc.Disposable 
 		emptyKeys.forEach(key => delete this.htmlReferences[key]);
 	}
 
-	private createParser = (resolve, reject, results: IHtmlReferences, filepath: string, locationCb): parse5.SAXParser => {
+	private createHtmlReferencesParser = (resolve, reject, htmlReferences: IHtmlReferences, filepath: string, locationCb): parse5.SAXParser => {
 		const parser = new parse5.SAXParser({ locationInfo: true });
 
 		parser.on('startTag', (name, _attrs, _self, location) => {
@@ -70,9 +70,9 @@ export class HtmlReferencesCache extends EventEmitter implements vsc.Disposable 
 				return;
 			}
 
-			results[name] = results[name] || {};
-			results[name][filepath] = results[name][filepath] || [];
-			results[name][filepath].push(locationCb(location));
+			htmlReferences[name] = htmlReferences[name] || {};
+			htmlReferences[name][filepath] = htmlReferences[name][filepath] || [];
+			htmlReferences[name][filepath].push(locationCb(location));
 		}).on('finish', () => {
 			parser.end();
 			resolve();
@@ -87,13 +87,13 @@ export class HtmlReferencesCache extends EventEmitter implements vsc.Disposable 
 	private parseFile = (filePath, results: IHtmlReferences) => {
 		return new Promise<void>((resolve, reject) => {
 			const getLocation = (location: parse5.MarkupData.StartTagLocation) => ({ line: location.line - 1, col: location.col - 1 });
-			const htmlParser = this.createParser(resolve, reject, results, filePath, getLocation);
+			const htmlParser = this.createHtmlReferencesParser(resolve, reject, results, filePath, getLocation);
 
 			fs.createReadStream(path.join(angularRoot, filePath)).pipe(htmlParser);
 		});
 	}
 
-	private parseInlineTemplate = (template: IComponentTemplate, results: IHtmlReferences) => {
+	private parseInlineTemplate = (template: IComponentTemplate, htmlReferences: IHtmlReferences) => {
 		return new Promise<void>((resolve, reject) => {
 			const filePath = this.normalizePath(template.path);
 
@@ -102,7 +102,7 @@ export class HtmlReferencesCache extends EventEmitter implements vsc.Disposable 
 				col: (location.line === 1 ? template.pos.character + 1 : 0) + location.col
 			});
 
-			const parser = this.createParser(resolve, reject, results, filePath, getLocation);
+			const parser = this.createHtmlReferencesParser(resolve, reject, htmlReferences, filePath, getLocation);
 
 			parser.write(template.body);
 			parser.end();

@@ -2,7 +2,7 @@ import * as path from 'path';
 import * as _ from 'lodash';
 import * as vsc from 'vscode';
 import { HtmlDocumentHelper } from '../utils/htmlDocumentHelper';
-import { IHtmlReferences, IComponentReference, IComponentReferences } from '../utils/htmlTemplate/htmlReferencesCache';
+import { IHtmlReferences, IComponentReference, IComponentReferences } from '../utils/htmlTemplate/htmlTemplateInfoCache';
 import { getLocation, angularRoot } from '../utils/vsc';
 import { Component } from '../utils/component/component';
 type DocumentHandlerDelegate = (document: vsc.TextDocument, position: vsc.Position) => vsc.Location[];
