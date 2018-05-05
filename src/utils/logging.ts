@@ -18,8 +18,12 @@ ${err.stack}`.trim());
 
 let lastError = false;
 
-export function logError(text: string) {
-	log(`⚠️${text}`, console.error);
+export function logError(text: string | Error) {
+	if (text instanceof Error) {
+		log(`⚠️${text.message}\nStack trace:\n${text.stack}`, console.error);
+	} else {
+		log(`⚠️${text}`, console.error);
+	}
 }
 
 export function logWarning(text: string) {
