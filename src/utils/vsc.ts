@@ -57,16 +57,10 @@ export function markAsAngularProject() {
 	});
 }
 
-export function findFiles(pattern: string, relative?: boolean) {
+export function findFiles(pattern: string) {
 	const workspacePattern = new vsc.RelativePattern(angularRoot, pattern);
 
-	return vsc.workspace.findFiles(workspacePattern).then(matches => matches.map(m => {
-		if (relative) {
-			return path.relative(angularRoot, m.fsPath);
-		} else {
-			return m.fsPath;
-		}
-	}));
+	return vsc.workspace.findFiles(workspacePattern).then(matches => matches.map(m => m.fsPath));
 }
 
 function getAngularRootDirectory() {

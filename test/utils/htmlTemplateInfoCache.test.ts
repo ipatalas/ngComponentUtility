@@ -1,18 +1,44 @@
-import { HtmlTemplateInfoCache } from '../../src/utils/htmlTemplate/htmlTemplateInfoCache';
 import * as assert from 'assert';
-import _ = require('lodash');
+import proxyquire = require('proxyquire');
+
+class MockedRelativePath {
+	public relative: string;
+
+	constructor(p: string) {
+		this.relative = p;
+	}
+}
+
+const { HtmlTemplateInfoCache } = proxyquire('../../src/utils/htmlTemplate/htmlTemplateInfoCache', {
+	'./relativePath': { RelativePath: MockedRelativePath }
+});
 
 describe('Given HtmlTemplateInfoCache class', () => {
 	describe('when calling loadInlineTemplates', () => {
 		it('then html references should be set', async () => {
+			// arrange
 			const sut = new HtmlTemplateInfoCache();
 
-			const result = await sut.loadInlineTemplates([{ path: 'path', pos: { line: 10, character: 10 }, body: '<test-component></test-component>' }]);
+			const expectedResult = {
+				'test-component': {
+					path: [{
+						line: 10,
+						col: 12
+					}]
+				}
+			};
 
-			assert(result['test-component']);
-			assert(result['test-component']['path']);
-			assert(result['test-component']['path'].length === 1);
-			assert(_.isEqual(result['test-component']['path'][0], { line: 10, col: 12 }));
+			const template = {
+				path: 'path',
+				pos: { line: 10, character: 10 },
+				body: '<test-component></test-component>'
+			};
+
+			// act
+			const result = await sut.loadInlineTemplates([template]);
+
+			// assert
+			assert.deepEqual(result, expectedResult);
 		});
 	});
 });
