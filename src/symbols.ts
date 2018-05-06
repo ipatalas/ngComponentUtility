@@ -1,5 +1,6 @@
 export const events = {
 	componentsChanged: Symbol('componentsChanged'),
 	htmlReferencesChanged: Symbol('htmlReferencesChanged'),
-	routesChanged: Symbol('routesChanged')
+	routesChanged: Symbol('routesChanged'),
+	memberFound: Symbol('memberFound')
 };
