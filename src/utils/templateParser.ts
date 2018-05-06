@@ -8,10 +8,10 @@ import { ConfigParser } from './configParser';
 export class TemplateParser {
 	public createTemplate = (config: ConfigParser, parser: TypescriptParser) => {
 		return this.createTemplateFromUrl(config.get('templateUrl'), parser)
-				|| this.createInlineTemplate(config.get('template'), parser);
+				|| this.createFromInlineTemplate(config.get('template'), parser);
 	}
 
-	private createInlineTemplate = (node: ts.Expression, parser: TypescriptParser): IComponentTemplate => {
+	private createFromInlineTemplate = (node: ts.Expression, parser: TypescriptParser): IComponentTemplate => {
 		if (!node) {
 			return undefined;
 		}
@@ -37,7 +37,7 @@ export class TemplateParser {
 			const declarations = variableStatement.declarationList.declarations;
 			const templateDeclaration = declarations.find(declaration => declaration.name.getText() === node.getText());
 			// pass CallExpression (e.g. require('./template.html'))
-			return this.createInlineTemplate(templateDeclaration.initializer, parser);
+			return this.createFromInlineTemplate(templateDeclaration.initializer, parser);
 		}
 	}
 

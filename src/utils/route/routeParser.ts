@@ -3,14 +3,16 @@ import { Route } from './route';
 import { SourceFile } from '../sourceFile';
 import * as ts from 'typescript';
 import { ConfigParser } from '../configParser';
-import { IComponentTemplate } from '../component/component';
+import { TemplateParser } from '../templateParser';
 
 export class RouteParser {
 	private tsParser: TypescriptParser;
+	private templateParser: TemplateParser;
 	private results: Route[] = [];
 
 	constructor(file: SourceFile) {
 		this.tsParser = new TypescriptParser(file);
+		this.templateParser = new TemplateParser();
 	}
 
 	public parse() {
@@ -51,21 +53,8 @@ export class RouteParser {
 		route.pos = this.tsParser.sourceFile.getLineAndCharacterOfPosition(routeName.pos);
 		route.path = this.tsParser.path;
 
-		route.template = this.createTemplate(config.get('template'));
+		route.template = this.templateParser.createTemplate(config, this.tsParser);
 
 		return route;
-	}
-
-	private createTemplate = (initializer: ts.Expression): IComponentTemplate => {
-		if (!initializer) {
-			return undefined;
-		}
-
-		if (initializer.kind === ts.SyntaxKind.StringLiteral || initializer.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral) {
-			const pos = this.tsParser.sourceFile.getLineAndCharacterOfPosition(initializer.getStart(this.tsParser.sourceFile));
-			const literal = initializer as ts.LiteralExpression;
-
-			return { path: this.tsParser.sourceFile.fullpath, pos, body: literal.text } as IComponentTemplate;
-		}
 	}
 }
