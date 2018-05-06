@@ -1,14 +1,13 @@
 import * as ts from 'typescript';
-import * as path from 'path';
 import * as decamelize from 'decamelize';
 import { SourceFile } from '../sourceFile';
 import { Controller } from '../controller/controller';
-import { Component, IComponentTemplate } from './component';
-import { angularRoot } from '../vsc';
+import { Component } from './component';
 import { TypescriptParser } from '../typescriptParser';
 import { ConfigParser } from '../configParser';
 import { logVerbose } from '../logging';
 import { ComponentBinding } from './componentBinding';
+import { TemplateParser } from '../templateParser';
 
 interface IComponentToImport {
 	nameNode: ts.Expression;
@@ -19,12 +18,14 @@ interface IComponentToImport {
 export class ComponentParser {
 	private results: Component[] = [];
 	private tsParser: TypescriptParser;
+	private templateParser: TemplateParser;
 	private componentTsParser: Map<string, TypescriptParser>;
 	private componentsToImport: IComponentToImport[] = [];
 
-	constructor(private file: SourceFile, private controllers: Controller[]) {
+	constructor(file: SourceFile, private controllers: Controller[]) {
 		this.tsParser = new TypescriptParser(file);
 		this.componentTsParser = new Map<string, TypescriptParser>();
+		this.templateParser = new TemplateParser();
 	}
 
 	public parse = async () => {
@@ -163,12 +164,9 @@ export class ComponentParser {
 			component.bindings.push(...bindingsProps.properties.map(b => new ComponentBinding(b as ts.PropertyAssignment, parser)));
 		}
 
-		component.template = this.createTemplateFromUrl(config.get('templateUrl'), parser);
+		component.template = this.templateParser.createTemplate(config, parser);
 		if (!component.template) {
-			component.template = this.createTemplate(config.get('template'), parser);
-			if (!component.template) {
-				logVerbose(`Template for ${component.name} not found (member completion and Go To Definition for this component will not work)`);
-			}
+			logVerbose(`Template for ${component.name} not found (member completion and Go To Definition for this component will not work)`);
 		}
 
 		component.controllerAs = this.createControllerAlias(config.get('controllerAs'));
@@ -198,49 +196,6 @@ export class ComponentParser {
 			return this.controllers.find(c => c.name === component.controllerName);
 		} else if (component.controllerClassName) {
 			return this.controllers.find(c => c.className === component.controllerClassName);
-		}
-	}
-
-	private createTemplate = (node: ts.Expression, parser: TypescriptParser): IComponentTemplate => {
-		if (!node) {
-			return undefined;
-		}
-
-		if (node.kind === ts.SyntaxKind.StringLiteral || node.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral) {
-			const pos = parser.sourceFile.getLineAndCharacterOfPosition(node.getStart(parser.sourceFile));
-			const literal = node as ts.LiteralExpression;
-
-			return { path: this.file.path, pos, body: literal.text } as IComponentTemplate;
-		} else if (node.kind === ts.SyntaxKind.CallExpression) {
-			// handle require('./template.html')
-			const call = node as ts.CallExpression;
-			if (call.arguments.length === 1 && call.expression.kind === ts.SyntaxKind.Identifier && call.expression.getText() === 'require') {
-				const relativePath = (call.arguments[0] as ts.StringLiteral).text;
-				const templatePath = path.join(path.dirname(parser.path), relativePath);
-
-				return { path: templatePath, pos: { line: 0, character: 0 } } as IComponentTemplate;
-			}
-		} else if (node.kind === ts.SyntaxKind.Identifier) {
-			// handle template: template
-			const variableStatement = parser.sourceFile.statements
-				.find(statement => statement.kind === ts.SyntaxKind.VariableStatement) as ts.VariableStatement;
-			const declarations = variableStatement.declarationList.declarations;
-			const templateDeclaration = declarations.find(declaration => declaration.name.getText() === node.getText());
-			// pass CallExpression (e.g. require('./template.html'))
-			return this.createTemplate(templateDeclaration.initializer, parser);
-		}
-	}
-
-	private createTemplateFromUrl(node: ts.Expression, parser: TypescriptParser) {
-		if (!node) {
-			return undefined;
-		}
-
-		const value = parser.getStringValueFromNode(node);
-		if (value) {
-			const templatePath = path.join(angularRoot, value);
-
-			return { path: templatePath, pos: { line: 0, character: 0 } } as IComponentTemplate;
 		}
 	}
 
