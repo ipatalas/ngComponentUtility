@@ -9,7 +9,7 @@
 		"**/node_modules": false
 	},
 	"editor.insertSpaces": false,
-	"editor.detectIndentation": false,
+	"editor.detectIndentation": true,
 	"typescript.tsdk": "./node_modules/typescript/lib",
 	"tslint.configFile": "tslint.json",
 	"eslint.enable": false

@@ -24,8 +24,9 @@
 			}
 		],
 		"indent": [
-			true,
-			"tabs"
+			false,
+			"tabs",
+			2
 		],
 		"quotemark": [
 			true,
