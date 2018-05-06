@@ -1,16 +1,10 @@
 import * as assert from 'assert';
-import { join as path_join } from 'path';
-import * as ts from 'typescript';
-import * as fs from 'fs';
 import * as _ from 'lodash';
 
 import { Controller } from '../../src/utils/controller/controller';
 import { MemberBase, MemberType } from '../../src/utils/controller/member';
 import { ClassMethod } from '../../src/utils/controller/method';
-
-const TEST_FILES_ROOT = path_join(__dirname, '../../../test/test_files/controllers');
-
-const getTestFilePath = (filename: string) => path_join(TEST_FILES_ROOT, filename);
+import { getControllerSourceFile } from './helpers';
 
 describe('Give Controller class', () => {
 	describe('when calling parse', () => {
@@ -52,10 +46,9 @@ describe('Give Controller class', () => {
 		testFiles(testCases);
 
 		it('with controller with members then all members are properly parsed', async () => {
-			const path = getTestFilePath('controller_members.ts');
-			const sourceFile = ts.createSourceFile('controller_members.ts', fs.readFileSync(path, 'utf8'), ts.ScriptTarget.ES5, true);
+			const sourceFile = getControllerSourceFile('controller_members.ts');
 
-			const ctrl = (await Controller.parse({ path, sourceFile }))[0];
+			const ctrl = (await Controller.parse(sourceFile))[0];
 
 			const members = ctrl.members.map(m => <MemberBase>m);
 
@@ -96,10 +89,9 @@ function assertMember(members: MemberBase[], name: string, type: MemberType, ret
 function testFiles(cases: Array<{ test_file: string, expected_results: Array<{ className: string, name: string }> }>) {
 	cases.forEach(test => {
 		it(`with '${test.test_file}' file then a properly parsed controller is returned`, async () => {
-			const path = getTestFilePath(test.test_file);
-			const sourceFile = ts.createSourceFile(test.test_file, fs.readFileSync(path, 'utf8'), ts.ScriptTarget.ES5, true);
+			const sourceFile = getControllerSourceFile(test.test_file);
 
-			const controllers = await Controller.parse({ path, sourceFile });
+			const controllers = await Controller.parse(sourceFile);
 
 			assert.equal(controllers.length, test.expected_results.length);
 

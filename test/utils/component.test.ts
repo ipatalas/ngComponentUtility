@@ -1,14 +1,8 @@
 import * as assert from 'assert';
-import * as _path from 'path';
-import * as ts from 'typescript';
-import * as fs from 'fs';
 import * as _ from 'lodash';
 
 import { Component, IComponentBinding } from '../../src/utils/component/component';
-
-const TEST_FILES_ROOT = _path.join(__dirname, '../../../test/test_files/components');
-
-const getTestFilePath = (filename: string) => _path.join(TEST_FILES_ROOT, filename);
+import { getComponentSourceFile, getComponentsTestFilePath } from './helpers';
 
 describe('Give Component class', () => {
 	describe('when calling parse in AST mode', () => {
@@ -17,93 +11,93 @@ describe('Give Component class', () => {
 		testFiles(files);
 
 		it('and controllerAs property exists then controller alias is set', async () => {
-			const { path, sourceFile } = getSourceFile('component_ctrlAlias.ts');
+			const sourceFile = getComponentSourceFile('component_ctrlAlias.ts');
 
-			const component = await Component.parse({ path, sourceFile }, []);
+			const component = await Component.parse(sourceFile, []);
 
 			assert.equal(component[0].controllerAs, 'vm');
 		});
 
 		it('and controllerAs property does not exist then default controller alias is set', async () => {
-			const { path, sourceFile } = getSourceFile('component_noCtrlAlias.ts');
+			const sourceFile = getComponentSourceFile('component_noCtrlAlias.ts');
 
-			const component = await Component.parse({ path, sourceFile }, []);
+			const component = await Component.parse(sourceFile, []);
 
 			assert.equal(component[0].controllerAs, '$ctrl');
 		});
 
 		it('with component_importLiteral.ts file then a properly parsed component is returned', async () => {
-			const { path, sourceFile } = getSourceFile('component_importLiteral.ts');
+			const sourceFile = getComponentSourceFile('component_importLiteral.ts');
 
-			const components = await Component.parse({ path, sourceFile }, []);
+			const components = await Component.parse(sourceFile, []);
 
 			assertComponents(components);
 		});
 
 		it('with component_importClass.ts file then a properly parsed component is returned', async () => {
-			const { path, sourceFile } = getSourceFile('component_importClass.ts');
+			const sourceFile = getComponentSourceFile('component_importClass.ts');
 
-			const components = await Component.parse({ path, sourceFile }, []);
+			const components = await Component.parse(sourceFile, []);
 
 			assertComponents(components);
 		});
 
 		it('with component_class.ts file then a properly parsed component is returned', async () => {
-			const { path, sourceFile } = getSourceFile('component_class.ts');
+			const sourceFile = getComponentSourceFile('component_class.ts');
 
-			const components = await Component.parse({ path, sourceFile }, []);
+			const components = await Component.parse(sourceFile, []);
 
 			assertComponents(components);
 		});
 
 		it('with component_literal.ts file then a properly parsed component is returned', async () => {
-			const { path, sourceFile } = getSourceFile('component_literal.ts');
+			const sourceFile = getComponentSourceFile('component_literal.ts');
 
-			const components = await Component.parse({ path, sourceFile }, []);
+			const components = await Component.parse(sourceFile, []);
 
 			assertComponents(components);
 		});
 
 		it('with component_importReexportedLiteral.ts file then a properly parsed component is returned', async () => {
-			const { path, sourceFile } = getSourceFile('component_importReexportedLiteral.ts');
+			const sourceFile = getComponentSourceFile('component_importReexportedLiteral.ts');
 
-			const components = await Component.parse({ path, sourceFile }, []);
+			const components = await Component.parse(sourceFile, []);
 
 			assertComponents(components);
 		});
 
 		it('with component_importReexportedClass.ts file then a properly parsed component is returned', async () => {
-			const { path, sourceFile } = getSourceFile('component_importReexportedClass.ts');
+			const sourceFile = getComponentSourceFile('component_importReexportedClass.ts');
 
-			const components = await Component.parse({ path, sourceFile }, []);
+			const components = await Component.parse(sourceFile, []);
 
 			assertComponents(components);
 		});
 
 		it('with component_required_template.ts file then a properly parsed component is returned', async () => {
-			const { path, sourceFile } = getSourceFile('component_required_template.ts');
+			const sourceFile = getComponentSourceFile('component_required_template.ts');
 
-			const components = await Component.parse({ path, sourceFile }, []);
+			const components = await Component.parse(sourceFile, []);
 
-			const expectedTemplatePath = getTestFilePath('template.html');
+			const expectedTemplatePath = getComponentsTestFilePath('template.html');
 			assert.equal(components[0].template.path, expectedTemplatePath);
 		});
 
 		it('with component_inline_template.ts file then template body is assigned to component', async () => {
-			const { path, sourceFile } = getSourceFile('component_inline_template.ts');
+			const sourceFile = getComponentSourceFile('component_inline_template.ts');
 
-			const components = await Component.parse({ path, sourceFile }, []);
+			const components = await Component.parse(sourceFile, []);
 
 			const expectedTemplateBody = '<b>inlineTemplateBody</b>';
 			assert.equal(components[0].template.body, expectedTemplateBody);
 		});
 
 		it('with component_constructor_init.ts file then a properly parsed component is returned', async () => {
-			const { path, sourceFile } = getSourceFile('component_constructor_init.ts');
+			const sourceFile = getComponentSourceFile('component_constructor_init.ts');
 
-			const components = await Component.parse({ path, sourceFile }, []);
+			const components = await Component.parse(sourceFile, []);
 
-			const expectedTemplatePath = getTestFilePath('example-template.html');
+			const expectedTemplatePath = getComponentsTestFilePath('example-template.html');
 			assert.equal(components[0].template.path, expectedTemplatePath);
 		});
 	});
@@ -121,20 +115,12 @@ function assertComponents(components: Component[], names?: string[]) {
 	}
 }
 
-function getSourceFile(name: string) {
-	const path = getTestFilePath(name);
-	const sourceFile = ts.createSourceFile(name, fs.readFileSync(path, 'utf8'), ts.ScriptTarget.ES5, true);
-
-	return { path, sourceFile };
-}
-
 function testFiles(files: string[]) {
 	files.forEach((file) => {
 		it(`with '${file}' file then a properly parsed component is returned`, async () => {
-			const path = getTestFilePath(file);
-			const sourceFile = ts.createSourceFile(file, fs.readFileSync(path, 'utf8'), ts.ScriptTarget.ES5, true);
+			const sourceFile = getComponentSourceFile(file);
 
-			const component = await Component.parse({ path, sourceFile }, []);
+			const component = await Component.parse(sourceFile, []);
 
 			assert.equal(component.length, 1);
 			assert.equal(component[0].name, 'exampleComponent');
