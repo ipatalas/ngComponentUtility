@@ -6,11 +6,16 @@ export class RelativePath {
 	private readonly relativePath: string;
 	private static readonly reSlashes = /\\/g;
 
-	constructor(fullpath: string) {
-		this.relativePath = path.relative(angularRoot, fullpath).replace(RelativePath.reSlashes, '/');
+	constructor(filepath: string, isRelative?: boolean) {
+		if (isRelative) {
+			this.relativePath = filepath;
+		} else {
+			this.relativePath = path.relative(angularRoot, filepath).replace(RelativePath.reSlashes, '/');
+		}
 	}
 
 	public static fromUri = (uri: vsc.Uri) => new RelativePath(uri.fsPath);
+	public static toAbsolute = (relative: string) => new RelativePath(relative, true).absolute;
 
 	public get relative() {
 		return this.relativePath;

@@ -11,7 +11,7 @@ import { FindUnusedComponentsCommand } from './commands/findUnusedComponents';
 
 import { IComponentTemplate, Component } from './utils/component/component';
 import { ComponentsCache } from './utils/component/componentsCache';
-import { HtmlTemplateInfoCache, IHtmlReferences } from './utils/htmlTemplate/htmlTemplateInfoCache';
+import { HtmlTemplateInfoCache, IHtmlReferences, IMemberAccessResults } from './utils/htmlTemplate/htmlTemplateInfoCache';
 import { RoutesCache } from './utils/routesCache';
 import { MemberDefinitionProvider } from './providers/memberDefinitionProvider';
 import { ConfigurationChangeListener, IConfigurationChangedEvent } from './utils/configurationChangeListener';
@@ -21,6 +21,7 @@ import { MemberReferencesProvider } from './providers/memberReferencesProvider';
 import * as prettyHrtime from 'pretty-hrtime';
 import { events } from './symbols';
 import { Route } from './utils/route';
+import { MemberAccessDiagnostics } from './utils/memberAccessDiagnostics';
 
 const HTML_DOCUMENT_SELECTOR = <vsc.DocumentFilter>{ language: 'html', scheme: 'file' };
 const TS_DOCUMENT_SELECTOR = <vsc.DocumentFilter>{ language: 'typescript', scheme: 'file' };
@@ -42,6 +43,7 @@ export class Extension {
 	private componentsCache = new ComponentsCache();
 	private htmlReferencesCache = new HtmlTemplateInfoCache();
 	private routesCache = new RoutesCache();
+	private memberAccessDiagnostics = new MemberAccessDiagnostics();
 
 	private statusBar = vsc.window.createStatusBarItem(vsc.StatusBarAlignment.Left);
 	private configListener = new ConfigurationChangeListener('ngComponents');
@@ -49,6 +51,7 @@ export class Extension {
 	private latestComponents: Component[];
 	private latestHtmlReferences: IHtmlReferences;
 	private latestRoutes: Route[];
+	private diagnosticCollection: vsc.DiagnosticCollection;
 
 	public activate = async (context: vsc.ExtensionContext) => {
 		if (!shouldActivateExtension()) {
@@ -56,6 +59,8 @@ export class Extension {
 			context.subscriptions.push(vsc.commands.registerCommand(COMMAND_MARKASANGULAR, markAsAngularProject));
 			return;
 		}
+
+		this.diagnosticCollection = vsc.languages.createDiagnosticCollection('diag-name');
 
 		context.subscriptions.push(this.configListener, this.componentsCache, this.htmlReferencesCache, this.routesCache);
 		context.subscriptions.push(vsc.commands.registerCommand(COMMAND_MARKASANGULAR, alreadyAngularProject));
@@ -92,7 +97,8 @@ export class Extension {
 			vsc.languages.registerDefinitionProvider(HTML_DOCUMENT_SELECTOR, this.definitionProvider),
 			vsc.languages.registerDefinitionProvider(HTML_DOCUMENT_SELECTOR, this.memberDefinitionProvider),
 			vsc.languages.registerReferenceProvider([HTML_DOCUMENT_SELECTOR, TS_DOCUMENT_SELECTOR], this.referencesProvider),
-			vsc.languages.registerReferenceProvider(TS_DOCUMENT_SELECTOR, this.memberReferencesProvider)
+			vsc.languages.registerReferenceProvider(TS_DOCUMENT_SELECTOR, this.memberReferencesProvider),
+			this.diagnosticCollection
 		]);
 
 		this.statusBar.tooltip = 'Refresh Angular components';
@@ -128,16 +134,25 @@ export class Extension {
 		this.memberDefinitionProvider.loadComponents(components);
 	}
 
+	private refreshMemberAccessDiagnostics = (memberAccess: IMemberAccessResults) => {
+		const diagnostics = this.memberAccessDiagnostics.getDiagnostics(this.latestComponents, memberAccess);
+
+		this.diagnosticCollection.clear();
+		this.diagnosticCollection.set(diagnostics);
+	}
+
 	private refreshComponents = async (config?: vsc.WorkspaceConfiguration): Promise<void> => {
 		return new Promise<void>(async (resolve, _reject) => {
 			try {
-				this.latestHtmlReferences = await this.htmlReferencesCache.refresh(config);
 				this.latestComponents = await this.componentsCache.refresh(config);
 				this.latestRoutes = await this.routesCache.refresh(config);
+				const { htmlReferences, memberAccess } = await this.htmlReferencesCache.refresh(config, this.latestComponents);
+				this.latestHtmlReferences = htmlReferences;
 
 				let postprocessingTime = process.hrtime();
 
 				this.refreshAllProviders(this.latestComponents, this.latestRoutes, this.latestHtmlReferences);
+				this.refreshMemberAccessDiagnostics(memberAccess);
 
 				postprocessingTime = process.hrtime(postprocessingTime);
 				log(`Postprocessing time: ${prettyHrtime(postprocessingTime)}`);
