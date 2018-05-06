@@ -2,12 +2,12 @@
 
 import * as path from 'path';
 import * as vsc from 'vscode';
-import { SourceFilesScanner } from './sourceFilesScanner';
+import { SourceFilesScanner } from '../sourceFilesScanner';
 import { Route } from './route';
-import { SourceFile } from './sourceFile';
-import { FileWatcher } from './fileWatcher';
+import { SourceFile } from '../sourceFile';
+import { FileWatcher } from '../fileWatcher';
 import { EventEmitter } from 'events';
-import { events } from '../symbols';
+import { events } from '../../symbols';
 
 export class RoutesCache extends EventEmitter implements vsc.Disposable {
 	private scanner = new SourceFilesScanner();
