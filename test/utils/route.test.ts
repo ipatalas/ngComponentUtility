@@ -9,6 +9,7 @@ describe('Given Route class', () => {
 
 			const [route] = await Route.parse(sourceFile);
 
+			assert.equal(route.path, sourceFile.path);
 			assert.equal(route.name, 'example_route');
 			assert.equal(route.template.body, 'Route inline template');
 			assert.equal(route.template.path, sourceFile.path);

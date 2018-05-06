@@ -14,7 +14,8 @@ export class Controller {
 	public static parse(file: SourceFile): Promise<Controller[]> {
 		return new Promise<Controller[]>((resolve, _reject) => {
 			try {
-				const results: Controller[] = Controller.parseWithApi(file);
+				const parser = new ControllerParser(file);
+				const results: Controller[] = parser.parse();
 
 				resolve(results);
 			} catch (e) {
@@ -22,11 +23,5 @@ export class Controller {
 				resolve([]);
 			}
 		});
-	}
-
-	private static parseWithApi(file: SourceFile) {
-		const parser = new ControllerParser(file);
-
-		return parser.parse();
 	}
 }
