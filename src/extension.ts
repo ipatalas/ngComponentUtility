@@ -1,26 +1,28 @@
 'use strict';
 
 import * as vsc from 'vscode';
+import * as prettyHrtime from 'pretty-hrtime';
+
+import { FindUnusedComponentsCommand } from './commands/findUnusedComponents';
 
 import { ComponentCompletionProvider } from './providers/componentCompletionProvider';
 import { MemberCompletionProvider } from './providers/memberCompletionProvider';
 import { BindingProvider } from './providers/bindingProvider';
 import { ComponentDefinitionProvider } from './providers/componentDefinitionProvider';
 import { ReferencesProvider } from './providers/referencesProvider';
-import { FindUnusedComponentsCommand } from './commands/findUnusedComponents';
+import { MemberDefinitionProvider } from './providers/memberDefinitionProvider';
+import { MemberReferencesProvider } from './providers/memberReferencesProvider';
 
 import { IComponentTemplate, Component } from './utils/component/component';
 import { ComponentsCache } from './utils/component/componentsCache';
 import { HtmlTemplateInfoCache, IHtmlReferences } from './utils/htmlTemplate/htmlTemplateInfoCache';
-import { RoutesCache } from './utils/routesCache';
-import { MemberDefinitionProvider } from './providers/memberDefinitionProvider';
+import { RoutesCache } from './utils/route/routesCache';
+import { Route } from './utils/route/route';
+
 import { ConfigurationChangeListener, IConfigurationChangedEvent } from './utils/configurationChangeListener';
 import { logVerbose, log } from './utils/logging';
 import { shouldActivateExtension, notAngularProject, markAsAngularProject, alreadyAngularProject } from './utils/vsc';
-import { MemberReferencesProvider } from './providers/memberReferencesProvider';
-import * as prettyHrtime from 'pretty-hrtime';
 import { events } from './symbols';
-import { Route } from './utils/route';
 
 const HTML_DOCUMENT_SELECTOR = <vsc.DocumentFilter>{ language: 'html', scheme: 'file' };
 const TS_DOCUMENT_SELECTOR = <vsc.DocumentFilter>{ language: 'typescript', scheme: 'file' };
