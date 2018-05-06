@@ -3,7 +3,8 @@
 		"target": "es6",
 		"lib": [
 			"es6",
-			"es2015.promise"
+			"es2015.promise",
+			"es2017.object"
 		],
 		"module": "commonjs",
 		"moduleResolution": "node",
