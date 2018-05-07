@@ -19,6 +19,8 @@ export class Component implements IComponentBase {
 	public controllerName: string;
 	public controllerClassName: string;
 
+	public getBindings = () => this.bindings;
+
 	public static parse(file: SourceFile, controllers: Controller[]): Promise<Component[]> {
 		return new Promise<Component[]>(async (resolve, _reject) => {
 			try {
@@ -44,6 +46,8 @@ export interface IComponentBase {
 	controllerAs: string;
 	controllerName: string;
 	controllerClassName: string;
+
+	getBindings(): IComponentBinding[];
 }
 
 export interface IComponentTemplate {

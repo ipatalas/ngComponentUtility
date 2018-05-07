@@ -1,19 +1,18 @@
 import * as path from 'path';
 import * as vsc from 'vscode';
-import { Component } from '../utils/component/component';
+import { IComponentBase } from '../utils/component/component';
 import * as _ from 'lodash';
 
 export class MemberCompletionProvider implements vsc.CompletionItemProvider {
-	private components = new Map<string, Component>();
+	private components = new Map<string, IComponentBase>();
 
-	public loadComponents = (components: Component[]) => {
-		this.components.clear();
-		components.filter(c => c.template).forEach(c => {
-			this.components.set(this.normalizePath(c.template.path), c);
-		});
+	public loadComponents = (components: IComponentBase[]) => {
+		this.components = new Map<string, IComponentBase>(
+			components.filter(c => c.template).map(c => <[string, IComponentBase]>[this.normalizePath(c.template.path), c])
+		);
 	}
 
-	public provideCompletionItems = (document: vsc.TextDocument, position: vsc.Position/*, token: vsc.CancellationToken*/): vsc.CompletionItem[] => {
+	public provideCompletionItems = (document: vsc.TextDocument, position: vsc.Position, _token: vsc.CancellationToken): vsc.CompletionItem[] => {
 		const normalizedPath = this.normalizePath(document.uri.fsPath);
 
 		if (!this.components.has(normalizedPath)) {
@@ -37,9 +36,11 @@ export class MemberCompletionProvider implements vsc.CompletionItemProvider {
 				members = members.filter(m => m.isPublic);
 			}
 
+			const bindings = component.getBindings();
+
 			return _.uniqBy([
-				...members.map(member => member.buildCompletionItem(component.bindings)),
-				...component.bindings.map(b => b.buildCompletionItem())
+				...members.map(member => member.buildCompletionItem(bindings)),
+				...bindings.map(b => b.buildCompletionItem())
 			], item => item.label);
 		}
 

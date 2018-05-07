@@ -123,7 +123,7 @@ export class Extension {
 		this.memberReferencesProvider.load(componentsAndRoutes);
 
 		this.completionProvider.loadComponents(components);
-		this.memberCompletionProvider.loadComponents(components);
+		this.memberCompletionProvider.loadComponents(componentsAndRoutes);
 		this.bindingProvider.loadComponents(components);
 		this.definitionProvider.loadComponents(components);
 		this.memberDefinitionProvider.loadComponents(componentsAndRoutes);

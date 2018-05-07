@@ -17,6 +17,8 @@ export class Route implements IComponentBase {
 	public controllerName: string;
 	public controllerClassName: string;
 
+	public getBindings = () => [];
+
 	public static parse(file: SourceFile, controllers: Controller[]): Promise<Route[]> {
 		return new Promise<Route[]>((resolve, _reject) => {
 			try {
