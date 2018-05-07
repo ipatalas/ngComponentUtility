@@ -8,9 +8,9 @@ import { ControllerHelper } from '../controllerHelper';
 
 export class Route implements IComponentBase {
 	public name: string;
-	public path: string;
 	public pos: ts.LineAndCharacter;
 
+	public path: string;
 	public template: IComponentTemplate;
 	public controller: Controller;
 	public controllerAs: string;

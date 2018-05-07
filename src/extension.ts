@@ -113,21 +113,20 @@ export class Extension {
 		routes = routes || this.latestRoutes;
 		htmlReferences = htmlReferences || this.latestHtmlReferences;
 
-		const inlineTemplates: IComponentTemplate[] = [];
-		inlineTemplates.push(...this.getTemplatesWithBody(components));
-		inlineTemplates.push(...this.getTemplatesWithBody(routes));
+		const componentsAndRoutes = [...components, ...routes];
+		const inlineTemplates: IComponentTemplate[] = this.getTemplatesWithBody(componentsAndRoutes);
 
 		this.htmlReferencesCache.loadInlineTemplates(inlineTemplates);
 
 		this.findUnusedAngularComponents.load(htmlReferences, components);
 		this.referencesProvider.load(htmlReferences, components);
-		this.memberReferencesProvider.load(components);
+		this.memberReferencesProvider.load(componentsAndRoutes);
 
 		this.completionProvider.loadComponents(components);
 		this.memberCompletionProvider.loadComponents(components);
 		this.bindingProvider.loadComponents(components);
 		this.definitionProvider.loadComponents(components);
-		this.memberDefinitionProvider.loadComponents([...components, ...routes]);
+		this.memberDefinitionProvider.loadComponents(componentsAndRoutes);
 	}
 
 	private refreshComponents = async (config?: vsc.WorkspaceConfiguration): Promise<void> => {

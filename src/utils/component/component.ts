@@ -36,6 +36,8 @@ export class Component implements IComponentBase {
 }
 
 export interface IComponentBase {
+	path: string;
+
 	template: IComponentTemplate;
 
 	controller: Controller;
