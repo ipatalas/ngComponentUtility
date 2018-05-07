@@ -8,8 +8,11 @@ import { SourceFile } from '../sourceFile';
 import { FileWatcher } from '../fileWatcher';
 import { EventEmitter } from 'events';
 import { events } from '../../symbols';
+import { Controller } from '../controller/controller';
+import { logError } from '../logging';
 
 export class RoutesCache extends EventEmitter implements vsc.Disposable {
+	private controllers: Controller[];
 	private scanner = new SourceFilesScanner();
 	private routes: Route[] = [];
 	private watcher: FileWatcher;
@@ -26,7 +29,7 @@ export class RoutesCache extends EventEmitter implements vsc.Disposable {
 	private onAdded = async (uri: vsc.Uri) => {
 		const filepath = this.normalizePath(uri.fsPath);
 		const src = await SourceFile.parse(filepath);
-		const routes = await Route.parse(src);
+		const routes = await Route.parse(src, this.controllers);
 
 		this.routes.push(...routes);
 		this.emitRoutesChanged();
@@ -43,7 +46,7 @@ export class RoutesCache extends EventEmitter implements vsc.Disposable {
 		}
 
 		const src = await SourceFile.parse(filepath);
-		const routes = await Route.parse(src);
+		const routes = await Route.parse(src, this.controllers);
 
 		this.deleteComponentFile(filepath);
 		this.routes.push(...routes);
@@ -65,21 +68,19 @@ export class RoutesCache extends EventEmitter implements vsc.Disposable {
 		} while (idx > -1);
 	}
 
-	public refresh = async (config?: vsc.WorkspaceConfiguration): Promise<Route[]> => {
+	public refresh = async (config: vsc.WorkspaceConfiguration, controllers: Controller[]): Promise<Route[]> => {
 		config = config || vsc.workspace.getConfiguration('ngComponents');
 
-		this.setupWatchers(config);
+		try {
+			this.setupWatchers(config);
+			this.controllers = controllers;
 
-		return this.scanner.findFiles('routeGlobs', Route.parse, 'Route').then((result: Route[]) => {
-			this.routes = result;
-
-			return this.routes;
-		}).catch((err) => {
-			// tslint:disable-next-line:no-console
-			console.error(err);
+			this.routes = await this.scanner.findFiles('routeGlobs', src => Route.parse(src, controllers), 'Route');
+		} catch (err) {
+			logError(err);
 			vsc.window.showErrorMessage('There was an error refreshing components cache, check console for errors');
 			return [];
-		});
+		}
 	}
 
 	public dispose() {

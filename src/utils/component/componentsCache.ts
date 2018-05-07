@@ -10,6 +10,7 @@ import { SourceFilesScanner } from '../sourceFilesScanner';
 import { FileWatcher } from '../fileWatcher';
 import { EventEmitter } from 'events';
 import { events } from '../../symbols';
+import { logError } from '../logging';
 
 export class ComponentsCache extends EventEmitter implements vsc.Disposable {
 	private scanner = new SourceFilesScanner();
@@ -128,7 +129,7 @@ export class ComponentsCache extends EventEmitter implements vsc.Disposable {
 		} while (idx > -1);
 	}
 
-	public refresh = async (config?: vsc.WorkspaceConfiguration): Promise<Component[]> => {
+	public refresh = async (config?: vsc.WorkspaceConfiguration): Promise<IComponentInfoResult> => {
 		config = config || vsc.workspace.getConfiguration('ngComponents');
 
 		this.setupWatchers(config);
@@ -139,12 +140,17 @@ export class ComponentsCache extends EventEmitter implements vsc.Disposable {
 		return this.scanner.findFiles('componentGlobs', parseComponent, 'Component').then((result: Component[]) => {
 			this.components = result;
 
-			return this.components;
+			return {
+				components: this.components,
+				controllers: this.controllers
+			};
 		}).catch((err) => {
-			// tslint:disable-next-line:no-console
-			console.error(err);
+			logError(err);
 			vsc.window.showErrorMessage('There was an error refreshing components cache, check console for errors');
-			return [];
+			return {
+				components: null,
+				controllers: null
+			};
 		});
 	}
 
@@ -161,4 +167,9 @@ export class ComponentsCache extends EventEmitter implements vsc.Disposable {
 	}
 
 	private normalizePath = (p: string) => path.normalize(p).toLowerCase();
+}
+
+export interface IComponentInfoResult {
+	components: Component[];
+	controllers: Controller[];
 }

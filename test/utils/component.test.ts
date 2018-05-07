@@ -13,7 +13,7 @@ describe('Give Component class', () => {
 		it('and controllerAs property exists then controller alias is set', async () => {
 			const sourceFile = getComponentSourceFile('component_ctrlAlias.ts');
 
-			const component = await Component.parse(sourceFile, []);
+			const component = await Component.parse(sourceFile, [<any>{name: 'TestController'}]);
 
 			assert.equal(component[0].controllerAs, 'vm');
 		});
@@ -21,7 +21,7 @@ describe('Give Component class', () => {
 		it('and controllerAs property does not exist then default controller alias is set', async () => {
 			const sourceFile = getComponentSourceFile('component_noCtrlAlias.ts');
 
-			const component = await Component.parse(sourceFile, []);
+			const component = await Component.parse(sourceFile, [<any>{name: 'TestController'}]);
 
 			assert.equal(component[0].controllerAs, '$ctrl');
 		});

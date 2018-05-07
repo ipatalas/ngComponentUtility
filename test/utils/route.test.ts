@@ -9,7 +9,7 @@ describe('Given Route class', () => {
 		it('on route with inline template then template is set correctly', async () => {
 			const sourceFile = getRouteSourceFile('route.inline_template.ts');
 
-			const [route] = await Route.parse(sourceFile);
+			const [route] = await Route.parse(sourceFile, []);
 
 			assert.equal(route.path, sourceFile.path);
 			assert.equal(route.name, 'example_route');
@@ -20,7 +20,7 @@ describe('Given Route class', () => {
 		it('on route with external template then template is set correctly', async () => {
 			const sourceFile = getRouteSourceFile('route.external_template.ts');
 
-			const [route] = await Route.parse(sourceFile);
+			const [route] = await Route.parse(sourceFile, []);
 
 			assert.equal(route.path, sourceFile.path);
 			assert.equal(route.name, 'example_route');
@@ -30,7 +30,7 @@ describe('Given Route class', () => {
 		it('on route with required template then template is set correctly', async () => {
 			const sourceFile = getRouteSourceFile('route.required_template.ts');
 
-			const [route] = await Route.parse(sourceFile);
+			const [route] = await Route.parse(sourceFile, []);
 
 			assert.equal(route.path, sourceFile.path);
 			assert.equal(route.name, 'example_route');

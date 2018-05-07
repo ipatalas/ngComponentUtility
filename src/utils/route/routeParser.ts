@@ -4,13 +4,15 @@ import { SourceFile } from '../sourceFile';
 import * as ts from 'typescript';
 import { ConfigParser } from '../configParser';
 import { TemplateParser } from '../templateParser';
+import { ControllerHelper } from '../controllerHelper';
+import { logVerbose } from '../logging';
 
 export class RouteParser {
 	private tsParser: TypescriptParser;
 	private templateParser: TemplateParser;
 	private results: Route[] = [];
 
-	constructor(file: SourceFile) {
+	constructor(private controllerHelper: ControllerHelper, file: SourceFile) {
 		this.tsParser = new TypescriptParser(file);
 		this.templateParser = new TemplateParser();
 	}
@@ -54,6 +56,10 @@ export class RouteParser {
 		route.path = this.tsParser.path;
 
 		route.template = this.templateParser.createTemplate(config, this.tsParser);
+
+		if (!this.controllerHelper.prepareController(route, config)) {
+			logVerbose(`Controller for route '${route.name}' not found (member completion and Go To Definition for this component will not work)`);
+		}
 
 		return route;
 	}

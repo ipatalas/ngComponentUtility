@@ -1,13 +1,13 @@
 import * as ts from 'typescript';
 import * as decamelize from 'decamelize';
 import { SourceFile } from '../sourceFile';
-import { Controller } from '../controller/controller';
 import { Component } from './component';
 import { TypescriptParser } from '../typescriptParser';
 import { ConfigParser } from '../configParser';
 import { logVerbose } from '../logging';
 import { ComponentBinding } from './componentBinding';
 import { TemplateParser } from '../templateParser';
+import { ControllerHelper } from '../controllerHelper';
 
 interface IComponentToImport {
 	nameNode: ts.Expression;
@@ -22,7 +22,7 @@ export class ComponentParser {
 	private componentTsParser: Map<string, TypescriptParser>;
 	private componentsToImport: IComponentToImport[] = [];
 
-	constructor(file: SourceFile, private controllers: Controller[]) {
+	constructor(file: SourceFile, private controllerHelper: ControllerHelper) {
 		this.tsParser = new TypescriptParser(file);
 		this.componentTsParser = new Map<string, TypescriptParser>();
 		this.templateParser = new TemplateParser();
@@ -169,42 +169,10 @@ export class ComponentParser {
 			logVerbose(`Template for ${component.name} not found (member completion and Go To Definition for this component will not work)`);
 		}
 
-		component.controllerAs = this.createControllerAlias(config.get('controllerAs'));
-
-		if (this.controllers && this.controllers.length > 0) {
-			const name = config.get('controller');
-			if (name) {
-				if (name.kind === ts.SyntaxKind.StringLiteral) {
-					component.controllerName = (name as ts.StringLiteral).text;
-				} else if (name.kind === ts.SyntaxKind.Identifier) {
-					component.controllerClassName = (name as ts.Identifier).text;
-				}
-
-				component.controller = this.createController(component);
-
-				if (!component.controller) {
-					logVerbose(`Controller for ${component.name} not found (member completion and Go To Definition for this component will not work)`);
-				}
-			}
+		if (!this.controllerHelper.prepareController(component, config)) {
+			logVerbose(`Controller for ${component.name} not found (member completion and Go To Definition for this component will not work)`);
 		}
 
 		return component;
-	}
-
-	private createController = (component: Component): Controller => {
-		if (component.controllerName) {
-			return this.controllers.find(c => c.name === component.controllerName);
-		} else if (component.controllerClassName) {
-			return this.controllers.find(c => c.className === component.controllerClassName);
-		}
-	}
-
-	private createControllerAlias(node: ts.Expression): string {
-		if (!node) {
-			return '$ctrl';
-		}
-
-		const value = node as ts.StringLiteral;
-		return value.text;
 	}
 }

@@ -133,9 +133,10 @@ export class Extension {
 	private refreshComponents = async (config?: vsc.WorkspaceConfiguration): Promise<void> => {
 		return new Promise<void>(async (resolve, _reject) => {
 			try {
+				const { components, controllers } = await this.componentsCache.refresh(config);
+				this.latestComponents = components;
+				this.latestRoutes = await this.routesCache.refresh(config, controllers);
 				this.latestHtmlReferences = await this.htmlReferencesCache.refresh(config);
-				this.latestComponents = await this.componentsCache.refresh(config);
-				this.latestRoutes = await this.routesCache.refresh(config);
 
 				let postprocessingTime = process.hrtime();
 

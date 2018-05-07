@@ -4,8 +4,9 @@ import { Controller } from '../controller/controller';
 import { ComponentParser } from './componentParser';
 import { logParsingError } from '../logging';
 import * as vsc from 'vscode';
+import { ControllerHelper } from '../controllerHelper';
 
-export class Component {
+export class Component implements IComponentWithController {
 	public name: string;
 	public htmlName: string;
 	public bindings: IComponentBinding[] = [];
@@ -20,7 +21,8 @@ export class Component {
 	public static parse(file: SourceFile, controllers: Controller[]): Promise<Component[]> {
 		return new Promise<Component[]>(async (resolve, _reject) => {
 			try {
-				const parser = new ComponentParser(file, controllers);
+				const controllerHelper = new ControllerHelper(controllers);
+				const parser = new ComponentParser(file, controllerHelper);
 				const results: Component[] = await parser.parse();
 
 				resolve(results);
@@ -30,6 +32,13 @@ export class Component {
 			}
 		});
 	}
+}
+
+export interface IComponentWithController {
+	controller: Controller;
+	controllerAs: string;
+	controllerName: string;
+	controllerClassName: string;
 }
 
 export interface IComponentTemplate {
