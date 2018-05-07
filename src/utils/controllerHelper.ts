@@ -1,5 +1,5 @@
 import * as ts from 'typescript';
-import { IComponentWithController } from './component/component';
+import { IComponentBase } from './component/component';
 import { Controller } from './controller/controller';
 import { ConfigParser } from './configParser';
 
@@ -7,7 +7,7 @@ export class ControllerHelper {
 	constructor(private controllers: Controller[]) {
 	}
 
-	public prepareController(component: IComponentWithController, config: ConfigParser): boolean {
+	public prepareController(component: IComponentBase, config: ConfigParser): boolean {
 		if (!this.controllers || this.controllers.length === 0) {
 			return false;
 		}

@@ -127,7 +127,7 @@ export class Extension {
 		this.memberCompletionProvider.loadComponents(components);
 		this.bindingProvider.loadComponents(components);
 		this.definitionProvider.loadComponents(components);
-		this.memberDefinitionProvider.loadComponents(components);
+		this.memberDefinitionProvider.loadComponents([...components, ...routes]);
 	}
 
 	private refreshComponents = async (config?: vsc.WorkspaceConfiguration): Promise<void> => {

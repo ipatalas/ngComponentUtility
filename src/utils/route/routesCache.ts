@@ -69,13 +69,14 @@ export class RoutesCache extends EventEmitter implements vsc.Disposable {
 	}
 
 	public refresh = async (config: vsc.WorkspaceConfiguration, controllers: Controller[]): Promise<Route[]> => {
-		config = config || vsc.workspace.getConfiguration('ngComponents');
-
 		try {
+			config = config || vsc.workspace.getConfiguration('ngComponents');
+
 			this.setupWatchers(config);
 			this.controllers = controllers;
 
 			this.routes = await this.scanner.findFiles('routeGlobs', src => Route.parse(src, controllers), 'Route');
+			return this.routes;
 		} catch (err) {
 			logError(err);
 			vsc.window.showErrorMessage('There was an error refreshing components cache, check console for errors');

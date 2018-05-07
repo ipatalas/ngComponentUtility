@@ -6,12 +6,13 @@ import { logParsingError } from '../logging';
 import * as vsc from 'vscode';
 import { ControllerHelper } from '../controllerHelper';
 
-export class Component implements IComponentWithController {
+export class Component implements IComponentBase {
 	public name: string;
 	public htmlName: string;
 	public bindings: IComponentBinding[] = [];
 	public path: string;
 	public pos: ts.LineAndCharacter;
+
 	public template: IComponentTemplate;
 	public controller: Controller;
 	public controllerAs: string;
@@ -34,7 +35,9 @@ export class Component implements IComponentWithController {
 	}
 }
 
-export interface IComponentWithController {
+export interface IComponentBase {
+	template: IComponentTemplate;
+
 	controller: Controller;
 	controllerAs: string;
 	controllerName: string;

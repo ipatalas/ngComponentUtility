@@ -1,17 +1,17 @@
 import * as ts from 'typescript';
 import { SourceFile } from '../sourceFile';
-import { IComponentTemplate, IComponentWithController } from '../component/component';
+import { IComponentTemplate, IComponentBase } from '../component/component';
 import { logParsingError } from '../logging';
 import { RouteParser } from './routeParser';
 import { Controller } from '../controller/controller';
 import { ControllerHelper } from '../controllerHelper';
 
-export class Route implements IComponentWithController {
+export class Route implements IComponentBase {
 	public name: string;
-	public template: IComponentTemplate;
 	public path: string;
 	public pos: ts.LineAndCharacter;
 
+	public template: IComponentTemplate;
 	public controller: Controller;
 	public controllerAs: string;
 	public controllerName: string;
