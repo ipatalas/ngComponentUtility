@@ -1,3 +1,4 @@
 angular.module('app').component('exampleComponent', {
-	controllerAs: 'vm'
+	controllerAs: 'vm',
+	controller: 'TestController'
 });

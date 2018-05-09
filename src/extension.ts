@@ -1,26 +1,28 @@
 'use strict';
 
 import * as vsc from 'vscode';
+import * as prettyHrtime from 'pretty-hrtime';
+
+import { FindUnusedComponentsCommand } from './commands/findUnusedComponents';
 
 import { ComponentCompletionProvider } from './providers/componentCompletionProvider';
 import { MemberCompletionProvider } from './providers/memberCompletionProvider';
 import { BindingProvider } from './providers/bindingProvider';
 import { ComponentDefinitionProvider } from './providers/componentDefinitionProvider';
 import { ReferencesProvider } from './providers/referencesProvider';
-import { FindUnusedComponentsCommand } from './commands/findUnusedComponents';
+import { MemberDefinitionProvider } from './providers/memberDefinitionProvider';
+import { MemberReferencesProvider } from './providers/memberReferencesProvider';
 
 import { IComponentTemplate, Component } from './utils/component/component';
 import { ComponentsCache } from './utils/component/componentsCache';
 import { HtmlTemplateInfoCache, IHtmlReferences, IMemberAccessResults } from './utils/htmlTemplate/htmlTemplateInfoCache';
-import { RoutesCache } from './utils/routesCache';
-import { MemberDefinitionProvider } from './providers/memberDefinitionProvider';
+import { RoutesCache } from './utils/route/routesCache';
+import { Route } from './utils/route/route';
+
 import { ConfigurationChangeListener, IConfigurationChangedEvent } from './utils/configurationChangeListener';
 import { logVerbose, log } from './utils/logging';
 import { shouldActivateExtension, notAngularProject, markAsAngularProject, alreadyAngularProject } from './utils/vsc';
-import { MemberReferencesProvider } from './providers/memberReferencesProvider';
-import * as prettyHrtime from 'pretty-hrtime';
 import { events } from './symbols';
-import { Route } from './utils/route';
 import { MemberAccessDiagnostics } from './utils/memberAccessDiagnostics';
 
 const HTML_DOCUMENT_SELECTOR = <vsc.DocumentFilter>{ language: 'html', scheme: 'file' };
@@ -117,21 +119,20 @@ export class Extension {
 		routes = routes || this.latestRoutes;
 		htmlReferences = htmlReferences || this.latestHtmlReferences;
 
-		const inlineTemplates: IComponentTemplate[] = [];
-		inlineTemplates.push(...this.getTemplatesWithBody(components));
-		inlineTemplates.push(...this.getTemplatesWithBody(routes));
+		const componentsAndRoutes = [...components, ...routes];
+		const inlineTemplates: IComponentTemplate[] = this.getTemplatesWithBody(componentsAndRoutes);
 
 		this.htmlReferencesCache.loadInlineTemplates(inlineTemplates);
 
 		this.findUnusedAngularComponents.load(htmlReferences, components);
 		this.referencesProvider.load(htmlReferences, components);
-		this.memberReferencesProvider.load(components);
+		this.memberReferencesProvider.load(componentsAndRoutes);
 
 		this.completionProvider.loadComponents(components);
-		this.memberCompletionProvider.loadComponents(components);
+		this.memberCompletionProvider.loadComponents(componentsAndRoutes);
 		this.bindingProvider.loadComponents(components);
 		this.definitionProvider.loadComponents(components);
-		this.memberDefinitionProvider.loadComponents(components);
+		this.memberDefinitionProvider.loadComponents(componentsAndRoutes);
 	}
 
 	private refreshMemberAccessDiagnostics = (memberAccess: IMemberAccessResults) => {
@@ -144,9 +145,11 @@ export class Extension {
 	private refreshComponents = async (config?: vsc.WorkspaceConfiguration): Promise<void> => {
 		return new Promise<void>(async (resolve, _reject) => {
 			try {
-				this.latestComponents = await this.componentsCache.refresh(config);
-				this.latestRoutes = await this.routesCache.refresh(config);
-				const { htmlReferences, memberAccess } = await this.htmlReferencesCache.refresh(config, this.latestComponents);
+				const { components, controllers } = await this.componentsCache.refresh(config);
+				this.latestRoutes = await this.routesCache.refresh(config, controllers);
+				const { htmlReferences, memberAccess } = await this.htmlReferencesCache.refresh(config, components);
+
+				this.latestComponents = components;
 				this.latestHtmlReferences = htmlReferences;
 
 				let postprocessingTime = process.hrtime();

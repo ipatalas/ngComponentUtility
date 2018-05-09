@@ -1,17 +1,16 @@
 import * as vsc from 'vscode';
 import * as path from 'path';
 
-import { Component } from '../utils/component/component';
+import { IComponentBase } from '../utils/component/component';
 import { getLocation } from '../utils/vsc';
 
 export class MemberDefinitionProvider implements vsc.DefinitionProvider {
-	private components = new Map<string, Component>();
+	private components = new Map<string, IComponentBase>();
 
-	public loadComponents = (components: Component[]) => {
-		this.components.clear();
-		components.filter(c => c.template).forEach(c => {
-			this.components.set(this.normalizePath(c.template.path), c);
-		});
+	public loadComponents = (components: IComponentBase[]) => {
+		this.components = new Map<string, IComponentBase>(
+			components.filter(c => c.template).map(c => <[string, IComponentBase]>[this.normalizePath(c.template.path), c])
+		);
 	}
 
 	public provideDefinition(document: vsc.TextDocument, position: vsc.Position, _token: vsc.CancellationToken): vsc.Definition {

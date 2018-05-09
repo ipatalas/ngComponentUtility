@@ -25,7 +25,7 @@
 			"stopOnEntry": false,
 			"sourceMaps": true,
 			"env": {
-				"ANGULAR_ROOT_MOCK": ""
+				"NODE_ENV": "test"
 			},
 			"outFiles": [
 				"${workspaceRoot}/out/**/*.js"

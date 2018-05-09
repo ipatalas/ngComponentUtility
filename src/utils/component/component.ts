@@ -4,23 +4,28 @@ import { Controller } from '../controller/controller';
 import { ComponentParser } from './componentParser';
 import { logParsingError } from '../logging';
 import * as vsc from 'vscode';
+import { ControllerHelper } from '../controllerHelper';
 
-export class Component {
+export class Component implements IComponentBase {
 	public name: string;
 	public htmlName: string;
 	public bindings: IComponentBinding[] = [];
 	public path: string;
 	public pos: ts.LineAndCharacter;
+
 	public template: IComponentTemplate;
 	public controller: Controller;
 	public controllerAs: string;
 	public controllerName: string;
 	public controllerClassName: string;
 
+	public getBindings = () => this.bindings;
+
 	public static parse(file: SourceFile, controllers: Controller[]): Promise<Component[]> {
 		return new Promise<Component[]>(async (resolve, _reject) => {
 			try {
-				const parser = new ComponentParser(file, controllers);
+				const controllerHelper = new ControllerHelper(controllers);
+				const parser = new ComponentParser(file, controllerHelper);
 				const results: Component[] = await parser.parse();
 
 				resolve(results);
@@ -30,6 +35,19 @@ export class Component {
 			}
 		});
 	}
+}
+
+export interface IComponentBase {
+	path: string;
+
+	template: IComponentTemplate;
+
+	controller: Controller;
+	controllerAs: string;
+	controllerName: string;
+	controllerClassName: string;
+
+	getBindings(): IComponentBinding[];
 }
 
 export interface IComponentTemplate {

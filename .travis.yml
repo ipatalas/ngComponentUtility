@@ -1,6 +1,6 @@
 language: node_js
 node_js:
-  - "7.9"
+  - "8.11"
 
 sudo: false
 
@@ -9,7 +9,7 @@ os:
   - linux
 
 env:
-  - ANGULAR_ROOT_MOCK=""
+  - NODE_ENV="test"
 
 before_install:
   - if [ $TRAVIS_OS_NAME == "linux" ]; then

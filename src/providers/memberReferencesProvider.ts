@@ -3,15 +3,15 @@ import * as vsc from 'vscode';
 import * as ts from 'typescript';
 import * as fs from 'fs';
 import { getLocation } from '../utils/vsc';
-import { Component } from '../utils/component/component';
+import { IComponentBase } from '../utils/component/component';
 import { SourceFile } from '../utils/sourceFile';
 import { TypescriptParser } from '../utils/typescriptParser';
 
 export class MemberReferencesProvider implements vsc.ReferenceProvider {
 
-	private components: Component[];
+	private components: IComponentBase[];
 
-	public load = (components: Component[]) => {
+	public load = (components: IComponentBase[]) => {
 		this.components = components;
 	}
 
@@ -40,7 +40,7 @@ export class MemberReferencesProvider implements vsc.ReferenceProvider {
 		return Promise.resolve([]);
 	}
 
-	private getLocations = async (component: Component, identifier: ts.Identifier): Promise<vsc.Location[]> => {
+	private getLocations = async (component: IComponentBase, identifier: ts.Identifier): Promise<vsc.Location[]> => {
 		const searchString = `${component.controllerAs}.${identifier.text}`;
 		const template = component.template;
 

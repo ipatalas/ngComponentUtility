@@ -1,10 +1,6 @@
 import * as assert from 'assert';
-import * as path from 'path';
 import { isValidAngularProject } from '../../src/utils/angular';
-
-const TEST_FILES_ROOT = path.join(__dirname, '../../../test/test_files/angular');
-
-const getTestProjectPath = (filename: string) => path.join(TEST_FILES_ROOT, filename);
+import { getTestFilePath } from './helpers';
 
 describe('Given isAngularProject ', () => {
 	describe('when calling', () => {
@@ -18,7 +14,7 @@ describe('Given isAngularProject ', () => {
 });
 
 function assertProject(projectName: string, expected: boolean) {
-	const root = getTestProjectPath(projectName);
+	const root = getTestFilePath('angular', projectName);
 
 	const result = isValidAngularProject(root);
 

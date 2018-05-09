@@ -1,1 +1,3 @@
-angular.module('app').component('exampleComponent', {});
+angular.module('app').component('exampleComponent', {
+	controller: 'TestController'
+});
