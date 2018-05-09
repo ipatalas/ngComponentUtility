@@ -160,7 +160,7 @@
 	},
 	"dependencies": {
 		"decamelize": "^2.0.0",
-		"lodash": "^4.17.4",
+		"lodash": "^4.17.10",
 		"parse5": "^3.0.2",
 		"pretty-hrtime": "^1.0.3",
 		"typescript": "^2.8.3"
