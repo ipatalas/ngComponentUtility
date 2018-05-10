@@ -7,20 +7,22 @@ import { IMemberAccessEntry } from './htmlTemplate/streams/memberAccessParser';
 
 export class MemberAccessDiagnostics {
 	public getDiagnostics = (components: Component[], results: IMemberAccessResults): DiagnosticsByTemplate => {
-		const allowedMembersByTemplate = components.reduce((map, component) => {
-			const relativePath = new RelativePath(component.template.path).relative;
+		const allowedMembersByTemplate = components.filter(c => c.template && !c.template.body).reduce((map, component) => {
+			const templateRelativePath = new RelativePath(component.template.path).relative;
 
-			map[relativePath] = map[relativePath] || [];
-			map[relativePath].push(..._.uniq([
-				...component.bindings.map(b => b.name),
-				...component.controller.members.map(m => m.name)
-			]));
+			const allComponents = component.bindings.map(b => b.name);
+			if (component.controller) {
+				allComponents.push(...component.controller.members.map(m => m.name));
+			}
+
+			map[templateRelativePath] = map[templateRelativePath] || [];
+			map[templateRelativePath].push(..._.uniq(allComponents));
 			return map;
 		}, <IMembersByTemplate>{});
 
 		return Object.entries(results)
 			.reduce((allInvalid, [relativePath, members]) => {
-				const invalidMembers = members.filter(m => !allowedMembersByTemplate[relativePath].some(x => x === m.memberName));
+				const invalidMembers = members.filter(m => allowedMembersByTemplate[relativePath] && !allowedMembersByTemplate[relativePath].some(x => x === m.memberName));
 				if (invalidMembers.length > 0) {
 					allInvalid.push([
 						vsc.Uri.file(RelativePath.toAbsolute(relativePath)),

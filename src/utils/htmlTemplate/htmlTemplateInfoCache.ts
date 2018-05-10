@@ -7,9 +7,9 @@ import * as vsc from 'vscode';
 import * as prettyHrtime from 'pretty-hrtime';
 import { default as tags } from './htmlTags';
 import { findFiles } from '../vsc';
-import { IComponentTemplate, Component } from '../component/component';
+import { IComponentTemplate, Component, IComponentBase } from '../component/component';
 import { FileWatcher } from '../fileWatcher';
-import { log, logError } from '../logging';
+import { log, logError, logVerbose } from '../logging';
 import { EventEmitter } from 'events';
 import { events } from '../../symbols';
 import { RelativePath } from './relativePath';
@@ -96,8 +96,13 @@ export class HtmlTemplateInfoCache extends EventEmitter implements vsc.Disposabl
         return stream;
     }
 
-    private createMemberAccessParser = (relativePath: RelativePath) => {
+    private createMemberAccessParser = (relativePath: RelativePath): MemberAccessParser => {
         const alias = this.componentAliasMap.get(relativePath.relative);
+
+        if (!alias) {
+            logVerbose(`Cannot find component for '${relativePath.relative}'. Member access validation will not work here :(`);
+            return null;
+        }
 
         const parser = new MemberAccessParser(alias);
         parser.on(<any>events.memberFound, (e: IMemberAccessEntry) => {
@@ -118,10 +123,11 @@ export class HtmlTemplateInfoCache extends EventEmitter implements vsc.Disposabl
             const splitToLines = this.createSplitToLinesStream();
             const memberAccessParser = this.createMemberAccessParser(relativePath);
 
-            fs.createReadStream(relativePath.absolute)
-                .pipe(htmlParser)
-                .pipe(splitToLines)
-                .pipe(memberAccessParser);
+            const stream = fs.createReadStream(relativePath.absolute).pipe(htmlParser);
+
+            if (memberAccessParser) {
+                stream.pipe(splitToLines).pipe(memberAccessParser);
+            }
         });
     }
 
@@ -140,9 +146,7 @@ export class HtmlTemplateInfoCache extends EventEmitter implements vsc.Disposabl
     }
 
     // TODO: use route components as well here
-    private buildComponentAliasMap = (components: Component[]): Map<string, string> => {
-        components.filter(c => !c.template).forEach(c => console.log(c.name));
-
+    private buildComponentAliasMap = (components: IComponentBase[]): Map<string, string> => {
         return components.filter(c => c.template && !c.template.body).reduce((map, component) => {
             const relativePath = new RelativePath(component.template.path).relative;
 
@@ -159,7 +163,7 @@ export class HtmlTemplateInfoCache extends EventEmitter implements vsc.Disposabl
         return this.htmlReferences;
     }
 
-    public refresh = async (config: vsc.WorkspaceConfiguration, components: Component[]): Promise<IHtmlTemplateInfoResult> => {
+    public refresh = async (config: vsc.WorkspaceConfiguration, components: IComponentBase[]): Promise<IHtmlTemplateInfoResult> => {
         config = config || vsc.workspace.getConfiguration('ngComponents');
 
         try {

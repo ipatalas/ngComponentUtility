@@ -147,7 +147,7 @@ export class Extension {
 			try {
 				const { components, controllers } = await this.componentsCache.refresh(config);
 				this.latestRoutes = await this.routesCache.refresh(config, controllers);
-				const { htmlReferences, memberAccess } = await this.htmlReferencesCache.refresh(config, components);
+				const { htmlReferences, memberAccess } = await this.htmlReferencesCache.refresh(config, [...components, ...this.latestRoutes]);
 
 				this.latestComponents = components;
 				this.latestHtmlReferences = htmlReferences;
