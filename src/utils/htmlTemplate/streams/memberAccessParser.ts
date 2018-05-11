@@ -8,7 +8,7 @@ export class MemberAccessParser extends Transform {
 	constructor(controllerAlias: string) {
 		super({ objectMode: true });
 
-		this.memberAccessRegex = new RegExp(`${this.escapeRegex(controllerAlias)}\\.([\\w$]+)`, 'gi');
+		this.memberAccessRegex = new RegExp(`\\b${this.escapeRegex(controllerAlias)}\\.([\\w$]+)`, 'gi');
 	}
 
 	private escapeRegex = (s: string) => s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
