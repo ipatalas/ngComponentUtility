@@ -21,11 +21,9 @@ export class ControllerHelper {
 				component.controllerClassName = (controllerNode as ts.Identifier).text;
 				component.controller = this.controllers.find(c => c.className === component.controllerClassName);
 			}
-
-			if (component.controller) {
-				component.controllerAs = this.createControllerAlias(config.get('controllerAs'));
-			}
 		}
+
+		component.controllerAs = this.createControllerAlias(config.get('controllerAs'));
 
 		return component.controller != null;
 	}
