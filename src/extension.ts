@@ -21,7 +21,7 @@ import { Route } from './utils/route/route';
 
 import { ConfigurationChangeListener, IConfigurationChangedEvent } from './utils/configurationChangeListener';
 import { logVerbose, log, logError } from './utils/logging';
-import { shouldActivateExtension, notAngularProject, markAsAngularProject, alreadyAngularProject } from './utils/vsc';
+import { shouldActivateExtension, notAngularProject, markAsAngularProject, alreadyAngularProject, getConfiguration } from './utils/vsc';
 import { events } from './symbols';
 import { MemberAccessDiagnostics } from './utils/memberAccessDiagnostics';
 import { IHtmlTemplateInfoResults, ITemplateInfo } from './utils/htmlTemplate/types';
@@ -133,6 +133,8 @@ export class Extension {
 		this.bindingProvider.loadComponents(components);
 		this.definitionProvider.loadComponents(components);
 		this.memberDefinitionProvider.loadComponents(componentsAndRoutes);
+
+		this.refreshMemberAccessDiagnostics(templateInfoResults.templateInfo);
 	}
 
 	private refreshMemberAccessDiagnostics = (templateInfo: ITemplateInfo) => {
@@ -141,6 +143,7 @@ export class Extension {
 		const config = getConfiguration();
 		const isMemberDiagnosticEnabled = config.get<boolean>('memberDiagnostics.enabled');
 		if (isMemberDiagnosticEnabled) {
+			logVerbose(`Reloading member diagnostics`);
 			const componentsAndRoutes = [...this.latestComponents, ...this.latestRoutes];
 
 			const diagnostics = this.memberAccessDiagnostics.getDiagnostics(componentsAndRoutes, templateInfo);
@@ -160,7 +163,6 @@ export class Extension {
 				let postprocessingTime = process.hrtime();
 
 				this.refreshAllProviders(this.latestComponents, this.latestRoutes, this.latestHtmlTemplateInfoResults);
-				this.refreshMemberAccessDiagnostics(this.latestHtmlTemplateInfoResults.templateInfo);
 
 				postprocessingTime = process.hrtime(postprocessingTime);
 				log(`Postprocessing time: ${prettyHrtime(postprocessingTime)}`);

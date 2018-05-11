@@ -6,7 +6,7 @@ import * as fs from 'fs';
 import * as vsc from 'vscode';
 import * as prettyHrtime from 'pretty-hrtime';
 import { default as tags } from './htmlTags';
-import { findFiles } from '../vsc';
+import { findFiles, getConfiguration } from '../vsc';
 import { IComponentTemplate, IComponentBase } from '../component/component';
 import { FileWatcher } from '../fileWatcher';
 import { log, logError, logVerbose } from '../logging';
@@ -25,6 +25,10 @@ export class HtmlTemplateInfoCache extends EventEmitter implements vsc.Disposabl
     private results: HtmlTemplateInfoResults;
     private watcher: FileWatcher;
 
+    private isMemberDiagnosticEnabled = (config?: vsc.WorkspaceConfiguration) => {
+        return (config || getConfiguration()).get<boolean>('memberDiagnostics.enabled');
+    }
+
     private emitReferencesChanged = () => this.emit(events.htmlReferencesChanged, this.results);
 
     private setupWatchers = (config: vsc.WorkspaceConfiguration) => {
@@ -35,15 +39,18 @@ export class HtmlTemplateInfoCache extends EventEmitter implements vsc.Disposabl
     }
 
     private onAdded = async (uri: vsc.Uri) => {
-        this.parseFile(RelativePath.fromUri(uri), this.results);
+        const isMemberDiagnosticEnabled = this.isMemberDiagnosticEnabled();
+
+        await this.parseFile(RelativePath.fromUri(uri), this.results, isMemberDiagnosticEnabled);
         this.emitReferencesChanged();
     }
 
     private onChanged = async (uri: vsc.Uri) => {
         const relativePath = RelativePath.fromUri(uri);
+        const isMemberDiagnosticEnabled = this.isMemberDiagnosticEnabled();
 
         this.results.deleteTemplate(relativePath.relative);
-        this.parseFile(relativePath, this.results);
+        await this.parseFile(relativePath, this.results, isMemberDiagnosticEnabled);
         this.emitReferencesChanged();
     }
 
@@ -108,7 +115,7 @@ export class HtmlTemplateInfoCache extends EventEmitter implements vsc.Disposabl
         return parser;
     }
 
-    private parseFile = (relativePath: RelativePath, results: HtmlTemplateInfoResults, isMemberDiagnosticEnabled?: boolean) => {
+    private parseFile = (relativePath: RelativePath, results: HtmlTemplateInfoResults, isMemberDiagnosticEnabled: boolean) => {
         return new Promise<void>((resolve, reject) => {
             const getLocation = (location: parse5.MarkupData.StartTagLocation) => ({ line: location.line - 1, col: location.col - 1 });
             const htmlParser = this.createHtmlReferencesParser(resolve, reject, results, relativePath.relative, getLocation);
@@ -160,7 +167,7 @@ export class HtmlTemplateInfoCache extends EventEmitter implements vsc.Disposabl
         const config = getConfiguration();
 
         try {
-            const isMemberDiagnosticEnabled = config.get<boolean>('memberDiagnostics.enabled');
+            const isMemberDiagnosticEnabled = this.isMemberDiagnosticEnabled(config);
 
             this.setupWatchers(config);
             this.componentAliasMap = isMemberDiagnosticEnabled && this.buildComponentAliasMap(components);
