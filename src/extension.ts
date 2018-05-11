@@ -15,7 +15,7 @@ import { MemberReferencesProvider } from './providers/memberReferencesProvider';
 
 import { IComponentTemplate, Component } from './utils/component/component';
 import { ComponentsCache } from './utils/component/componentsCache';
-import { HtmlTemplateInfoCache, IHtmlReferences, IMemberAccessResults } from './utils/htmlTemplate/htmlTemplateInfoCache';
+import { HtmlTemplateInfoCache } from './utils/htmlTemplate/htmlTemplateInfoCache';
 import { RoutesCache } from './utils/route/routesCache';
 import { Route } from './utils/route/route';
 
@@ -24,6 +24,7 @@ import { logVerbose, log } from './utils/logging';
 import { shouldActivateExtension, notAngularProject, markAsAngularProject, alreadyAngularProject } from './utils/vsc';
 import { events } from './symbols';
 import { MemberAccessDiagnostics } from './utils/memberAccessDiagnostics';
+import { IFormNames, IHtmlReferences, IMemberAccessResults } from './utils/htmlTemplate/types';
 
 const HTML_DOCUMENT_SELECTOR = <vsc.DocumentFilter>{ language: 'html', scheme: 'file' };
 const TS_DOCUMENT_SELECTOR = <vsc.DocumentFilter>{ language: 'typescript', scheme: 'file' };
@@ -135,8 +136,8 @@ export class Extension {
 		this.memberDefinitionProvider.loadComponents(componentsAndRoutes);
 	}
 
-	private refreshMemberAccessDiagnostics = (memberAccess: IMemberAccessResults) => {
-		const diagnostics = this.memberAccessDiagnostics.getDiagnostics(this.latestComponents, memberAccess);
+	private refreshMemberAccessDiagnostics = (memberAccess: IMemberAccessResults, formNames: IFormNames) => {
+		const diagnostics = this.memberAccessDiagnostics.getDiagnostics(this.latestComponents, memberAccess, formNames);
 
 		this.diagnosticCollection.clear();
 		this.diagnosticCollection.set(diagnostics);
@@ -147,7 +148,7 @@ export class Extension {
 			try {
 				const { components, controllers } = await this.componentsCache.refresh(config);
 				this.latestRoutes = await this.routesCache.refresh(config, controllers);
-				const { htmlReferences, memberAccess } = await this.htmlReferencesCache.refresh(config, [...components, ...this.latestRoutes]);
+				const { htmlReferences, memberAccess, formNames } = await this.htmlReferencesCache.refresh(config, [...components, ...this.latestRoutes]);
 
 				this.latestComponents = components;
 				this.latestHtmlReferences = htmlReferences;
@@ -155,7 +156,7 @@ export class Extension {
 				let postprocessingTime = process.hrtime();
 
 				this.refreshAllProviders(this.latestComponents, this.latestRoutes, this.latestHtmlReferences);
-				this.refreshMemberAccessDiagnostics(memberAccess);
+				this.refreshMemberAccessDiagnostics(memberAccess, formNames);
 
 				postprocessingTime = process.hrtime(postprocessingTime);
 				log(`Postprocessing time: ${prettyHrtime(postprocessingTime)}`);

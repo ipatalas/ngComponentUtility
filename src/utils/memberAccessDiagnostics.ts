@@ -1,13 +1,13 @@
 import * as vsc from 'vscode';
-import { IMemberAccessResults } from './htmlTemplate/htmlTemplateInfoCache';
+import { IMemberAccessResults, IFormNames } from './htmlTemplate/types';
 import { RelativePath } from './htmlTemplate/relativePath';
 import { Component } from './component/component';
 import _ = require('lodash');
 import { IMemberAccessEntry } from './htmlTemplate/streams/memberAccessParser';
 
 export class MemberAccessDiagnostics {
-	public getDiagnostics = (components: Component[], results: IMemberAccessResults): DiagnosticsByTemplate => {
-		const allowedMembersByTemplate = components.filter(c => c.template && !c.template.body).reduce((map, component) => {
+	public getDiagnostics = (components: Component[], results: IMemberAccessResults, formNames: IFormNames): DiagnosticsByTemplate => {
+		const componentMembers = components.filter(c => c.template && !c.template.body).reduce((map, component) => {
 			const templateRelativePath = new RelativePath(component.template.path).relative;
 
 			const allComponents = component.bindings.map(b => b.name);
@@ -20,9 +20,16 @@ export class MemberAccessDiagnostics {
 			return map;
 		}, <IMembersByTemplate>{});
 
+		const isComponentMember =
+			(relativePath: string, m: IMemberAccessEntry) => componentMembers[relativePath] && componentMembers[relativePath].some(x => x === m.memberName);
+
+		const isFormMember =
+			(relativePath: string, m: IMemberAccessEntry) => formNames[relativePath] && formNames[relativePath].some(formName => formName === m.expression);
+
 		return Object.entries(results)
 			.reduce((allInvalid, [relativePath, members]) => {
-				const invalidMembers = members.filter(m => allowedMembersByTemplate[relativePath] && !allowedMembersByTemplate[relativePath].some(x => x === m.memberName));
+				const invalidMembers = members.filter(m => !isComponentMember(relativePath, m) && !isFormMember(relativePath, m));
+
 				if (invalidMembers.length > 0) {
 					allInvalid.push([
 						vsc.Uri.file(RelativePath.toAbsolute(relativePath)),

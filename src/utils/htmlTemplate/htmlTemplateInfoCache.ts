@@ -7,7 +7,7 @@ import * as vsc from 'vscode';
 import * as prettyHrtime from 'pretty-hrtime';
 import { default as tags } from './htmlTags';
 import { findFiles } from '../vsc';
-import { IComponentTemplate, Component, IComponentBase } from '../component/component';
+import { IComponentTemplate, IComponentBase } from '../component/component';
 import { FileWatcher } from '../fileWatcher';
 import { log, logError, logVerbose } from '../logging';
 import { EventEmitter } from 'events';
@@ -15,13 +15,22 @@ import { events } from '../../symbols';
 import { RelativePath } from './relativePath';
 import { SplitToLines } from './streams/splitToLines';
 import { MemberAccessParser, IMemberAccessEntry } from './streams/memberAccessParser';
+import { IHtmlReferences, IMemberAccessResults, IFormNames, IHtmlTemplateInfoResult } from './types';
 
 const htmlTags = new Set<string>(tags);
+
+// tslint:disable-next-line:variable-name
+const EmptyHtmlTemplateInfoResult = <IHtmlTemplateInfoResult>{
+    formNames: null,
+    htmlReferences: null,
+    memberAccess: null
+};
 
 export class HtmlTemplateInfoCache extends EventEmitter implements vsc.Disposable {
     private componentAliasMap: Map<string, string>;
     private htmlReferences: IHtmlReferences = {};
     private memberAccess: IMemberAccessResults = {};
+    private formNames: IFormNames = {};
     private watcher: FileWatcher;
 
     private emitReferencesChanged = () => this.emit(events.htmlReferencesChanged, this.htmlReferences);
@@ -67,8 +76,18 @@ export class HtmlTemplateInfoCache extends EventEmitter implements vsc.Disposabl
 
     private createHtmlReferencesParser = (resolve, reject, htmlReferences: IHtmlReferences, relativePath: RelativePath, locationCb): parse5.SAXParser => {
         const parser = new parse5.SAXParser({ locationInfo: true });
+        const isFormTag = name => name === 'form' || name === 'ng-form';
 
-        parser.on('startTag', (name, _attrs, _self, location) => {
+        parser.on('startTag', (name, attrs, _self, location) => {
+            if (isFormTag(name)) {
+                const nameAttr = attrs.find(a => a.name === 'name');
+                if (nameAttr) {
+                    // TODO: get location data about forms to be able to use Go To Definition
+                    this.formNames[relativePath.relative] = this.formNames[relativePath.relative] || [];
+                    this.formNames[relativePath.relative].push(nameAttr.value);
+                }
+            }
+
             if (htmlTags.has(name)) {
                 return;
             }
@@ -121,10 +140,10 @@ export class HtmlTemplateInfoCache extends EventEmitter implements vsc.Disposabl
             const getLocation = (location: parse5.MarkupData.StartTagLocation) => ({ line: location.line - 1, col: location.col - 1 });
             const htmlParser = this.createHtmlReferencesParser(resolve, reject, results, relativePath, getLocation);
             const splitToLines = this.createSplitToLinesStream();
-            const memberAccessParser = this.createMemberAccessParser(relativePath);
 
             const stream = fs.createReadStream(relativePath.absolute).pipe(htmlParser);
 
+            const memberAccessParser = this.createMemberAccessParser(relativePath);
             if (memberAccessParser) {
                 stream.pipe(splitToLines).pipe(memberAccessParser);
             }
@@ -170,6 +189,7 @@ export class HtmlTemplateInfoCache extends EventEmitter implements vsc.Disposabl
             this.setupWatchers(config);
             this.componentAliasMap = this.buildComponentAliasMap(components);
             this.memberAccess = {};
+            this.formNames = {};
 
             const results: IHtmlReferences = {};
             const htmlGlobs = config.get('htmlGlobs') as string[];
@@ -189,15 +209,13 @@ export class HtmlTemplateInfoCache extends EventEmitter implements vsc.Disposabl
             this.htmlReferences = results;
             return {
                 htmlReferences: this.htmlReferences,
-                memberAccess: this.memberAccess
+                memberAccess: this.memberAccess,
+                formNames: this.formNames
             };
         } catch (err) {
             logError(err);
             vsc.window.showErrorMessage('There was an error refreshing html components cache, check console for errors');
-            return {
-                htmlReferences: null,
-                memberAccess: null
-            };
+            return EmptyHtmlTemplateInfoResult;
         }
     }
 
@@ -208,26 +226,4 @@ export class HtmlTemplateInfoCache extends EventEmitter implements vsc.Disposabl
 
         this.removeAllListeners();
     }
-}
-
-export interface IHtmlTemplateInfoResult {
-    htmlReferences: IHtmlReferences;
-    memberAccess: IMemberAccessResults;
-}
-
-export interface IHtmlReferences {
-    [componentName: string]: IComponentReferences;
-}
-
-export interface IComponentReferences {
-    [relativeHtmlPath: string]: IComponentReference[];
-}
-
-export interface IComponentReference {
-    line: number;
-    col: number;
-}
-
-export interface IMemberAccessResults {
-    [relativeHtmlPath: string]: IMemberAccessEntry[];
 }
