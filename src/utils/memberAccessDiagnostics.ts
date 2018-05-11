@@ -1,16 +1,16 @@
 import * as vsc from 'vscode';
 import { IMemberAccessResults, IFormNames } from './htmlTemplate/types';
 import { RelativePath } from './htmlTemplate/relativePath';
-import { Component } from './component/component';
+import { IComponentBase } from './component/component';
 import _ = require('lodash');
 import { IMemberAccessEntry } from './htmlTemplate/streams/memberAccessParser';
 
 export class MemberAccessDiagnostics {
-	public getDiagnostics = (components: Component[], results: IMemberAccessResults, formNames: IFormNames): DiagnosticsByTemplate => {
+	public getDiagnostics = (components: IComponentBase[], results: IMemberAccessResults, formNames: IFormNames): DiagnosticsByTemplate => {
 		const componentMembers = components.filter(c => c.template && !c.template.body).reduce((map, component) => {
 			const templateRelativePath = new RelativePath(component.template.path).relative;
 
-			const allMembers = component.bindings.map(b => b.name);
+			const allMembers = component.getBindings().map(b => b.name);
 			if (component.controller) {
 				allMembers.push(...component.controller.getMembers(false).map(m => m.name));
 			}

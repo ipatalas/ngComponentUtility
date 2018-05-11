@@ -137,7 +137,9 @@ export class Extension {
 	}
 
 	private refreshMemberAccessDiagnostics = (memberAccess: IMemberAccessResults, formNames: IFormNames) => {
-		const diagnostics = this.memberAccessDiagnostics.getDiagnostics(this.latestComponents, memberAccess, formNames);
+		const componentsAndRoutes = [...this.latestComponents, ...this.latestRoutes];
+
+		const diagnostics = this.memberAccessDiagnostics.getDiagnostics(componentsAndRoutes, memberAccess, formNames);
 
 		this.diagnosticCollection.clear();
 		this.diagnosticCollection.set(diagnostics);
