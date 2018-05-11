@@ -11,6 +11,7 @@ export class Controller {
 	public pos: ts.LineAndCharacter;
 	public members: IMember[];
 
+	public baseClassName: string;
 	public static parse(file: SourceFile): Promise<Controller[]> {
 		return new Promise<Controller[]>((resolve, _reject) => {
 			try {
