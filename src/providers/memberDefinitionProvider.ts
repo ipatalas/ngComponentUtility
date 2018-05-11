@@ -30,11 +30,21 @@ export class MemberDefinitionProvider implements vsc.DefinitionProvider {
 			const range = document.getWordRangeAtPosition(position);
 			const word = document.getText(range);
 
-			const member = component.controller.members.find(m => m.name === word);
-			if (member) {
+			if (component.controller) {
+				const member = component.controller.members.find(m => m.name === word);
+				if (member) {
+					return getLocation({
+						path: component.controller.path,
+						pos: member.pos
+					});
+				}
+			}
+
+			const binding = component.getBindings().find(b => b.name === word);
+			if (binding) {
 				return getLocation({
-					path: component.controller.path,
-					pos: member.pos
+					path: component.path,
+					pos: binding.pos
 				});
 			}
 		}
