@@ -3,6 +3,10 @@ import { SourceFile, ISourceFile } from './sourceFile';
 import * as path from 'path';
 import * as fs from 'fs';
 
+export function isTsKind<T extends ts.Node = ts.Node>(node: ts.Node, syntaxKind: ts.SyntaxKind): node is T {
+	return node.kind === syntaxKind;
+}
+
 export class TypescriptParser {
 	private readonly identifierNodes: Map<string, ts.Node[]> = new Map<string, ts.Node[]>();
 
