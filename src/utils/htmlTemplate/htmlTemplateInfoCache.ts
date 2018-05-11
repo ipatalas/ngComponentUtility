@@ -135,17 +135,19 @@ export class HtmlTemplateInfoCache extends EventEmitter implements vsc.Disposabl
         return parser;
     }
 
-    private parseFile = (relativePath: RelativePath, results: IHtmlReferences) => {
+    private parseFile = (relativePath: RelativePath, results: IHtmlReferences, isMemberDiagnosticEnabled?: boolean) => {
         return new Promise<void>((resolve, reject) => {
             const getLocation = (location: parse5.MarkupData.StartTagLocation) => ({ line: location.line - 1, col: location.col - 1 });
             const htmlParser = this.createHtmlReferencesParser(resolve, reject, results, relativePath, getLocation);
-            const splitToLines = this.createSplitToLinesStream();
 
             const stream = fs.createReadStream(relativePath.absolute).pipe(htmlParser);
 
-            const memberAccessParser = this.createMemberAccessParser(relativePath);
-            if (memberAccessParser) {
-                stream.pipe(splitToLines).pipe(memberAccessParser);
+            if (isMemberDiagnosticEnabled) {
+                const memberAccessParser = this.createMemberAccessParser(relativePath);
+                if (memberAccessParser) {
+                    const splitToLines = this.createSplitToLinesStream();
+                    stream.pipe(splitToLines).pipe(memberAccessParser);
+                }
             }
         });
     }
@@ -164,7 +166,6 @@ export class HtmlTemplateInfoCache extends EventEmitter implements vsc.Disposabl
         });
     }
 
-    // TODO: use route components as well here
     private buildComponentAliasMap = (components: IComponentBase[]): Map<string, string> => {
         return components.filter(c => c.template && !c.template.body).reduce((map, component) => {
             const relativePath = new RelativePath(component.template.path).relative;
@@ -186,8 +187,10 @@ export class HtmlTemplateInfoCache extends EventEmitter implements vsc.Disposabl
         config = config || vsc.workspace.getConfiguration('ngComponents');
 
         try {
+            const isMemberDiagnosticEnabled = config.get<boolean>('memberDiagnostics.enabled');
+
             this.setupWatchers(config);
-            this.componentAliasMap = this.buildComponentAliasMap(components);
+            this.componentAliasMap = isMemberDiagnosticEnabled && this.buildComponentAliasMap(components);
             this.memberAccess = {};
             this.formNames = {};
 
@@ -201,7 +204,7 @@ export class HtmlTemplateInfoCache extends EventEmitter implements vsc.Disposabl
             globTime = process.hrtime(globTime);
 
             let parseTime = process.hrtime();
-            await Promise.all(files.map(f => this.parseFile(new RelativePath(f), results)));
+            await Promise.all(files.map(f => this.parseFile(new RelativePath(f), results, isMemberDiagnosticEnabled)));
             parseTime = process.hrtime(parseTime);
 
             log(`HTML stats [files=${files.length}, glob=${prettyHrtime(globTime)}, parse=${prettyHrtime(parseTime)}]`);

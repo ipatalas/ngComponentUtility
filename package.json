@@ -134,6 +134,11 @@
 					"type": "string",
 					"default": null,
 					"description": "Custom Angular root folder relative to workspace root (defaults to workspace root)"
+				},
+				"ngComponents.memberDiagnostics.enabled": {
+					"type": "boolean",
+					"default": false,
+					"description": "Enables validation of all components' HTML templates in regards to fields that are used there (experimental)"
 				}
 			}
 		}

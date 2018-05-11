@@ -137,12 +137,17 @@ export class Extension {
 	}
 
 	private refreshMemberAccessDiagnostics = (memberAccess: IMemberAccessResults, formNames: IFormNames) => {
+		this.diagnosticCollection.clear();
+
+		const config = vsc.workspace.getConfiguration('ngComponents');
+		const isMemberDiagnosticEnabled = config.get<boolean>('memberDiagnostics.enabled');
+		if (isMemberDiagnosticEnabled) {
 		const componentsAndRoutes = [...this.latestComponents, ...this.latestRoutes];
 
 		const diagnostics = this.memberAccessDiagnostics.getDiagnostics(componentsAndRoutes, memberAccess, formNames);
 
-		this.diagnosticCollection.clear();
 		this.diagnosticCollection.set(diagnostics);
+	}
 	}
 
 	private refreshComponents = async (config?: vsc.WorkspaceConfiguration): Promise<void> => {
