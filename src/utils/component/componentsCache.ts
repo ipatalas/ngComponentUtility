@@ -38,6 +38,7 @@ export class ComponentsCache extends EventEmitter implements vsc.Disposable {
 
 		this.controllers.push.apply(this.controllers, controllers);
 		this.reassignControllers(controllers);
+		this.assignControllersBaseClasses();
 		this.emitComponentsChanged();
 	}
 
@@ -50,6 +51,7 @@ export class ComponentsCache extends EventEmitter implements vsc.Disposable {
 			.forEach(c => c.controller = null);
 
 		this.deleteFile(this.controllers, filepath);
+		this.assignControllersBaseClasses();
 		this.emitComponentsChanged();
 	}
 
@@ -70,6 +72,7 @@ export class ComponentsCache extends EventEmitter implements vsc.Disposable {
 		this.controllers.push.apply(this.controllers, controllers);
 
 		this.reassignControllers(controllers);
+		this.assignControllersBaseClasses();
 		this.emitComponentsChanged();
 	}
 
@@ -85,6 +88,12 @@ export class ComponentsCache extends EventEmitter implements vsc.Disposable {
 		this.components
 			.filter(c => c.controllerClassName && ctrlClassNames[c.controllerClassName] != null)
 			.forEach(c => c.controller = ctrlClassNames[c.controllerClassName]);
+	}
+
+	private assignControllersBaseClasses = () => {
+		const controllersByClassName = _.keyBy(this.controllers, c => c.className);
+
+		this.controllers.filter(c => c.baseClassName).forEach(c => c.baseClass = controllersByClassName[c.baseClassName]);
 	}
 
 	private onComponentAdded = async (uri: vsc.Uri) => {
@@ -134,6 +143,7 @@ export class ComponentsCache extends EventEmitter implements vsc.Disposable {
 
 		this.setupWatchers(config);
 		this.controllers = await this.scanner.findFiles('controllerGlobs', Controller.parse, 'Controller');
+		this.assignControllersBaseClasses();
 
 		const parseComponent = (src: SourceFile) => Component.parse(src, this.controllers);
 

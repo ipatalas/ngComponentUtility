@@ -12,6 +12,18 @@ export class Controller {
 	public members: IMember[];
 
 	public baseClassName: string;
+	public baseClass: Controller;
+
+	public getMembers = (publicOnly: boolean): IMember[] => {
+		const allMembers = [...this.members.filter(m => !publicOnly || m.isPublic === true)];
+
+		if (this.baseClass) {
+			allMembers.push(...this.baseClass.getMembers(publicOnly));
+		}
+
+		return allMembers;
+	}
+
 	public static parse(file: SourceFile): Promise<Controller[]> {
 		return new Promise<Controller[]>((resolve, _reject) => {
 			try {

@@ -10,13 +10,13 @@ export class MemberAccessDiagnostics {
 		const componentMembers = components.filter(c => c.template && !c.template.body).reduce((map, component) => {
 			const templateRelativePath = new RelativePath(component.template.path).relative;
 
-			const allComponents = component.bindings.map(b => b.name);
+			const allMembers = component.bindings.map(b => b.name);
 			if (component.controller) {
-				allComponents.push(...component.controller.members.map(m => m.name));
+				allMembers.push(...component.controller.getMembers(false).map(m => m.name));
 			}
 
 			map[templateRelativePath] = map[templateRelativePath] || [];
-			map[templateRelativePath].push(..._.uniq(allComponents));
+			map[templateRelativePath].push(..._.uniq(allMembers));
 			return map;
 		}, <IMembersByTemplate>{});
 
