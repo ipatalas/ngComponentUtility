@@ -68,9 +68,9 @@ export class RoutesCache extends EventEmitter implements vsc.Disposable {
 		} while (idx > -1);
 	}
 
-	public refresh = async (config: vsc.WorkspaceConfiguration, controllers: Controller[]): Promise<Route[]> => {
+	public refresh = async (controllers: Controller[]): Promise<Route[]> => {
 		try {
-			config = config || vsc.workspace.getConfiguration('ngComponents');
+			const config = vsc.workspace.getConfiguration('ngComponents');
 
 			this.setupWatchers(config);
 			this.controllers = controllers;

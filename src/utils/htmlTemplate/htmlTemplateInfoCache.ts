@@ -183,8 +183,8 @@ export class HtmlTemplateInfoCache extends EventEmitter implements vsc.Disposabl
         return this.htmlReferences;
     }
 
-    public refresh = async (config: vsc.WorkspaceConfiguration, components: IComponentBase[]): Promise<IHtmlTemplateInfoResult> => {
-        config = config || vsc.workspace.getConfiguration('ngComponents');
+    public refresh = async (components: IComponentBase[]): Promise<IHtmlTemplateInfoResult> => {
+        const config = vsc.workspace.getConfiguration('ngComponents');
 
         try {
             const isMemberDiagnosticEnabled = config.get<boolean>('memberDiagnostics.enabled');

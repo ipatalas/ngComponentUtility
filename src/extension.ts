@@ -142,20 +142,20 @@ export class Extension {
 		const config = vsc.workspace.getConfiguration('ngComponents');
 		const isMemberDiagnosticEnabled = config.get<boolean>('memberDiagnostics.enabled');
 		if (isMemberDiagnosticEnabled) {
-		const componentsAndRoutes = [...this.latestComponents, ...this.latestRoutes];
+			const componentsAndRoutes = [...this.latestComponents, ...this.latestRoutes];
 
-		const diagnostics = this.memberAccessDiagnostics.getDiagnostics(componentsAndRoutes, memberAccess, formNames);
+			const diagnostics = this.memberAccessDiagnostics.getDiagnostics(componentsAndRoutes, memberAccess, formNames);
 
-		this.diagnosticCollection.set(diagnostics);
+			this.diagnosticCollection.set(diagnostics);
+		}
 	}
-	}
 
-	private refreshComponents = async (config?: vsc.WorkspaceConfiguration): Promise<void> => {
+	private refreshComponents = async (): Promise<void> => {
 		return new Promise<void>(async (resolve, _reject) => {
 			try {
-				const { components, controllers } = await this.componentsCache.refresh(config);
-				this.latestRoutes = await this.routesCache.refresh(config, controllers);
-				const { htmlReferences, memberAccess, formNames } = await this.htmlReferencesCache.refresh(config, [...components, ...this.latestRoutes]);
+				const { components, controllers } = await this.componentsCache.refresh();
+				this.latestRoutes = await this.routesCache.refresh(controllers);
+				const { htmlReferences, memberAccess, formNames } = await this.htmlReferencesCache.refresh([...components, ...this.latestRoutes]);
 
 				this.latestComponents = components;
 				this.latestHtmlReferences = htmlReferences;

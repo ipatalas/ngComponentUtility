@@ -138,8 +138,8 @@ export class ComponentsCache extends EventEmitter implements vsc.Disposable {
 		} while (idx > -1);
 	}
 
-	public refresh = async (config?: vsc.WorkspaceConfiguration): Promise<IComponentInfoResult> => {
-		config = config || vsc.workspace.getConfiguration('ngComponents');
+	public refresh = async (): Promise<IComponentInfoResult> => {
+		const config = vsc.workspace.getConfiguration('ngComponents');
 
 		this.setupWatchers(config);
 		this.controllers = await this.scanner.findFiles('controllerGlobs', Controller.parse, 'Controller');
