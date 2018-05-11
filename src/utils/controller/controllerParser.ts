@@ -33,7 +33,10 @@ export class ControllerParser {
 			controller.path = this.file.path;
 			controller.name = controller.className = node.name.text;
 			controller.pos = this.file.sourceFile.getLineAndCharacterOfPosition(node.members.pos);
-			controller.members = node.members.map(this.createMember).filter(item => item); // filter out undefined (not implemented member types)
+			controller.members = [
+				...node.members.map(this.createMember).filter(item => item), // filter out undefined (not implemented member types)
+				...this.getConstructorMembers(node.members)
+			];
 			controller.baseClassName = this.getBaseClassName(node);
 
 			this.results.push(controller);
@@ -86,19 +89,27 @@ export class ControllerParser {
 	}
 
 	private createMember = (member: ts.ClassElement) => {
-		if (member.kind === ts.SyntaxKind.MethodDeclaration) {
-			return ClassMethod.fromNode(member as ts.MethodDeclaration, this.file.sourceFile);
-		} else if (member.kind === ts.SyntaxKind.GetAccessor) {
-			return ClassProperty.fromProperty(member as ts.GetAccessorDeclaration, this.file.sourceFile);
-		} else if (member.kind === ts.SyntaxKind.PropertyDeclaration) {
-			const prop = member as ts.PropertyDeclaration;
-
-			if (prop.initializer && prop.initializer.kind === ts.SyntaxKind.ArrowFunction) {
-				return ClassMethod.fromNode(prop, this.file.sourceFile);
+		if (isTsKind<ts.MethodDeclaration>(member, ts.SyntaxKind.MethodDeclaration)) {
+			return ClassMethod.fromNode(member, this.file.sourceFile);
+		} else if (isTsKind<ts.GetAccessorDeclaration>(member, ts.SyntaxKind.GetAccessor)) {
+			return ClassProperty.fromProperty(member, this.file.sourceFile);
+		} else if (isTsKind<ts.PropertyDeclaration>(member, ts.SyntaxKind.PropertyDeclaration)) {
+			if (member.initializer && member.initializer.kind === ts.SyntaxKind.ArrowFunction) {
+				return ClassMethod.fromNode(member, this.file.sourceFile);
 			} else {
-				return ClassProperty.fromProperty(prop, this.file.sourceFile);
+				return ClassProperty.fromProperty(member, this.file.sourceFile);
 			}
 		}
+	}
+
+	private getConstructorMembers = (members: ts.NodeArray<ts.ClassElement>): ClassProperty[] => {
+		const ctor = members.find((m: ts.ClassElement): m is ts.ConstructorDeclaration => m.kind === ts.SyntaxKind.Constructor);
+
+		if (ctor) {
+			return ctor.parameters.filter(p => p.modifiers).map(p => ClassProperty.fromConstructorParameter(p, this.file.sourceFile));
+		}
+
+		return [];
 	}
 
 	private getBaseClassName = (classDeclaration: ts.ClassDeclaration): string => {

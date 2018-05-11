@@ -10,7 +10,15 @@ export class ClassProperty extends MemberBase {
 	private constructor() {
 		super();
 	}
+
 	public static fromProperty(node: ts.PropertyDeclaration | ts.GetAccessorDeclaration, sourceFile: ts.SourceFile) {
+		const result = new ClassProperty();
+		result.fillCommonFields(node, sourceFile);
+
+		return result;
+	}
+
+	public static fromConstructorParameter(node: ts.ParameterDeclaration, sourceFile: ts.SourceFile) {
 		const result = new ClassProperty();
 		result.fillCommonFields(node, sourceFile);
 

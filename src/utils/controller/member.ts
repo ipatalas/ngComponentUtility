@@ -9,7 +9,7 @@ export abstract class MemberBase implements IMember {
 	public isPublic: boolean;
 	public pos: ts.LineAndCharacter;
 
-	protected fillCommonFields = (node: ts.PropertyDeclaration | ts.MethodDeclaration | ts.GetAccessorDeclaration, sourceFile: ts.SourceFile) => {
+	protected fillCommonFields = (node: ts.PropertyDeclaration | ts.MethodDeclaration | ts.GetAccessorDeclaration | ts.ParameterDeclaration, sourceFile: ts.SourceFile) => {
 		this.pos = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile));
 		this.name = (<ts.Identifier>node.name).text;
 		this.isPublic = node.modifiers === undefined || node.modifiers.some(modifier => modifier.kind === ts.SyntaxKind.PublicKeyword);
