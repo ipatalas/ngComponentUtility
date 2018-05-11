@@ -16,7 +16,11 @@ export class ConfigurationChangeListener {
 		);
 	}
 
-	private onChanged = () => {
+	private onChanged = (event: vsc.ConfigurationChangeEvent) => {
+		if (!event.affectsConfiguration(this.section)) {
+			return;
+		}
+
 		const current = vsc.workspace.getConfiguration(this.section);
 
 		const changedKeys = _(Object.keys(current))
