@@ -1,28 +1,24 @@
 import { IMemberAccessEntry } from './streams/memberAccessParser';
+import * as ts from "typescript";
 
-export interface IHtmlTemplateInfoResult {
+export interface IHtmlTemplateInfoResults {
     htmlReferences: IHtmlReferences;
-    memberAccess: IMemberAccessResults;
-    formNames: IFormNames;
+    templateInfo: ITemplateInfo;
 }
 
 export interface IHtmlReferences {
-    [componentName: string]: IComponentReferences;
+    [componentName: string]: IComponentReferences[];
 }
 
-export interface IComponentReferences {
-    [relativeHtmlPath: string]: IComponentReference[];
+export interface IComponentReferences extends ts.LineAndCharacter {
+    relativeHtmlPath: string;
 }
 
-export interface IComponentReference {
-    line: number;
-    col: number;
+export interface ITemplateInfo {
+    [relativeHtmlPath: string]: ITemplateInfoEntry;
 }
 
-export interface IMemberAccessResults {
-    [relativeHtmlPath: string]: IMemberAccessEntry[];
-}
-
-export interface IFormNames {
-    [relativeHtmlPath: string]: string[];
+export interface ITemplateInfoEntry {
+    memberAccess: IMemberAccessEntry[];
+    formNames: string[];
 }

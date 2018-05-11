@@ -15,25 +15,17 @@ import { events } from '../../symbols';
 import { RelativePath } from './relativePath';
 import { SplitToLines } from './streams/splitToLines';
 import { MemberAccessParser, IMemberAccessEntry } from './streams/memberAccessParser';
-import { IHtmlReferences, IMemberAccessResults, IFormNames, IHtmlTemplateInfoResult } from './types';
+import { IHtmlTemplateInfoResults } from './types';
+import { HtmlTemplateInfoResults } from './htmlTemplateInfoResult';
 
 const htmlTags = new Set<string>(tags);
 
-// tslint:disable-next-line:variable-name
-const EmptyHtmlTemplateInfoResult = <IHtmlTemplateInfoResult>{
-    formNames: null,
-    htmlReferences: null,
-    memberAccess: null
-};
-
 export class HtmlTemplateInfoCache extends EventEmitter implements vsc.Disposable {
     private componentAliasMap: Map<string, string>;
-    private htmlReferences: IHtmlReferences = {};
-    private memberAccess: IMemberAccessResults = {};
-    private formNames: IFormNames = {};
+    private results: HtmlTemplateInfoResults;
     private watcher: FileWatcher;
 
-    private emitReferencesChanged = () => this.emit(events.htmlReferencesChanged, this.htmlReferences);
+    private emitReferencesChanged = () => this.emit(events.htmlReferencesChanged, this.results);
 
     private setupWatchers = (config: vsc.WorkspaceConfiguration) => {
         const globs = config.get('htmlGlobs') as string[];
@@ -43,38 +35,26 @@ export class HtmlTemplateInfoCache extends EventEmitter implements vsc.Disposabl
     }
 
     private onAdded = async (uri: vsc.Uri) => {
-        this.parseFile(RelativePath.fromUri(uri), this.htmlReferences);
+        this.parseFile(RelativePath.fromUri(uri), this.results);
         this.emitReferencesChanged();
     }
 
     private onChanged = async (uri: vsc.Uri) => {
         const relativePath = RelativePath.fromUri(uri);
 
-        this.deleteFileReferences(relativePath);
-        this.parseFile(relativePath, this.htmlReferences);
+        this.results.deleteTemplate(relativePath.relative);
+        this.parseFile(relativePath, this.results);
         this.emitReferencesChanged();
     }
 
     private onDeleted = (uri: vsc.Uri) => {
-        this.deleteFileReferences(RelativePath.fromUri(uri));
+        const relativePath = RelativePath.fromUri(uri);
+
+        this.results.deleteTemplate(relativePath.relative);
         this.emitReferencesChanged();
     }
 
-    private deleteFileReferences = (relativePath: RelativePath) => {
-        const emptyKeys = [];
-
-        _.forIn(this.htmlReferences, (value, key) => {
-            delete value[relativePath.relative];
-
-            if (_.isEmpty(value)) {
-                emptyKeys.push(key);
-            }
-        });
-
-        emptyKeys.forEach(key => delete this.htmlReferences[key]);
-    }
-
-    private createHtmlReferencesParser = (resolve, reject, htmlReferences: IHtmlReferences, relativePath: RelativePath, locationCb): parse5.SAXParser => {
+    private createHtmlReferencesParser = (resolve, reject, results: HtmlTemplateInfoResults, relativePath: string, locationCb): parse5.SAXParser => {
         const parser = new parse5.SAXParser({ locationInfo: true });
         const isFormTag = name => name === 'form' || name === 'ng-form';
 
@@ -83,8 +63,7 @@ export class HtmlTemplateInfoCache extends EventEmitter implements vsc.Disposabl
                 const nameAttr = attrs.find(a => a.name === 'name');
                 if (nameAttr) {
                     // TODO: get location data about forms to be able to use Go To Definition
-                    this.formNames[relativePath.relative] = this.formNames[relativePath.relative] || [];
-                    this.formNames[relativePath.relative].push(nameAttr.value);
+                    results.addFormName(relativePath, nameAttr.value);
                 }
             }
 
@@ -92,9 +71,7 @@ export class HtmlTemplateInfoCache extends EventEmitter implements vsc.Disposabl
                 return;
             }
 
-            htmlReferences[name] = htmlReferences[name] || {};
-            htmlReferences[name][relativePath.relative] = htmlReferences[name][relativePath.relative] || [];
-            htmlReferences[name][relativePath.relative].push(locationCb(location));
+            results.addHtmlReference(name, relativePath, locationCb(location));
         }).on('finish', () => {
             parser.end();
             resolve();
@@ -115,35 +92,31 @@ export class HtmlTemplateInfoCache extends EventEmitter implements vsc.Disposabl
         return stream;
     }
 
-    private createMemberAccessParser = (relativePath: RelativePath): MemberAccessParser => {
-        const alias = this.componentAliasMap.get(relativePath.relative);
+    private createMemberAccessParser = (results: HtmlTemplateInfoResults, relativePath: string): MemberAccessParser => {
+        const alias = this.componentAliasMap.get(relativePath);
 
         if (!alias) {
-            logVerbose(`Cannot find component for '${relativePath.relative}'. Member access validation will not work here :(`);
+            logVerbose(`Cannot find component for '${relativePath}'. Member access validation will not work here :(`);
             return null;
         }
 
         const parser = new MemberAccessParser(alias);
-        parser.on(<any>events.memberFound, (e: IMemberAccessEntry) => {
-            this.memberAccess[relativePath.relative] = this.memberAccess[relativePath.relative] || [];
-            this.memberAccess[relativePath.relative].push(e);
-        });
-
+        parser.on(<any>events.memberFound, (e: IMemberAccessEntry) => results.addMemberAccess(relativePath, e));
         parser.on('finish', () => parser.end());
         parser.on('error', () => parser.end());
 
         return parser;
     }
 
-    private parseFile = (relativePath: RelativePath, results: IHtmlReferences, isMemberDiagnosticEnabled?: boolean) => {
+    private parseFile = (relativePath: RelativePath, results: HtmlTemplateInfoResults, isMemberDiagnosticEnabled?: boolean) => {
         return new Promise<void>((resolve, reject) => {
             const getLocation = (location: parse5.MarkupData.StartTagLocation) => ({ line: location.line - 1, col: location.col - 1 });
-            const htmlParser = this.createHtmlReferencesParser(resolve, reject, results, relativePath, getLocation);
+            const htmlParser = this.createHtmlReferencesParser(resolve, reject, results, relativePath.relative, getLocation);
 
             const stream = fs.createReadStream(relativePath.absolute).pipe(htmlParser);
 
             if (isMemberDiagnosticEnabled) {
-                const memberAccessParser = this.createMemberAccessParser(relativePath);
+                const memberAccessParser = this.createMemberAccessParser(results, relativePath.relative);
                 if (memberAccessParser) {
                     const splitToLines = this.createSplitToLinesStream();
                     stream.pipe(splitToLines).pipe(memberAccessParser);
@@ -152,7 +125,7 @@ export class HtmlTemplateInfoCache extends EventEmitter implements vsc.Disposabl
         });
     }
 
-    private parseInlineTemplate = (template: IComponentTemplate, htmlReferences: IHtmlReferences) => {
+    private parseInlineTemplate = (template: IComponentTemplate, results: HtmlTemplateInfoResults) => {
         return new Promise<void>((resolve, reject) => {
             const relativePath = new RelativePath(template.path);
 
@@ -161,7 +134,7 @@ export class HtmlTemplateInfoCache extends EventEmitter implements vsc.Disposabl
                 col: (location.line === 1 ? template.pos.character + 1 : 0) + location.col
             });
 
-            const parser = this.createHtmlReferencesParser(resolve, reject, htmlReferences, relativePath, getLocation);
+            const parser = this.createHtmlReferencesParser(resolve, reject, results, relativePath.relative, getLocation);
             parser.end(template.body);
         });
     }
@@ -178,12 +151,12 @@ export class HtmlTemplateInfoCache extends EventEmitter implements vsc.Disposabl
         }, new Map<string, string>());
     }
 
-    public loadInlineTemplates = async (templates: IComponentTemplate[]) => {
-        await Promise.all(templates.map(c => this.parseInlineTemplate(c, this.htmlReferences)));
-        return this.htmlReferences;
+    public loadInlineTemplates = async (templates: IComponentTemplate[]): Promise<IHtmlTemplateInfoResults> => {
+        await Promise.all(templates.map(c => this.parseInlineTemplate(c, this.results)));
+        return this.results;
     }
 
-    public refresh = async (components: IComponentBase[]): Promise<IHtmlTemplateInfoResult> => {
+    public refresh = async (components: IComponentBase[]): Promise<IHtmlTemplateInfoResults> => {
         const config = vsc.workspace.getConfiguration('ngComponents');
 
         try {
@@ -191,10 +164,8 @@ export class HtmlTemplateInfoCache extends EventEmitter implements vsc.Disposabl
 
             this.setupWatchers(config);
             this.componentAliasMap = isMemberDiagnosticEnabled && this.buildComponentAliasMap(components);
-            this.memberAccess = {};
-            this.formNames = {};
 
-            const results: IHtmlReferences = {};
+            const results = new HtmlTemplateInfoResults();
             const htmlGlobs = config.get('htmlGlobs') as string[];
 
             let globTime = process.hrtime();
@@ -209,16 +180,12 @@ export class HtmlTemplateInfoCache extends EventEmitter implements vsc.Disposabl
 
             log(`HTML stats [files=${files.length}, glob=${prettyHrtime(globTime)}, parse=${prettyHrtime(parseTime)}]`);
 
-            this.htmlReferences = results;
-            return {
-                htmlReferences: this.htmlReferences,
-                memberAccess: this.memberAccess,
-                formNames: this.formNames
-            };
+            this.results = results;
+            return results;
         } catch (err) {
             logError(err);
             vsc.window.showErrorMessage('There was an error refreshing html components cache, check console for errors');
-            return EmptyHtmlTemplateInfoResult;
+            return new HtmlTemplateInfoResults();
         }
     }
 

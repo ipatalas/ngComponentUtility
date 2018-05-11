@@ -1,12 +1,13 @@
 import * as vsc from 'vscode';
-import { IMemberAccessResults, IFormNames } from './htmlTemplate/types';
+import _ = require('lodash');
+
+import { ITemplateInfo } from './htmlTemplate/types';
 import { RelativePath } from './htmlTemplate/relativePath';
 import { IComponentBase } from './component/component';
-import _ = require('lodash');
 import { IMemberAccessEntry } from './htmlTemplate/streams/memberAccessParser';
 
 export class MemberAccessDiagnostics {
-	public getDiagnostics = (components: IComponentBase[], results: IMemberAccessResults, formNames: IFormNames): DiagnosticsByTemplate => {
+	public getDiagnostics = (components: IComponentBase[], templateInfo: ITemplateInfo): DiagnosticsByTemplate => {
 		const componentMembers = components.filter(c => c.template && !c.template.body).reduce((map, component) => {
 			const templateRelativePath = new RelativePath(component.template.path).relative;
 
@@ -24,11 +25,11 @@ export class MemberAccessDiagnostics {
 			(relativePath: string, m: IMemberAccessEntry) => componentMembers[relativePath] && componentMembers[relativePath].some(x => x === m.memberName);
 
 		const isFormMember =
-			(relativePath: string, m: IMemberAccessEntry) => formNames[relativePath] && formNames[relativePath].some(formName => formName === m.expression);
+			(relativePath: string, m: IMemberAccessEntry) => templateInfo[relativePath] && templateInfo[relativePath].formNames.some(formName => formName === m.expression);
 
-		return Object.entries(results)
-			.reduce((allInvalid, [relativePath, members]) => {
-				const invalidMembers = members.filter(m => !isComponentMember(relativePath, m) && !isFormMember(relativePath, m));
+		return Object.entries(templateInfo)
+			.reduce((allInvalid, [relativePath, template]) => {
+				const invalidMembers = template.memberAccess.filter(m => !isComponentMember(relativePath, m) && !isFormMember(relativePath, m));
 
 				if (invalidMembers.length > 0) {
 					allInvalid.push([

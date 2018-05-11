@@ -20,11 +20,11 @@ import { RoutesCache } from './utils/route/routesCache';
 import { Route } from './utils/route/route';
 
 import { ConfigurationChangeListener, IConfigurationChangedEvent } from './utils/configurationChangeListener';
-import { logVerbose, log } from './utils/logging';
+import { logVerbose, log, logError } from './utils/logging';
 import { shouldActivateExtension, notAngularProject, markAsAngularProject, alreadyAngularProject } from './utils/vsc';
 import { events } from './symbols';
 import { MemberAccessDiagnostics } from './utils/memberAccessDiagnostics';
-import { IFormNames, IHtmlReferences, IMemberAccessResults } from './utils/htmlTemplate/types';
+import { IHtmlTemplateInfoResults, ITemplateInfo } from './utils/htmlTemplate/types';
 
 const HTML_DOCUMENT_SELECTOR = <vsc.DocumentFilter>{ language: 'html', scheme: 'file' };
 const TS_DOCUMENT_SELECTOR = <vsc.DocumentFilter>{ language: 'typescript', scheme: 'file' };
@@ -44,7 +44,7 @@ export class Extension {
 	private findUnusedAngularComponents = new FindUnusedComponentsCommand();
 
 	private componentsCache = new ComponentsCache();
-	private htmlReferencesCache = new HtmlTemplateInfoCache();
+	private htmlTemplateInfoCache = new HtmlTemplateInfoCache();
 	private routesCache = new RoutesCache();
 	private memberAccessDiagnostics = new MemberAccessDiagnostics();
 
@@ -52,7 +52,7 @@ export class Extension {
 	private configListener = new ConfigurationChangeListener('ngComponents');
 
 	private latestComponents: Component[];
-	private latestHtmlReferences: IHtmlReferences;
+	private latestHtmlTemplateInfoResults: IHtmlTemplateInfoResults;
 	private latestRoutes: Route[];
 	private diagnosticCollection: vsc.DiagnosticCollection;
 
@@ -65,7 +65,7 @@ export class Extension {
 
 		this.diagnosticCollection = vsc.languages.createDiagnosticCollection('diag-name');
 
-		context.subscriptions.push(this.configListener, this.componentsCache, this.htmlReferencesCache, this.routesCache);
+		context.subscriptions.push(this.configListener, this.componentsCache, this.htmlTemplateInfoCache, this.routesCache);
 		context.subscriptions.push(vsc.commands.registerCommand(COMMAND_MARKASANGULAR, alreadyAngularProject));
 
 		try {
@@ -73,10 +73,9 @@ export class Extension {
 
 			this.componentsCache.on(events.componentsChanged, this.componentsChanged);
 			this.routesCache.on(events.routesChanged, this.routesChanged);
-			this.htmlReferencesCache.on(events.htmlReferencesChanged, this.htmlReferencesChanged);
+			this.htmlTemplateInfoCache.on(events.htmlReferencesChanged, this.htmlReferencesChanged);
 		} catch (err) {
-			// tslint:disable-next-line:no-console
-			console.error(err);
+			logError(err);
 			vsc.window.showErrorMessage('Error initializing extension');
 		}
 
@@ -113,20 +112,20 @@ export class Extension {
 
 	private componentsChanged = (components: Component[]) => this.refreshAllProviders(components);
 	private routesChanged = (routes: Route[]) => this.refreshAllProviders(undefined, routes);
-	private htmlReferencesChanged = (htmlReferences: IHtmlReferences) => this.refreshAllProviders(undefined, undefined, htmlReferences);
+	private htmlReferencesChanged = (templateInfoResults: IHtmlTemplateInfoResults) => this.refreshAllProviders(undefined, undefined, templateInfoResults);
 
-	private refreshAllProviders = (components?: Component[], routes?: Route[], htmlReferences?: IHtmlReferences) => {
+	private refreshAllProviders = (components?: Component[], routes?: Route[], templateInfoResults?: IHtmlTemplateInfoResults) => {
 		components = components || this.latestComponents;
 		routes = routes || this.latestRoutes;
-		htmlReferences = htmlReferences || this.latestHtmlReferences;
+		templateInfoResults = templateInfoResults || this.latestHtmlTemplateInfoResults;
 
 		const componentsAndRoutes = [...components, ...routes];
 		const inlineTemplates: IComponentTemplate[] = this.getTemplatesWithBody(componentsAndRoutes);
 
-		this.htmlReferencesCache.loadInlineTemplates(inlineTemplates);
+		this.htmlTemplateInfoCache.loadInlineTemplates(inlineTemplates);
 
-		this.findUnusedAngularComponents.load(htmlReferences, components);
-		this.referencesProvider.load(htmlReferences, components);
+		this.findUnusedAngularComponents.load(templateInfoResults.htmlReferences, components);
+		this.referencesProvider.load(templateInfoResults.htmlReferences, components);
 		this.memberReferencesProvider.load(componentsAndRoutes);
 
 		this.completionProvider.loadComponents(components);
@@ -136,7 +135,7 @@ export class Extension {
 		this.memberDefinitionProvider.loadComponents(componentsAndRoutes);
 	}
 
-	private refreshMemberAccessDiagnostics = (memberAccess: IMemberAccessResults, formNames: IFormNames) => {
+	private refreshMemberAccessDiagnostics = (templateInfo: ITemplateInfo) => {
 		this.diagnosticCollection.clear();
 
 		const config = vsc.workspace.getConfiguration('ngComponents');
@@ -144,7 +143,7 @@ export class Extension {
 		if (isMemberDiagnosticEnabled) {
 			const componentsAndRoutes = [...this.latestComponents, ...this.latestRoutes];
 
-			const diagnostics = this.memberAccessDiagnostics.getDiagnostics(componentsAndRoutes, memberAccess, formNames);
+			const diagnostics = this.memberAccessDiagnostics.getDiagnostics(componentsAndRoutes, templateInfo);
 
 			this.diagnosticCollection.set(diagnostics);
 		}
@@ -155,15 +154,13 @@ export class Extension {
 			try {
 				const { components, controllers } = await this.componentsCache.refresh();
 				this.latestRoutes = await this.routesCache.refresh(controllers);
-				const { htmlReferences, memberAccess, formNames } = await this.htmlReferencesCache.refresh([...components, ...this.latestRoutes]);
-
+				this.latestHtmlTemplateInfoResults = await this.htmlTemplateInfoCache.refresh([...components, ...this.latestRoutes]);
 				this.latestComponents = components;
-				this.latestHtmlReferences = htmlReferences;
 
 				let postprocessingTime = process.hrtime();
 
-				this.refreshAllProviders(this.latestComponents, this.latestRoutes, this.latestHtmlReferences);
-				this.refreshMemberAccessDiagnostics(memberAccess, formNames);
+				this.refreshAllProviders(this.latestComponents, this.latestRoutes, this.latestHtmlTemplateInfoResults);
+				this.refreshMemberAccessDiagnostics(this.latestHtmlTemplateInfoResults.templateInfo);
 
 				postprocessingTime = process.hrtime(postprocessingTime);
 				log(`Postprocessing time: ${prettyHrtime(postprocessingTime)}`);
