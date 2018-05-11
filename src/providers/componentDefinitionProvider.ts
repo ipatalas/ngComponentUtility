@@ -2,7 +2,7 @@ import * as vsc from 'vscode';
 
 import { Component } from '../utils/component/component';
 import { HtmlDocumentHelper } from '../utils/htmlDocumentHelper';
-import { getLocation } from '../utils/vsc';
+import { getLocation, getConfiguration } from '../utils/vsc';
 
 export class ComponentDefinitionProvider implements vsc.DefinitionProvider {
 	private components: Component[];
@@ -33,7 +33,7 @@ export class ComponentDefinitionProvider implements vsc.DefinitionProvider {
 				}
 
 				if (word === component.htmlName) {
-					const config = vsc.workspace.getConfiguration('ngComponents');
+					const config = getConfiguration();
 					const componentParts = config.get('goToDefinition') as string[];
 
 					const results: vsc.Location[] = [];

@@ -11,6 +11,7 @@ import { FileWatcher } from '../fileWatcher';
 import { EventEmitter } from 'events';
 import { events } from '../../symbols';
 import { logError } from '../logging';
+import { getConfiguration } from '../vsc';
 
 export class ComponentsCache extends EventEmitter implements vsc.Disposable {
 	private scanner = new SourceFilesScanner();
@@ -139,7 +140,7 @@ export class ComponentsCache extends EventEmitter implements vsc.Disposable {
 	}
 
 	public refresh = async (): Promise<IComponentInfoResult> => {
-		const config = vsc.workspace.getConfiguration('ngComponents');
+		const config = getConfiguration();
 
 		this.setupWatchers(config);
 		this.controllers = await this.scanner.findFiles('controllerGlobs', Controller.parse, 'Controller');

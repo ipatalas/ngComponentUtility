@@ -2,6 +2,7 @@ import * as path from 'path';
 import * as vsc from 'vscode';
 import { IComponentBase } from '../utils/component/component';
 import * as _ from 'lodash';
+import { getConfiguration } from '../utils/vsc';
 
 export class MemberCompletionProvider implements vsc.CompletionItemProvider {
 	private components = new Map<string, IComponentBase>();
@@ -27,7 +28,7 @@ export class MemberCompletionProvider implements vsc.CompletionItemProvider {
 		const viewModelName = line.substring(dotIdx - component.controllerAs.length, dotIdx);
 
 		if (viewModelName === component.controllerAs && /^([a-z]+)?$/i.test(charsBetweenTheDotAndTheCursor)) {
-			const config = vsc.workspace.getConfiguration('ngComponents');
+			const config = getConfiguration();
 			const publicOnly = config.get('controller.publicMembersOnly') as boolean;
 			const excludedMembers = new RegExp(config.get('controller.excludedMembers') as string);
 

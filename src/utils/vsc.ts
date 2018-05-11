@@ -14,8 +14,12 @@ export function getLocation(location: { path: string, pos: ts.LineAndCharacter }
 	return new vsc.Location(vsc.Uri.file(location.path), new vsc.Position(location.pos.line, location.pos.character));
 }
 
+export function getConfiguration() {
+	return vsc.workspace.getConfiguration('ngComponents');
+}
+
 export function shouldActivateExtension() {
-	const config = vsc.workspace.getConfiguration('ngComponents');
+	const config = getConfiguration();
 	const forceEnable = config.get<boolean>('forceEnable');
 	angularRoot = getAngularRootDirectory();
 
@@ -52,7 +56,7 @@ export function notAngularProject() {
 }
 
 export function markAsAngularProject() {
-	const config = vsc.workspace.getConfiguration('ngComponents');
+	const config = getConfiguration();
 	config.update('forceEnable', true, false).then(_ => {
 		vsc.commands.executeCommand('workbench.action.reloadWindow');
 	});
@@ -65,7 +69,7 @@ export function findFiles(pattern: string) {
 }
 
 function getAngularRootDirectory() {
-	const config = vsc.workspace.getConfiguration('ngComponents');
+	const config = getConfiguration();
 	let value = config.get<string>('angularRoot');
 
 	if (value) {

@@ -10,6 +10,7 @@ import { EventEmitter } from 'events';
 import { events } from '../../symbols';
 import { Controller } from '../controller/controller';
 import { logError } from '../logging';
+import { getConfiguration } from '../vsc';
 
 export class RoutesCache extends EventEmitter implements vsc.Disposable {
 	private controllers: Controller[];
@@ -70,7 +71,7 @@ export class RoutesCache extends EventEmitter implements vsc.Disposable {
 
 	public refresh = async (controllers: Controller[]): Promise<Route[]> => {
 		try {
-			const config = vsc.workspace.getConfiguration('ngComponents');
+			const config = getConfiguration();
 
 			this.setupWatchers(config);
 			this.controllers = controllers;

@@ -138,7 +138,7 @@ export class Extension {
 	private refreshMemberAccessDiagnostics = (templateInfo: ITemplateInfo) => {
 		this.diagnosticCollection.clear();
 
-		const config = vsc.workspace.getConfiguration('ngComponents');
+		const config = getConfiguration();
 		const isMemberDiagnosticEnabled = config.get<boolean>('memberDiagnostics.enabled');
 		if (isMemberDiagnosticEnabled) {
 			const componentsAndRoutes = [...this.latestComponents, ...this.latestRoutes];
