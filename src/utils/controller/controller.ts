@@ -9,7 +9,7 @@ export class Controller {
 	public className: string;
 	public path: string;
 	public pos: ts.LineAndCharacter;
-	public members: IMember[];
+	public members: IMember[] = [];
 
 	public baseClassName: string;
 	public baseClass: Controller;
