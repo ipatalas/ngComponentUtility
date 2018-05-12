@@ -33,11 +33,11 @@ export class ControllerParser {
 			controller.path = this.file.path;
 			controller.name = controller.className = node.name.text;
 			controller.pos = this.file.sourceFile.getLineAndCharacterOfPosition(node.members.pos);
-			controller.members = [
-				...node.members.map(this.createMember).filter(item => item), // filter out undefined (not implemented member types)
-				...this.getConstructorMembers(node.members)
-			];
 			controller.baseClassName = this.getBaseClassName(node);
+			controller.members = [
+				...node.members.map(m => this.createMember(controller, m)).filter(item => item), // filter out undefined (not implemented member types)
+				...this.getConstructorMembers(controller, node.members)
+			];
 
 			this.results.push(controller);
 		} else if (node.kind === ts.SyntaxKind.CallExpression) {
@@ -88,25 +88,25 @@ export class ControllerParser {
 			(pae.expression as ts.Identifier).text === 'angular' && (pae.name as ts.Identifier).text === 'module';
 	}
 
-	private createMember = (member: ts.ClassElement) => {
+	private createMember = (controller: Controller, member: ts.ClassElement) => {
 		if (isTsKind<ts.MethodDeclaration>(member, ts.SyntaxKind.MethodDeclaration)) {
-			return ClassMethod.fromNode(member, this.file.sourceFile);
+			return ClassMethod.fromNode(controller, member, this.file.sourceFile);
 		} else if (isTsKind<ts.GetAccessorDeclaration>(member, ts.SyntaxKind.GetAccessor)) {
-			return ClassProperty.fromProperty(member, this.file.sourceFile);
+			return ClassProperty.fromProperty(controller, member, this.file.sourceFile);
 		} else if (isTsKind<ts.PropertyDeclaration>(member, ts.SyntaxKind.PropertyDeclaration)) {
 			if (member.initializer && member.initializer.kind === ts.SyntaxKind.ArrowFunction) {
-				return ClassMethod.fromNode(member, this.file.sourceFile);
+				return ClassMethod.fromNode(controller, member, this.file.sourceFile);
 			} else {
-				return ClassProperty.fromProperty(member, this.file.sourceFile);
+				return ClassProperty.fromProperty(controller, member, this.file.sourceFile);
 			}
 		}
 	}
 
-	private getConstructorMembers = (members: ts.NodeArray<ts.ClassElement>): ClassProperty[] => {
+	private getConstructorMembers = (controller: Controller, members: ts.NodeArray<ts.ClassElement>): ClassProperty[] => {
 		const ctor = members.find((m: ts.ClassElement): m is ts.ConstructorDeclaration => m.kind === ts.SyntaxKind.Constructor);
 
 		if (ctor) {
-			return ctor.parameters.filter(p => p.modifiers).map(p => ClassProperty.fromConstructorParameter(p, this.file.sourceFile));
+			return ctor.parameters.filter(p => p.modifiers).map(p => ClassProperty.fromConstructorParameter(controller, p, this.file.sourceFile));
 		}
 
 		return [];

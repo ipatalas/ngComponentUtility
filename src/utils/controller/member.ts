@@ -1,6 +1,7 @@
 import * as vsc from 'vscode';
 import * as ts from 'typescript';
 import { IComponentBinding } from '../component/component';
+import { Controller } from './controller';
 
 export abstract class MemberBase implements IMember {
 	public name: string;
@@ -8,6 +9,9 @@ export abstract class MemberBase implements IMember {
 	public returnType: string;
 	public isPublic: boolean;
 	public pos: ts.LineAndCharacter;
+
+	constructor(public controller: Controller) {
+	}
 
 	protected fillCommonFields = (node: ts.PropertyDeclaration | ts.MethodDeclaration | ts.GetAccessorDeclaration | ts.ParameterDeclaration, sourceFile: ts.SourceFile) => {
 		this.pos = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile));
@@ -31,6 +35,8 @@ export abstract class MemberBase implements IMember {
 }
 
 export interface IMember {
+	controller: Controller;
+
 	name: string;
 	type: MemberType;
 	isPublic: boolean;

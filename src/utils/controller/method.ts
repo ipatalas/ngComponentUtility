@@ -2,18 +2,19 @@ import * as ts from 'typescript';
 import * as vsc from 'vscode';
 import { MemberType, MemberBase } from './member';
 import { IComponentBinding } from '../component/component';
+import { Controller } from './controller';
 
 export class ClassMethod extends MemberBase {
 	public name: string;
 	public readonly type = MemberType.Method;
 	public parameters: IParameter[] = [];
 
-	private constructor() {
-		super();
+	private constructor(controller: Controller) {
+		super(controller);
 	}
 
-	public static fromNode(node: ts.PropertyDeclaration | ts.MethodDeclaration, sourceFile: ts.SourceFile) {
-		const result = new ClassMethod();
+	public static fromNode(controller: Controller, node: ts.PropertyDeclaration | ts.MethodDeclaration, sourceFile: ts.SourceFile) {
+		const result = new ClassMethod(controller);
 		result.fillCommonFields(node, sourceFile);
 
 		if (isProperty(node)) {
