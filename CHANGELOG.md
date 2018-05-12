@@ -1,5 +1,21 @@
 # Change Log
 
+## 0.8.0 (May 13, 2018)
+
+* Show diagnostics when invalid members are used in components' templates (check `README` for details)
+* Controllers having base class(es) are now correctly parsed and all members from all base classes should be visible for all features!
+* Improved Routes support:
+  * Full template handling like for components (`was`: only inline templates)
+  * Full controller handling like for components (`was`: no controller support at all)
+  * `Go To Definition` works in Route templates
+  * `Find All References` works in Route templates
+  * Member auto-completion works in Route templates
+* `Go To Definition` for scope-bound forms
+* Constructor injected controller members are now visible for `Go To Definition`, `Find All References` and member auto-completion
+* Include stack trace when logging errors
+* TravisCI improvements
+* Other minor fixes
+
 ## 0.7.4 (May 1, 2018)
 
 * Fixed [#24](https://github.com/ipatalas/ngComponentUtility/issues/24) - watch reload not working correctly

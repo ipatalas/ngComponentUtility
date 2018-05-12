@@ -6,8 +6,6 @@
 # Table of contents
 
 - [Synopsis](#synopsis)
-- [Breaking changes](#breaking-changes)
-	- [Upgrading from 0.2.0](#upgrading-from-020)
 - [Features](#features)
 	- [Intellisense](#intellisense)
 		- [Controller model in views (**introduced in 0.4.0**)](#controller-model-in-views)
@@ -16,6 +14,7 @@
 		- [Templates](#templates)
 	- [Find All References (**introduced in 0.5.0**)](#find-all-references)
 	- [Find unused components (**introduced in 0.5.0**)](#find-unused-components-experimental)
+	- [Component member diagnostics (**introduced in 0.8.0**)](#component-member-diagnostics)
 	- [Watch file changes (**introduced in 0.6.0**)](#watch-file-changes)
 - [Configuration](#configuration)
 - [Commands](#commands)
@@ -27,13 +26,6 @@
 
 This extension is a result of hackathon event done in the company we work for. We had an opportunity to invest 2 days into anything we could possibly want.
 We chose to develop an extension for VS Code which would make our daily work easier. Our current project is an Angular 1.5 based web application. As Angular developers we wanted to have auto-completion for all custom components that are available in our application.
-Do not hesitate to [report](https://github.com/ipatalas/ngComponentUtility/issues) any issues you may find.
-
-## Breaking changes
-
-### Upgrading from 0.2.0
-
-Please note that the configuration key has been changed from `ngIntelliSense.componentGlob` to `ngComponents.componentGlobs`. Sorry for inconvenience.
 
 # Features
 
@@ -68,21 +60,20 @@ It can also help with the bindings themselves (will only suggest missing ones):
 
 ![Auto-completion popup](images/bindings.png)
 
-There is now a command to refresh components cache which might be useful if you're developing components constantly and don't want to restart vscode each time.
+There is also a command to refresh components cache which might be useful if you're developing components constantly and don't want to restart vscode each time.
 You can trigger the command from command panel, it's called `Refresh components cache`. Alternatively you can just click the button on the status bar:
 
 ![Status bar button](images/statusbar.png)
 
 ### Controller model in views
 
-A new feature has been introduced to make working with views easier. You can now autocomplete controller member while being in component's view like seen on the screenshot below:
+You can use auto-completetion for controller members while being in component's view like seen on the screenshot below:
 
 ![Model intellisense](images/model-intellisense.png)
 
-Currently only one level of intellisense is available since otherwise the extension would have to scan all files in the whole project. Controller files are already scanned so it was little effort to suggest its members.
-There is a plan to extend this in the future to allow more complex behavior but it requires some research first to find an optimal way of scanning whole project (and perhaps caching the results to speed up consequent startups).
-For now you can use this intellisense regardless of the cursor context. It works in every place in the file even though it makes no sense in some places.
-It was just much easier to implement that way. Scanning for the context would require a lot of effort and the outcome wouldn't be so much visible. It's only a tool so take care of the context yourself. It might change in future.
+Currently only one level of intellisense is available since otherwise the extension would have to scan all files in the whole project. Controller files are already scanned so it was little effort to suggest first-level members.
+
+> **New in 0.8.0:** Members from all base classes will also be suggested (see [Controllers](#controllers))
 
 > **New in 0.6.0:** `Go To Definition` also works for model members
 
@@ -96,6 +87,9 @@ If there is only one file configured, let's say the template, it will go straigh
 
 Controllers are searched using `ngComponents.controllerGlobs` setting. They are matched against the name used in component options `controller` field.
 This can be either an identifier of the class used directly or string literal specifying the name of the controller registration in Angular which basically means one can name the Angular controller differently than the class itself and this feature will still work.
+
+For base classes (scanning their members) to work those base class files have to fit into the same glob. One has to extend it to cover those files if naming convention is different. For instance I use this:
+`app/**/*{Controller,ControllerBase}.ts`
 
 ### Templates
 
@@ -111,10 +105,7 @@ In case you have different scenarios please let me know the details and I'll try
 
 ## Find All References
 
-Finnaly it's here! A feature I've been waiting for long but never had time to implement :)
-
-You can now use `Find All References` feature of vscode to navigate through usages of particular components. It works in all component parts: html template, controller and component itself. ~~Unfortunately currently it only works with usages found by `ngComponents.htmlGlobs` setting which should be the vast majority of components unless you use inline templates heavily which I stronly discourage to do :)~~
-However there are places which do not require separate template files because they are too small, ie. angular-ui-router state definitions which possibly only contain oneliners with specific component. ~~Those usages won't be found... yet :) It's planned for next version.~~ (implemented in 0.5.1)
+You can use `Find All References` feature of vscode to navigate through usages of particular components. It works in all component parts: html template, controller and component itself.
 
 In HTML template cursor has to be focused on component name, not the binding or the inner html of the component for this to work:
 
@@ -134,20 +125,27 @@ Find all references now works also for controller members, ie. they will be foun
 
 ![Find unused components](images/find-all-references-4.png)
 
-## Find unused components (experimental)
+## Find unused components
 
-This feature will allow you to easily find components which are not used in the project.
-Currently it only finds references throughout all HTML files found by `ngComponents.htmlGlobs` setting. This is still not perfect as some components may be used inside inline templates in other components. Hopefully it will be improved in next version.
-Selecting one of the unused components will navigate to it in the editor.
+This feature will allow you to easily find components which are not used in the project. Selecting one of the unused components will navigate to it in the editor.
 
 It does understand HTML a bit so commented out parts will be taken into account. See screenshot below:
 
 ![Find unused components](images/find-unused.png)
 
+## Component member diagnostics
+
+Experimental feature to detect using non-existing fields in component template:
+
+![Member diagnostics](images/member-diagnostics.png)
+
+This will check controller members including base classes if possible as well as component bindings.
+This feature is off by default until getting stable enough. Use `ngComponents.memberDiagnostics.enabled` to enable it.
+
 ## Watch file changes
 
 To avoid a need to manually refresh components cache every time a change is introduced a new mechanism of file watching has been introduced. It watches all parts of the component - ie. component itself, template and controller.
-Whenever one of the file is changed it should automatically rebuild the cache so that all features relying on that file should immediately reflect the changes. It will work for intellisense, Find All References, Go To Definition and the others.
+Whenever one of the file is changed it should automatically rebuild the cache so that all features relying on that file should immediately reflect the changes. It will work for intellisense, `Find All References`, `Go To Definition` and the others.
 
 It is not perfect yet and may not always work as desired. One known issue is when a project changes the branch. It sometimes loses the changes and for that case it's still better to call `Refresh Components Cache` command. For normal development it should work just fine.
 
@@ -167,6 +165,7 @@ This plugin contributes the following [settings](https://code.visualstudio.com/d
 - `ngComponents.logging.redirectToFile`: path to redirect logs to - needed when console is flooded with too many messages and supresses them
 - `ngComponents.forceEnable`: force enable the extension if AngularJS was not detected automatically
 - `ngComponents.angularRoot`: custom Angular root folder relative to workspace root (defaults to workspace root) - use when your workspace contains more projects and Angular project is in a subfolder
+- `ngComponents.memberDiagnostics.enabled`: enable experimental member diagnostics [details](#component-member-diagnostics)
 
 Whenever one of the globs changes components cache is automatically rebuilt. Additionally all component files are monitored for changes and they will be reflected immediately, ie. after adding a binding you can just save the file and go straight to template file to use that binding.
 
