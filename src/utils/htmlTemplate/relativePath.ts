@@ -28,4 +28,10 @@ export class RelativePath {
 	public get absolute() {
 		return path.join(angularRoot, this.relativePath);
 	}
+
+	public equals = (other: RelativePath | string): boolean => {
+		const otherPath = other instanceof RelativePath ? other : new RelativePath(other);
+
+		return this.relativePath === otherPath.relativePath;
+	}
 }

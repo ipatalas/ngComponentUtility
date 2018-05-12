@@ -1,6 +1,5 @@
 'use strict';
 
-import * as path from 'path';
 import * as vsc from 'vscode';
 import { SourceFilesScanner } from '../sourceFilesScanner';
 import { Route } from './route';
@@ -11,6 +10,7 @@ import { events } from '../../symbols';
 import { Controller } from '../controller/controller';
 import { logError } from '../logging';
 import { getConfiguration } from '../vsc';
+import { RelativePath } from '../htmlTemplate/relativePath';
 
 export class RoutesCache extends EventEmitter implements vsc.Disposable {
 	private controllers: Controller[];
@@ -28,8 +28,7 @@ export class RoutesCache extends EventEmitter implements vsc.Disposable {
 	}
 
 	private onAdded = async (uri: vsc.Uri) => {
-		const filepath = this.normalizePath(uri.fsPath);
-		const src = await SourceFile.parse(filepath);
+		const src = await SourceFile.parse(uri.fsPath);
 		const routes = await Route.parse(src, this.controllers);
 
 		this.routes.push(...routes);
@@ -37,16 +36,16 @@ export class RoutesCache extends EventEmitter implements vsc.Disposable {
 	}
 
 	private onChanged = async (uri: vsc.Uri) => {
-		const filepath = this.normalizePath(uri.fsPath);
+		const filepath = RelativePath.fromUri(uri);
 
-		const idx = this.routes.findIndex(c => this.normalizePath(c.path) === filepath);
+		const idx = this.routes.findIndex(c => filepath.equals(c.path));
 		if (idx === -1) {
 			// tslint:disable-next-line:no-console
 			console.warn('Component does not exist, cannot update it');
 			return;
 		}
 
-		const src = await SourceFile.parse(filepath);
+		const src = await SourceFile.parse(filepath.absolute);
 		const routes = await Route.parse(src, this.controllers);
 
 		this.deleteComponentFile(filepath);
@@ -55,14 +54,14 @@ export class RoutesCache extends EventEmitter implements vsc.Disposable {
 	}
 
 	private onDeleted = (uri: vsc.Uri) => {
-		this.deleteComponentFile(this.normalizePath(uri.fsPath));
+		this.deleteComponentFile(RelativePath.fromUri(uri));
 		this.emitRoutesChanged();
 	}
 
-	private deleteComponentFile = (filepath: string) => {
+	private deleteComponentFile = (filepath: RelativePath) => {
 		let idx;
 		do {
-			idx = this.routes.findIndex(c => this.normalizePath(c.path) === filepath);
+			idx = this.routes.findIndex(c => filepath.equals(c.path));
 			if (idx > -1) {
 				this.routes.splice(idx, 1);
 			}
@@ -92,6 +91,4 @@ export class RoutesCache extends EventEmitter implements vsc.Disposable {
 
 		this.removeAllListeners();
 	}
-
-	private normalizePath = (p: string) => path.normalize(p).toLowerCase();
 }
