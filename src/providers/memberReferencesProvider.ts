@@ -28,7 +28,7 @@ export class MemberReferencesProvider implements vsc.ReferenceProvider {
 				const classDeclaration = tsParser.closestParent<ts.ClassDeclaration>(node, ts.SyntaxKind.ClassDeclaration);
 				if (classDeclaration) {
 					const components = this.components
-						.filter(c => c.controller && c.controller.className === classDeclaration.name.text);
+						.filter(c => c.controller && c.controller.isInstanceOf(classDeclaration.name.text));
 
 					return Promise
 						.all(components.map(c => this.getLocations(c, node)))

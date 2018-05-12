@@ -24,6 +24,16 @@ export class Controller {
 		return allMembers;
 	}
 
+	public isInstanceOf = (className: string): boolean => {
+		let result = this.className === className;
+
+		if (!result && this.baseClass) {
+			result = this.baseClass.isInstanceOf(className);
+		}
+
+		return result;
+	}
+
 	public static parse(file: SourceFile): Promise<Controller[]> {
 		return new Promise<Controller[]>((resolve, _reject) => {
 			try {
