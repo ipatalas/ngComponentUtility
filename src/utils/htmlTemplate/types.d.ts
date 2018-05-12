@@ -20,5 +20,9 @@ export interface ITemplateInfo {
 
 export interface ITemplateInfoEntry {
     memberAccess: IMemberAccessEntry[];
-    formNames: string[];
+    forms: IFormInfo[];
+}
+
+export interface IFormInfo extends ts.LineAndCharacter {
+    name: string;
 }

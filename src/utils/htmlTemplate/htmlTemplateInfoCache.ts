@@ -69,8 +69,7 @@ export class HtmlTemplateInfoCache extends EventEmitter implements vsc.Disposabl
             if (isFormTag(name)) {
                 const nameAttr = attrs.find(a => a.name === 'name');
                 if (nameAttr) {
-                    // TODO: get location data about forms to be able to use Go To Definition
-                    results.addFormName(relativePath, nameAttr.value);
+                    results.addFormName(relativePath, nameAttr.value, location.attrs.name);
                 }
             }
 

@@ -21,6 +21,10 @@ export class RelativePath {
 		return this.relativePath;
 	}
 
+	public get relativeLowercase() {
+		return this.relativePath.toLowerCase();
+	}
+
 	public get absolute() {
 		return path.join(angularRoot, this.relativePath);
 	}

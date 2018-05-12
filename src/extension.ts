@@ -132,7 +132,7 @@ export class Extension {
 		this.memberCompletionProvider.loadComponents(componentsAndRoutes);
 		this.bindingProvider.loadComponents(components);
 		this.definitionProvider.loadComponents(components);
-		this.memberDefinitionProvider.loadComponents(componentsAndRoutes);
+		this.memberDefinitionProvider.loadComponents(componentsAndRoutes, templateInfoResults.templateInfo);
 
 		this.refreshMemberAccessDiagnostics(templateInfoResults.templateInfo);
 	}

@@ -1,5 +1,6 @@
 import _ = require('lodash');
 import * as ts from 'typescript';
+import * as parse5 from 'parse5';
 
 import { IHtmlTemplateInfoResults, IHtmlReferences, ITemplateInfo } from './types';
 import { IMemberAccessEntry } from './streams/memberAccessParser';
@@ -16,9 +17,13 @@ export class HtmlTemplateInfoResults implements IHtmlTemplateInfoResults {
 		});
 	}
 
-	public addFormName = (relativeHtmlPath: string, formName: string) => {
+	public addFormName = (relativeHtmlPath: string, formName: string, location: parse5.MarkupData.Location) => {
 		this.initTemplateInfo(relativeHtmlPath);
-		this.templateInfo[relativeHtmlPath].formNames.push(formName);
+		this.templateInfo[relativeHtmlPath].forms.push({
+			name: formName,
+			line: location.line - 1,
+			character: location.col - 1
+		});
 	}
 
 	public addMemberAccess = (relativeHtmlPath: string, memberAccess: IMemberAccessEntry) => {
@@ -44,7 +49,7 @@ export class HtmlTemplateInfoResults implements IHtmlTemplateInfoResults {
 
 	private initTemplateInfo(relativeHtmlPath: string) {
 		this.templateInfo[relativeHtmlPath] = this.templateInfo[relativeHtmlPath] || {
-			formNames: [],
+			forms: [],
 			memberAccess: []
 		};
 	}

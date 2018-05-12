@@ -25,7 +25,7 @@ export class MemberAccessDiagnostics {
 			(relativePath: string, m: IMemberAccessEntry) => componentMembers[relativePath] && componentMembers[relativePath].some(x => x === m.memberName);
 
 		const isFormMember =
-			(relativePath: string, m: IMemberAccessEntry) => templateInfo[relativePath] && templateInfo[relativePath].formNames.some(formName => formName === m.expression);
+			(relativePath: string, m: IMemberAccessEntry) => templateInfo[relativePath] && templateInfo[relativePath].forms.some(form => form.name === m.expression);
 
 		return Object.entries(templateInfo)
 			.reduce((allInvalid, [relativePath, template]) => {
