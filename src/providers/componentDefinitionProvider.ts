@@ -20,20 +20,8 @@ export class ComponentDefinitionProvider implements vsc.DefinitionProvider {
 			const tagTextRange = new vsc.Range(bracketsBeforeCursor.opening, bracketsAfterCursor.closing);
 			const text = document.getText(tagTextRange);
 
-			let wordPos = document.getWordRangeAtPosition(position);
-			wordPos = wordPos.with(wordPos.start.translate({ characterDelta: -1 }));
-
-			let word = document.getText(wordPos);
-
-			if (word[0] !== ' ') {
-				// If component binding is named like the variable being used inside it will incorrectly show component definition
-				// Example <component name="vm.name" ...>
-				// This is a temporary and somehow dirty workaround for now
-				// TODO: use parse5 to deal with HTML parsing so that it's reliable
-				return [];
-			}
-
-			word = word.substring(1);
+			const wordPos = document.getWordRangeAtPosition(position);
+			const word = document.getText(wordPos);
 
 			const { tag } = HtmlDocumentHelper.parseTag(text);
 
