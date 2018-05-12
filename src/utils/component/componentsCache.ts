@@ -1,6 +1,5 @@
 'use strict';
 
-import * as path from 'path';
 import * as _ from 'lodash';
 import * as vsc from 'vscode';
 import { Component } from './component';
@@ -12,6 +11,7 @@ import { EventEmitter } from 'events';
 import { events } from '../../symbols';
 import { logError } from '../logging';
 import { getConfiguration } from '../vsc';
+import { RelativePath } from '../htmlTemplate/relativePath';
 
 export class ComponentsCache extends EventEmitter implements vsc.Disposable {
 	private scanner = new SourceFilesScanner();
@@ -33,8 +33,7 @@ export class ComponentsCache extends EventEmitter implements vsc.Disposable {
 	}
 
 	private onControllerAdded = async (uri: vsc.Uri) => {
-		const filepath = this.normalizePath(uri.fsPath);
-		const src = await SourceFile.parse(filepath);
+		const src = await SourceFile.parse(uri.fsPath);
 		const controllers = await Controller.parse(src);
 
 		this.controllers.push.apply(this.controllers, controllers);
@@ -44,8 +43,8 @@ export class ComponentsCache extends EventEmitter implements vsc.Disposable {
 	}
 
 	private onControllerDeleted = (uri: vsc.Uri) => {
-		const filepath = this.normalizePath(uri.fsPath);
-		const controllersInFile = this.controllers.filter(c => this.normalizePath(c.path) === filepath);
+		const filepath = RelativePath.fromUri(uri);
+		const controllersInFile = this.controllers.filter(c => filepath.equals(c.path));
 
 		this.components
 			.filter(c => controllersInFile.some(ctrl => ctrl === c.controller))
@@ -57,16 +56,16 @@ export class ComponentsCache extends EventEmitter implements vsc.Disposable {
 	}
 
 	private onControllerChanged = async (uri: vsc.Uri) => {
-		const filepath = this.normalizePath(uri.fsPath);
+		const filepath = RelativePath.fromUri(uri);
 
-		const idx = this.controllers.findIndex(c => this.normalizePath(c.path) === filepath);
+		const idx = this.controllers.findIndex(c => filepath.equals(c.path));
 		if (idx === -1) {
 			// tslint:disable-next-line:no-console
 			console.warn('Controller does not exist, cannot update it');
 			return;
 		}
 
-		const src = await SourceFile.parse(filepath);
+		const src = await SourceFile.parse(filepath.absolute);
 		const controllers = await Controller.parse(src);
 
 		this.deleteFile(this.controllers, filepath);
@@ -98,8 +97,7 @@ export class ComponentsCache extends EventEmitter implements vsc.Disposable {
 	}
 
 	private onComponentAdded = async (uri: vsc.Uri) => {
-		const filepath = this.normalizePath(uri.fsPath);
-		const src = await SourceFile.parse(filepath);
+		const src = await SourceFile.parse(uri.fsPath);
 		const components = await Component.parse(src, this.controllers);
 
 		this.components.push.apply(this.components, components);
@@ -107,16 +105,16 @@ export class ComponentsCache extends EventEmitter implements vsc.Disposable {
 	}
 
 	private onComponentChanged = async (uri: vsc.Uri) => {
-		const filepath = this.normalizePath(uri.fsPath);
+		const filepath = RelativePath.fromUri(uri);
 
-		const idx = this.components.findIndex(c => this.normalizePath(c.path) === filepath);
+		const idx = this.components.findIndex(c => filepath.equals(c.path));
 		if (idx === -1) {
 			// tslint:disable-next-line:no-console
 			console.warn('Component does not exist, cannot update it');
 			return;
 		}
 
-		const src = await SourceFile.parse(filepath);
+		const src = await SourceFile.parse(filepath.absolute);
 		const components = await Component.parse(src, this.controllers);
 
 		this.deleteFile(this.components, filepath);
@@ -125,14 +123,14 @@ export class ComponentsCache extends EventEmitter implements vsc.Disposable {
 	}
 
 	private onComponentDeleted = (uri: vsc.Uri) => {
-		this.deleteFile(this.components, this.normalizePath(uri.fsPath));
+		this.deleteFile(this.components, RelativePath.fromUri(uri));
 		this.emitComponentsChanged();
 	}
 
-	private deleteFile = (collection: Array<{ path: string }>, filepath: string) => {
+	private deleteFile = (collection: Array<{ path: string }>, filepath: RelativePath) => {
 		let idx;
 		do {
-			idx = collection.findIndex(c => this.normalizePath(c.path) === filepath);
+			idx = collection.findIndex(c => filepath.equals(c.path));
 			if (idx > -1) {
 				collection.splice(idx, 1);
 			}
@@ -176,8 +174,6 @@ export class ComponentsCache extends EventEmitter implements vsc.Disposable {
 
 		this.removeAllListeners();
 	}
-
-	private normalizePath = (p: string) => path.normalize(p).toLowerCase();
 }
 
 export interface IComponentInfoResult {

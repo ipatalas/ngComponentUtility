@@ -1,26 +1,25 @@
-import * as path from 'path';
 import * as vsc from 'vscode';
 import { IComponentBase } from '../utils/component/component';
 import * as _ from 'lodash';
 import { getConfiguration } from '../utils/vsc';
+import { RelativePath } from '../utils/htmlTemplate/relativePath';
 
 export class MemberCompletionProvider implements vsc.CompletionItemProvider {
 	private components = new Map<string, IComponentBase>();
 
 	public loadComponents = (components: IComponentBase[]) => {
 		this.components = new Map<string, IComponentBase>(
-			components.filter(c => c.template).map(c => <[string, IComponentBase]>[this.normalizePath(c.template.path), c])
+			components.filter(c => c.template).map(c => <[string, IComponentBase]>[new RelativePath(c.template.path).relativeLowercase, c])
 		);
 	}
 
 	public provideCompletionItems = (document: vsc.TextDocument, position: vsc.Position, _token: vsc.CancellationToken): vsc.CompletionItem[] => {
-		const normalizedPath = this.normalizePath(document.uri.fsPath);
+		const relativePath = RelativePath.fromUri(document.uri);
+		const component = this.components.get(relativePath.relativeLowercase);
 
-		if (!this.components.has(normalizedPath)) {
+		if (!component) {
 			return [];
 		}
-
-		const component = this.components.get(normalizedPath);
 
 		const line = document.lineAt(position.line).text;
 		const dotIdx = line.lastIndexOf('.', position.character);
@@ -43,6 +42,4 @@ export class MemberCompletionProvider implements vsc.CompletionItemProvider {
 
 		return [new vsc.CompletionItem(component.controllerAs, vsc.CompletionItemKind.Field)];
 	}
-
-	private normalizePath = (p: string) => path.normalize(p).toUpperCase();
 }
