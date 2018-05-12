@@ -159,6 +159,7 @@ export class HtmlTemplateInfoCache extends EventEmitter implements vsc.Disposabl
     }
 
     public loadInlineTemplates = async (templates: IComponentTemplate[]): Promise<IHtmlTemplateInfoResults> => {
+        this.results = this.results || new HtmlTemplateInfoResults();
         await Promise.all(templates.map(c => this.parseInlineTemplate(c, this.results)));
         return this.results;
     }

@@ -1,5 +1,6 @@
 import * as assert from 'assert';
 import proxyquire = require('proxyquire');
+import { IHtmlTemplateInfoResults } from '../../src/utils/htmlTemplate/types';
 
 class MockedRelativePath {
 	public relative: string;
@@ -20,12 +21,11 @@ describe('Given HtmlTemplateInfoCache class', () => {
 			const sut = new HtmlTemplateInfoCache();
 
 			const expectedResult = {
-				'test-component': {
-					path: [{
-						line: 10,
-						col: 12
-					}]
-				}
+				'test-component': [{
+					col: 12,
+					line: 10,
+					relativeHtmlPath: 'path'
+				}]
 			};
 
 			const template = {
@@ -35,10 +35,10 @@ describe('Given HtmlTemplateInfoCache class', () => {
 			};
 
 			// act
-			const result = await sut.loadInlineTemplates([template]);
+			const result: IHtmlTemplateInfoResults = await sut.loadInlineTemplates([template]);
 
 			// assert
-			assert.deepEqual(result, expectedResult);
+			assert.deepEqual(result.htmlReferences, expectedResult);
 		});
 	});
 });
