@@ -32,11 +32,7 @@ export class MemberCompletionProvider implements vsc.CompletionItemProvider {
 			const publicOnly = config.get('controller.publicMembersOnly') as boolean;
 			const excludedMembers = new RegExp(config.get('controller.excludedMembers') as string);
 
-			let members = component.controller && component.controller.members.filter(m => !excludedMembers.test(m.name)) || [];
-			if (publicOnly) {
-				members = members.filter(m => m.isPublic);
-			}
-
+			const members = component.controller && component.controller.getMembers(publicOnly).filter(m => !excludedMembers.test(m.name)) || [];
 			const bindings = component.getBindings();
 
 			return _.uniqBy([
