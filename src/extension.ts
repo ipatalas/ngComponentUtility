@@ -33,9 +33,11 @@ const COMMAND_FINDUNUSEDCOMPONENTS: string = 'extension.findUnusedAngularCompone
 const COMMAND_MARKASANGULAR: string = 'extension.markAsAngularProject';
 const COMMANDS = [COMMAND_FINDUNUSEDCOMPONENTS, COMMAND_REFRESHCOMPONENTS];
 
+const getConfig = () => vsc.workspace.getConfiguration('ngComponents');
+
 export class Extension {
 	private completionProvider = new ComponentCompletionProvider();
-	private memberCompletionProvider = new MemberCompletionProvider();
+	private memberCompletionProvider = new MemberCompletionProvider(getConfig);
 	private bindingProvider = new BindingProvider();
 	private definitionProvider = new ComponentDefinitionProvider();
 	private referencesProvider = new ReferencesProvider();

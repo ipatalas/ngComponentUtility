@@ -1,11 +1,13 @@
 import * as vsc from 'vscode';
 import { IComponentBase } from '../utils/component/component';
 import * as _ from 'lodash';
-import { getConfiguration } from '../utils/vsc';
 import { RelativePath } from '../utils/htmlTemplate/relativePath';
 
 export class MemberCompletionProvider implements vsc.CompletionItemProvider {
 	private components = new Map<string, IComponentBase>();
+
+	constructor(private getConfig: () => vsc.WorkspaceConfiguration) {
+	}
 
 	public loadComponents = (components: IComponentBase[]) => {
 		this.components = new Map<string, IComponentBase>(
@@ -27,9 +29,9 @@ export class MemberCompletionProvider implements vsc.CompletionItemProvider {
 		const viewModelName = line.substring(dotIdx - component.controllerAs.length, dotIdx);
 
 		if (viewModelName === component.controllerAs && /^([a-z]+)?$/i.test(charsBetweenTheDotAndTheCursor)) {
-			const config = getConfiguration();
-			const publicOnly = config.get('controller.publicMembersOnly') as boolean;
-			const excludedMembers = new RegExp(config.get('controller.excludedMembers') as string);
+			const config = this.getConfig();
+			const publicOnly = config.get<boolean>('controller.publicMembersOnly');
+			const excludedMembers = new RegExp(config.get<string>('controller.excludedMembers'));
 
 			const members = component.controller && component.controller.getMembers(publicOnly).filter(m => !excludedMembers.test(m.name)) || [];
 			const bindings = component.getBindings();
