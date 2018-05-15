@@ -166,6 +166,8 @@ This plugin contributes the following [settings](https://code.visualstudio.com/d
 - `ngComponents.forceEnable`: force enable the extension if AngularJS was not detected automatically
 - `ngComponents.angularRoot`: custom Angular root folder relative to workspace root (defaults to workspace root) - use when your workspace contains more projects and Angular project is in a subfolder
 - `ngComponents.memberDiagnostics.enabled`: enable experimental member diagnostics [details](#component-member-diagnostics)
+- `ngComponents.memberDiagnostics.html.checkBindings`: when disabled use of component's binding in the template when it's not defined in the controller will issue a warning
+- `ngComponents.memberDiagnostics.html.checkControllerMembers`: when disabled use of component's controller member in the template will issue a warning
 
 Whenever one of the globs changes components cache is automatically rebuilt. Additionally all component files are monitored for changes and they will be reflected immediately, ie. after adding a binding you can just save the file and go straight to template file to use that binding.
 
@@ -176,6 +178,7 @@ Whenever one of the globs changes components cache is automatically rebuilt. Add
 This extension contributes the following commands to the Command palette.
 
 - `Refresh Components Cache`: refreshes components cache on demand
+- `Refresh Member Diagnostics`: refreshes [member diagnostics](#component-member-diagnostics) on demand
 - `Find unused Angular components`: searches for [unused components](#find-unused-components)
 - `Force enable ngComponents utility on this workspace`: see above for description of `ngComponents.forceEnable`
 
