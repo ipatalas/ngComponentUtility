@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.8.1 (May 15, 2018)
+
+* Member diagnostics enhancements:
+  * It is now possible to decide which members are allowed in HTML templates (bindings, controller members or both)
+* Added command to manually refresh member diagnostics in case watch reload still doesn't work
+
 ## 0.8.0 (May 13, 2018)
 
 * Show diagnostics when invalid members are used in components' templates (check `README` for details)
