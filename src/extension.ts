@@ -29,9 +29,10 @@ import { IHtmlTemplateInfoResults, ITemplateInfo } from './utils/htmlTemplate/ty
 const HTML_DOCUMENT_SELECTOR = <vsc.DocumentFilter>{ language: 'html', scheme: 'file' };
 const TS_DOCUMENT_SELECTOR = <vsc.DocumentFilter>{ language: 'typescript', scheme: 'file' };
 const COMMAND_REFRESHCOMPONENTS: string = 'extension.refreshAngularComponents';
+const COMMAND_REFRESHMEMBERDIAGNOSTICS: string = 'extension.refreshMemberDiagnostics';
 const COMMAND_FINDUNUSEDCOMPONENTS: string = 'extension.findUnusedAngularComponents';
 const COMMAND_MARKASANGULAR: string = 'extension.markAsAngularProject';
-const COMMANDS = [COMMAND_FINDUNUSEDCOMPONENTS, COMMAND_REFRESHCOMPONENTS];
+const COMMANDS = [COMMAND_FINDUNUSEDCOMPONENTS, COMMAND_REFRESHCOMPONENTS, COMMAND_REFRESHMEMBERDIAGNOSTICS];
 
 export class Extension {
 	private completionProvider = new ComponentCompletionProvider();
@@ -81,6 +82,7 @@ export class Extension {
 
 		context.subscriptions.push.apply(context.subscriptions, [
 			vsc.commands.registerCommand(COMMAND_REFRESHCOMPONENTS, this.refreshComponentsCommand),
+			vsc.commands.registerCommand(COMMAND_REFRESHMEMBERDIAGNOSTICS, this.refreshMemberDiagnosticsCommand),
 			vsc.commands.registerCommand(COMMAND_FINDUNUSEDCOMPONENTS, this.findUnusedAngularComponents.execute),
 			vsc.languages.registerCompletionItemProvider(HTML_DOCUMENT_SELECTOR, this.completionProvider, '<'),
 			vsc.languages.registerCompletionItemProvider(HTML_DOCUMENT_SELECTOR, this.bindingProvider, ','),
@@ -93,7 +95,7 @@ export class Extension {
 		]);
 
 		this.configListener.registerListener(['controllerGlobs', 'componentGlobs', 'htmlGlobs'], () => vsc.commands.executeCommand(COMMAND_REFRESHCOMPONENTS));
-		this.configListener.registerListener(['memberDiagnostics.html'], () => this.refreshMemberAccessDiagnostics(this.latestHtmlTemplateInfoResults.templateInfo));
+		this.configListener.registerListener(['memberDiagnostics.html'], this.refreshMemberDiagnosticsCommand);
 
 		this.statusBar.tooltip = 'Refresh Angular components';
 		this.statusBar.command = COMMAND_REFRESHCOMPONENTS;
@@ -136,6 +138,8 @@ export class Extension {
 			vsc.window.showInformationMessage(`Components cache has been rebuilt (${prettyHrtime(t)})`);
 		});
 	}
+
+	private refreshMemberDiagnosticsCommand = () => this.refreshMemberAccessDiagnostics(this.latestHtmlTemplateInfoResults.templateInfo);
 
 	private refreshMemberAccessDiagnostics = (templateInfo: ITemplateInfo) => {
 		this.diagnosticCollection.clear();

@@ -41,6 +41,10 @@
 				"title": "Refresh Components Cache"
 			},
 			{
+				"command": "extension.refreshMemberDiagnostics",
+				"title": "Refresh Member Diagnostics"
+			},
+			{
 				"command": "extension.findUnusedAngularComponents",
 				"title": "Find unused Angular components"
 			},
