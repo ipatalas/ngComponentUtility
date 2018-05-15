@@ -9,5 +9,7 @@ tsconfig.json
 vsc-extension-quickstart.md
 tslint.json
 *.vsix
-.vscode-test/**
 coverage/**
+.vscode-test/**
+.travis.yml
+.bithoundrc
