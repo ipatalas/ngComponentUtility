@@ -39,7 +39,7 @@ export class Extension {
 	private completionProvider = new ComponentCompletionProvider();
 	private memberCompletionProvider = new MemberCompletionProvider(getConfig);
 	private bindingProvider = new BindingProvider();
-	private definitionProvider = new ComponentDefinitionProvider();
+	private definitionProvider = new ComponentDefinitionProvider(getConfig);
 	private referencesProvider = new ReferencesProvider();
 	private memberReferencesProvider = new MemberReferencesProvider();
 	private memberDefinitionProvider = new MemberDefinitionProvider();

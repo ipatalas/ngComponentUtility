@@ -2,10 +2,12 @@ import * as vsc from 'vscode';
 
 import { Component } from '../utils/component/component';
 import { HtmlDocumentHelper } from '../utils/htmlDocumentHelper';
-import { getLocation, getConfiguration } from '../utils/vsc';
+import { getLocation } from '../utils/vsc';
 
 export class ComponentDefinitionProvider implements vsc.DefinitionProvider {
 	private components: Component[];
+
+	constructor(private getConfig: () => vsc.WorkspaceConfiguration) {}
 
 	public loadComponents = (components: Component[]) => {
 		this.components = components;
@@ -33,7 +35,7 @@ export class ComponentDefinitionProvider implements vsc.DefinitionProvider {
 				}
 
 				if (word === component.htmlName) {
-					const config = getConfiguration();
+					const config = this.getConfig();
 					const componentParts = config.get('goToDefinition') as string[];
 
 					const results: vsc.Location[] = [];
