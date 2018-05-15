@@ -139,6 +139,16 @@
 					"type": "boolean",
 					"default": false,
 					"description": "Enables validation of all components' HTML templates in regards to fields that are used there (experimental)"
+				},
+				"ngComponents.memberDiagnostics.html.checkBindings": {
+					"type": "boolean",
+					"default": true,
+					"description": "When disabled use of component's binding in the template when it's not defined in the controller will issue a warning"
+				},
+				"ngComponents.memberDiagnostics.html.checkControllerMembers": {
+					"type": "boolean",
+					"default": true,
+					"description": "When disabled use of component's controller member in the template will issue a warning"
 				}
 			}
 		}

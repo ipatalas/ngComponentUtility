@@ -1,5 +1,6 @@
 import * as vsc from 'vscode';
 import _ = require('lodash');
+import util = require('util');
 
 import { ITemplateInfo } from './htmlTemplate/types';
 import { RelativePath } from './htmlTemplate/relativePath';
@@ -7,19 +8,15 @@ import { IComponentBase } from './component/component';
 import { IMemberAccessEntry } from './htmlTemplate/streams/memberAccessParser';
 
 export class MemberAccessDiagnostics {
+	constructor(private getConfig: () => vsc.WorkspaceConfiguration) {}
+
 	public getDiagnostics = (components: IComponentBase[], templateInfo: ITemplateInfo): DiagnosticsByTemplate => {
-		const componentMembers = components.filter(c => c.template && !c.template.body).reduce((map, component) => {
-			const templateRelativePath = new RelativePath(component.template.path).relative;
+		const config = this.getConfig();
+		const checkBindings = config.get<boolean>('memberDiagnostics.html.checkBindings');
+		const checkMembers = config.get<boolean>('memberDiagnostics.html.checkControllerMembers');
 
-			const allMembers = component.getBindings().map(b => b.name);
-			if (component.controller) {
-				allMembers.push(...component.controller.getMembers(false).map(m => m.name));
-			}
-
-			map[templateRelativePath] = map[templateRelativePath] || [];
-			map[templateRelativePath].push(..._.uniq(allMembers));
-			return map;
-		}, <IMembersByTemplate>{});
+		const componentMembers = this.getComponentMembers(components, checkBindings, checkMembers);
+		const messageFormat = this.getMessage(checkBindings, checkMembers);
 
 		const isComponentMember =
 			(relativePath: string, m: IMemberAccessEntry) => componentMembers[relativePath] && componentMembers[relativePath].some(x => x === m.memberName);
@@ -34,7 +31,7 @@ export class MemberAccessDiagnostics {
 				if (invalidMembers.length > 0) {
 					allInvalid.push([
 						vsc.Uri.file(RelativePath.toAbsolute(relativePath)),
-						invalidMembers.map(this.buildDiagnostic)
+						invalidMembers.map(m => this.buildDiagnostic(m, messageFormat))
 					]);
 				}
 
@@ -42,9 +39,38 @@ export class MemberAccessDiagnostics {
 			}, <DiagnosticsByTemplate>[]);
 	}
 
-	private buildDiagnostic = (member: IMemberAccessEntry) => {
+	private getMessage(checkBindings: boolean, checkMembers: boolean): string {
+		const parts = [];
+		if (checkBindings) parts.push('a binding');
+		if (checkMembers) parts.push('a field');
+
+		return `Member '%s' does not exist as ${parts.join(' or ')} in the component`;
+	}
+
+	private buildDiagnostic = (member: IMemberAccessEntry, messageFormat: string) => {
 		const range = new vsc.Range(member.line, member.character, member.line, member.character + member.expression.length);
-		return new vsc.Diagnostic(range, `Member '${member.memberName}' does not exist as a binding or field in the component`, vsc.DiagnosticSeverity.Warning);
+		const message = util.format(messageFormat, member.memberName);
+
+		return new vsc.Diagnostic(range, message, vsc.DiagnosticSeverity.Warning);
+	}
+
+	private getComponentMembers(components: IComponentBase[], checkBindings: boolean, checkMembers: boolean) {
+		return components.filter(c => c.template && !c.template.body).reduce((map, component) => {
+			const templateRelativePath = new RelativePath(component.template.path).relative;
+			const allMembers: string[] = [];
+
+			if (checkBindings) {
+				allMembers.push(...component.getBindings().map(b => b.name));
+			}
+
+			if (checkMembers && component.controller) {
+				allMembers.push(...component.controller.getMembers(false).map(m => m.name));
+			}
+
+			map[templateRelativePath] = map[templateRelativePath] || [];
+			map[templateRelativePath].push(..._.uniq(allMembers));
+			return map;
+		}, <IMembersByTemplate>{});
 	}
 }
 
