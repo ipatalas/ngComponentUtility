@@ -19,7 +19,7 @@ import { HtmlTemplateInfoCache } from './utils/htmlTemplate/htmlTemplateInfoCach
 import { RoutesCache } from './utils/route/routesCache';
 import { Route } from './utils/route/route';
 
-import { ConfigurationChangeListener, IConfigurationChangedEvent } from './utils/configurationChangeListener';
+import { ConfigurationChangeListener } from './utils/configurationChangeListener';
 import { logVerbose, log, logError } from './utils/logging';
 import { shouldActivateExtension, notAngularProject, markAsAngularProject, alreadyAngularProject, getConfiguration } from './utils/vsc';
 import { events } from './symbols';
@@ -46,7 +46,7 @@ export class Extension {
 	private componentsCache = new ComponentsCache();
 	private htmlTemplateInfoCache = new HtmlTemplateInfoCache();
 	private routesCache = new RoutesCache();
-	private memberAccessDiagnostics = new MemberAccessDiagnostics();
+	private memberAccessDiagnostics = new MemberAccessDiagnostics(getConfiguration);
 
 	private statusBar = vsc.window.createStatusBarItem(vsc.StatusBarAlignment.Left);
 	private configListener = new ConfigurationChangeListener('ngComponents');
@@ -63,7 +63,7 @@ export class Extension {
 			return;
 		}
 
-		this.diagnosticCollection = vsc.languages.createDiagnosticCollection('diag-name');
+		this.diagnosticCollection = vsc.languages.createDiagnosticCollection('member-diagnostics');
 
 		context.subscriptions.push(this.configListener, this.componentsCache, this.htmlTemplateInfoCache, this.routesCache);
 		context.subscriptions.push(vsc.commands.registerCommand(COMMAND_MARKASANGULAR, alreadyAngularProject));
@@ -80,19 +80,8 @@ export class Extension {
 		}
 
 		context.subscriptions.push.apply(context.subscriptions, [
-			vsc.commands.registerCommand(COMMAND_REFRESHCOMPONENTS, () => {
-				let t = process.hrtime();
-				this.refreshComponents().then(() => {
-					t = process.hrtime(t);
-					vsc.window.showInformationMessage(`Components cache has been rebuilt (${prettyHrtime(t)})`);
-				});
-			}),
-			this.configListener.onDidChange((event: IConfigurationChangedEvent) => {
-				if (event.hasChanged('controllerGlobs', 'componentGlobs', 'htmlGlobs')) {
-					vsc.commands.executeCommand(COMMAND_REFRESHCOMPONENTS);
-				}
-			}),
-			vsc.commands.registerCommand(COMMAND_FINDUNUSEDCOMPONENTS, () => this.findUnusedAngularComponents.execute()),
+			vsc.commands.registerCommand(COMMAND_REFRESHCOMPONENTS, this.refreshComponentsCommand),
+			vsc.commands.registerCommand(COMMAND_FINDUNUSEDCOMPONENTS, this.findUnusedAngularComponents.execute),
 			vsc.languages.registerCompletionItemProvider(HTML_DOCUMENT_SELECTOR, this.completionProvider, '<'),
 			vsc.languages.registerCompletionItemProvider(HTML_DOCUMENT_SELECTOR, this.bindingProvider, ','),
 			vsc.languages.registerCompletionItemProvider(HTML_DOCUMENT_SELECTOR, this.memberCompletionProvider, '.'),
@@ -102,6 +91,9 @@ export class Extension {
 			vsc.languages.registerReferenceProvider(TS_DOCUMENT_SELECTOR, this.memberReferencesProvider),
 			this.diagnosticCollection
 		]);
+
+		this.configListener.registerListener(['controllerGlobs', 'componentGlobs', 'htmlGlobs'], () => vsc.commands.executeCommand(COMMAND_REFRESHCOMPONENTS));
+		this.configListener.registerListener(['memberDiagnostics.html'], () => this.refreshMemberAccessDiagnostics(this.latestHtmlTemplateInfoResults.templateInfo));
 
 		this.statusBar.tooltip = 'Refresh Angular components';
 		this.statusBar.command = COMMAND_REFRESHCOMPONENTS;
@@ -137,12 +129,23 @@ export class Extension {
 		this.refreshMemberAccessDiagnostics(templateInfoResults.templateInfo);
 	}
 
+	private refreshComponentsCommand = () => {
+		let t = process.hrtime();
+		this.refreshComponents().then(() => {
+			t = process.hrtime(t);
+			vsc.window.showInformationMessage(`Components cache has been rebuilt (${prettyHrtime(t)})`);
+		});
+	}
+
 	private refreshMemberAccessDiagnostics = (templateInfo: ITemplateInfo) => {
 		this.diagnosticCollection.clear();
 
 		const config = getConfiguration();
 		const isMemberDiagnosticEnabled = config.get<boolean>('memberDiagnostics.enabled');
-		if (isMemberDiagnosticEnabled) {
+		const checkBindings = config.get<boolean>('memberDiagnostics.html.checkBindings');
+		const checkMembers = config.get<boolean>('memberDiagnostics.html.checkControllerMembers');
+
+		if (isMemberDiagnosticEnabled && (checkBindings || checkMembers)) {
 			logVerbose(`Reloading member diagnostics`);
 			const componentsAndRoutes = [...this.latestComponents, ...this.latestRoutes];
 
