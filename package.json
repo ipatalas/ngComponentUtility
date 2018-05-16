@@ -37,19 +37,19 @@
 	"contributes": {
 		"commands": [
 			{
-				"command": "extension.refreshAngularComponents",
+				"command": "ngComponents.refreshAngularComponents",
 				"title": "Refresh Components Cache"
 			},
 			{
-				"command": "extension.refreshMemberDiagnostics",
+				"command": "ngComponents.refreshMemberDiagnostics",
 				"title": "Refresh Member Diagnostics"
 			},
 			{
-				"command": "extension.findUnusedAngularComponents",
+				"command": "ngComponents.findUnusedAngularComponents",
 				"title": "Find unused Angular components"
 			},
 			{
-				"command": "extension.markAsAngularProject",
+				"command": "ngComponents.markAsAngularProject",
 				"title": "Force enable ngComponents utility on this workspace"
 			}
 		],
