@@ -25,14 +25,10 @@ import { shouldActivateExtension, notAngularProject, markAsAngularProject, alrea
 import { events } from './symbols';
 import { MemberAccessDiagnostics } from './utils/memberAccessDiagnostics';
 import { IHtmlTemplateInfoResults, ITemplateInfo } from './utils/htmlTemplate/types';
+import { Commands } from './commands/commands';
 
 const HTML_DOCUMENT_SELECTOR = <vsc.DocumentFilter>{ language: 'html', scheme: 'file' };
 const TS_DOCUMENT_SELECTOR = <vsc.DocumentFilter>{ language: 'typescript', scheme: 'file' };
-const COMMAND_REFRESHCOMPONENTS: string = 'extension.refreshAngularComponents';
-const COMMAND_REFRESHMEMBERDIAGNOSTICS: string = 'extension.refreshMemberDiagnostics';
-const COMMAND_FINDUNUSEDCOMPONENTS: string = 'extension.findUnusedAngularComponents';
-const COMMAND_MARKASANGULAR: string = 'extension.markAsAngularProject';
-const COMMANDS = [COMMAND_FINDUNUSEDCOMPONENTS, COMMAND_REFRESHCOMPONENTS, COMMAND_REFRESHMEMBERDIAGNOSTICS];
 
 export class Extension {
 	private completionProvider = new ComponentCompletionProvider();
@@ -42,7 +38,7 @@ export class Extension {
 	private referencesProvider = new ReferencesProvider();
 	private memberReferencesProvider = new MemberReferencesProvider();
 	private memberDefinitionProvider = new MemberDefinitionProvider();
-	private findUnusedAngularComponents = new FindUnusedComponentsCommand();
+	private findUnusedAngularComponentsCommand = new FindUnusedComponentsCommand();
 
 	private componentsCache = new ComponentsCache();
 	private htmlTemplateInfoCache = new HtmlTemplateInfoCache();
@@ -59,15 +55,17 @@ export class Extension {
 
 	public activate = async (context: vsc.ExtensionContext) => {
 		if (!shouldActivateExtension()) {
-			COMMANDS.forEach(cmd => context.subscriptions.push(vsc.commands.registerCommand(cmd, notAngularProject)));
-			context.subscriptions.push(vsc.commands.registerCommand(COMMAND_MARKASANGULAR, markAsAngularProject));
+			context.subscriptions.push(vsc.commands.registerCommand(Commands.MarkAsAngularProject, markAsAngularProject));
+
+			const remainingCommands = Object.values(Commands).filter(c => c !== Commands.MarkAsAngularProject);
+			remainingCommands.forEach(cmd => context.subscriptions.push(vsc.commands.registerCommand(cmd, notAngularProject)));
 			return;
 		}
 
 		this.diagnosticCollection = vsc.languages.createDiagnosticCollection('member-diagnostics');
 
 		context.subscriptions.push(this.configListener, this.componentsCache, this.htmlTemplateInfoCache, this.routesCache);
-		context.subscriptions.push(vsc.commands.registerCommand(COMMAND_MARKASANGULAR, alreadyAngularProject));
+		context.subscriptions.push(vsc.commands.registerCommand(Commands.MarkAsAngularProject, alreadyAngularProject));
 
 		try {
 			await this.refreshComponents();
@@ -81,9 +79,10 @@ export class Extension {
 		}
 
 		context.subscriptions.push.apply(context.subscriptions, [
-			vsc.commands.registerCommand(COMMAND_REFRESHCOMPONENTS, this.refreshComponentsCommand),
-			vsc.commands.registerCommand(COMMAND_REFRESHMEMBERDIAGNOSTICS, this.refreshMemberDiagnosticsCommand),
-			vsc.commands.registerCommand(COMMAND_FINDUNUSEDCOMPONENTS, this.findUnusedAngularComponents.execute),
+			vsc.commands.registerCommand(Commands.RefreshComponents, this.refreshComponentsCommand),
+			vsc.commands.registerCommand(Commands.RefreshMemberDiagnostics, this.refreshMemberDiagnosticsCommand),
+			vsc.commands.registerCommand(Commands.FindUnusedComponents,
+				() => this.findUnusedAngularComponentsCommand.execute(this.latestHtmlTemplateInfoResults.htmlReferences, this.latestComponents)),
 			vsc.languages.registerCompletionItemProvider(HTML_DOCUMENT_SELECTOR, this.completionProvider, '<'),
 			vsc.languages.registerCompletionItemProvider(HTML_DOCUMENT_SELECTOR, this.bindingProvider, ','),
 			vsc.languages.registerCompletionItemProvider(HTML_DOCUMENT_SELECTOR, this.memberCompletionProvider, '.'),
@@ -94,11 +93,11 @@ export class Extension {
 			this.diagnosticCollection
 		]);
 
-		this.configListener.registerListener(['controllerGlobs', 'componentGlobs', 'htmlGlobs'], () => vsc.commands.executeCommand(COMMAND_REFRESHCOMPONENTS));
+		this.configListener.registerListener(['controllerGlobs', 'componentGlobs', 'htmlGlobs'], () => vsc.commands.executeCommand(Commands.RefreshComponents));
 		this.configListener.registerListener(['memberDiagnostics.html'], this.refreshMemberDiagnosticsCommand);
 
 		this.statusBar.tooltip = 'Refresh Angular components';
-		this.statusBar.command = COMMAND_REFRESHCOMPONENTS;
+		this.statusBar.command = Commands.RefreshComponents;
 		this.statusBar.show();
 
 		context.subscriptions.push(this.statusBar);
@@ -109,16 +108,15 @@ export class Extension {
 	private htmlReferencesChanged = (templateInfoResults: IHtmlTemplateInfoResults) => this.refreshAllProviders(undefined, undefined, templateInfoResults);
 
 	private refreshAllProviders = (components?: Component[], routes?: Route[], templateInfoResults?: IHtmlTemplateInfoResults) => {
-		components = components || this.latestComponents;
-		routes = routes || this.latestRoutes;
-		templateInfoResults = templateInfoResults || this.latestHtmlTemplateInfoResults;
+		this.latestComponents = components || this.latestComponents;
+		this.latestRoutes = routes || this.latestRoutes;
+		this.latestHtmlTemplateInfoResults = templateInfoResults || this.latestHtmlTemplateInfoResults;
 
 		const componentsAndRoutes = [...components, ...routes];
 		const inlineTemplates: IComponentTemplate[] = this.getTemplatesWithBody(componentsAndRoutes);
 
 		this.htmlTemplateInfoCache.loadInlineTemplates(inlineTemplates);
 
-		this.findUnusedAngularComponents.load(templateInfoResults.htmlReferences, components);
 		this.referencesProvider.load(templateInfoResults.htmlReferences, components);
 		this.memberReferencesProvider.load(componentsAndRoutes);
 
@@ -178,8 +176,7 @@ export class Extension {
 
 				this.statusBar.text = `$(sync) ${this.latestComponents.length} components`;
 			} catch (err) {
-				// tslint:disable-next-line:no-console
-				console.error(err);
+				logError(err);
 				vsc.window.showErrorMessage('Error refreshing components, check developer console');
 			}
 

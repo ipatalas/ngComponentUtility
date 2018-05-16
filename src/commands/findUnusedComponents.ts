@@ -4,17 +4,9 @@ import { Component } from '../utils/component/component';
 import * as vsc from 'vscode';
 
 export class FindUnusedComponentsCommand {
-	private htmlReferences: IHtmlReferences;
-	private components: Component[];
-
-	public load = (htmlReferences: IHtmlReferences, components: Component[]) => {
-		this.htmlReferences = htmlReferences;
-		this.components = components;
-	}
-
-	public execute = () => {
-		const usedComponents = Object.keys(this.htmlReferences);
-		const unusedComponents = this.components.filter(c => usedComponents.indexOf(c.htmlName) === -1);
+	public execute = (htmlReferences: IHtmlReferences, components: Component[]) => {
+		const usedComponents = Object.keys(htmlReferences);
+		const unusedComponents = components.filter(c => usedComponents.indexOf(c.htmlName) === -1);
 
 		if (unusedComponents.length === 0) {
 			vsc.window.showInformationMessage('All of your components are used. Good for you :-)');
