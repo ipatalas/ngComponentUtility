@@ -26,6 +26,7 @@ import { events } from './symbols';
 import { MemberAccessDiagnostics } from './utils/memberAccessDiagnostics';
 import { IHtmlTemplateInfoResults, ITemplateInfo } from './utils/htmlTemplate/types';
 import { Commands } from './commands/commands';
+import { SwitchComponentPartsCommand } from './commands/switchComponentParts';
 
 const HTML_DOCUMENT_SELECTOR = <vsc.DocumentFilter>{ language: 'html', scheme: 'file' };
 const TS_DOCUMENT_SELECTOR = <vsc.DocumentFilter>{ language: 'typescript', scheme: 'file' };
@@ -79,6 +80,7 @@ export class Extension {
 		}
 
 		context.subscriptions.push.apply(context.subscriptions, [
+			new SwitchComponentPartsCommand(this.getComponents),
 			vsc.commands.registerCommand(Commands.RefreshComponents, this.refreshComponentsCommand),
 			vsc.commands.registerCommand(Commands.RefreshMemberDiagnostics, this.refreshMemberDiagnosticsCommand),
 			vsc.commands.registerCommand(Commands.FindUnusedComponents,
@@ -102,6 +104,8 @@ export class Extension {
 
 		context.subscriptions.push(this.statusBar);
 	}
+
+	private getComponents = () => this.latestComponents;
 
 	private componentsChanged = (components: Component[]) => this.refreshAllProviders(components);
 	private routesChanged = (routes: Route[]) => this.refreshAllProviders(undefined, routes);

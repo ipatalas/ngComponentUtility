@@ -51,6 +51,17 @@
 			{
 				"command": "ngComponents.markAsAngularProject",
 				"title": "Force enable ngComponents utility on this workspace"
+			},
+			{
+				"command": "ngComponents.switchComponentParts",
+				"title": "Switch between component/controller/template",
+				"category": "ngComponents"
+			}
+		],
+		"keybindings": [
+			{
+				"command": "ngComponents.switchComponentParts",
+				"key": "Alt+o"
 			}
 		],
 		"configuration": {
