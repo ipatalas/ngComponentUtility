@@ -8,7 +8,10 @@
 	},
 	"rules": {
 		"no-string-literal": false,
-		"no-unused-expression": true,
+		"no-unused-expression": [
+			true,
+			"allow-fast-null-checks"
+		],
 		"strict-type-predicates": true,
 		"variable-name": [
 			true,
@@ -59,6 +62,9 @@
 			false
 		],
 		"no-angle-bracket-type-assertion": false,
-		"curly": [true, "ignore-same-line"]
+		"curly": [
+			true,
+			"ignore-same-line"
+		]
 	}
 }
