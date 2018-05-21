@@ -117,25 +117,29 @@ export class Extension {
 	private htmlReferencesChanged = (templateInfoResults: IHtmlTemplateInfoResults) => this.refreshAllProviders(undefined, undefined, templateInfoResults);
 
 	private refreshAllProviders = (components?: Component[], routes?: Route[], templateInfoResults?: IHtmlTemplateInfoResults) => {
-		this.latestComponents = components || this.latestComponents;
-		this.latestRoutes = routes || this.latestRoutes;
-		this.latestHtmlTemplateInfoResults = templateInfoResults || this.latestHtmlTemplateInfoResults;
+		try {
+			this.latestComponents = components || this.latestComponents;
+			this.latestRoutes = routes || this.latestRoutes;
+			this.latestHtmlTemplateInfoResults = templateInfoResults || this.latestHtmlTemplateInfoResults;
 
-		const componentsAndRoutes = [...components, ...routes];
-		const inlineTemplates: IComponentTemplate[] = this.getTemplatesWithBody(componentsAndRoutes);
+			const componentsAndRoutes = [...this.latestComponents, ...this.latestRoutes];
+			const inlineTemplates: IComponentTemplate[] = this.getTemplatesWithBody(componentsAndRoutes);
 
-		this.htmlTemplateInfoCache.loadInlineTemplates(inlineTemplates);
+			this.htmlTemplateInfoCache.loadInlineTemplates(inlineTemplates);
 
-		this.referencesProvider.load(templateInfoResults.htmlReferences, components);
-		this.memberReferencesProvider.load(componentsAndRoutes);
+			this.referencesProvider.load(this.latestHtmlTemplateInfoResults.htmlReferences, this.latestComponents);
+			this.memberReferencesProvider.load(componentsAndRoutes);
 
-		this.completionProvider.loadComponents(components);
-		this.memberCompletionProvider.loadComponents(componentsAndRoutes);
-		this.bindingProvider.loadComponents(components);
-		this.definitionProvider.loadComponents(components);
-		this.memberDefinitionProvider.loadComponents(componentsAndRoutes, templateInfoResults.templateInfo);
+			this.completionProvider.loadComponents(this.latestComponents);
+			this.memberCompletionProvider.loadComponents(componentsAndRoutes);
+			this.bindingProvider.loadComponents(this.latestComponents);
+			this.definitionProvider.loadComponents(this.latestComponents);
+			this.memberDefinitionProvider.loadComponents(componentsAndRoutes, this.latestHtmlTemplateInfoResults.templateInfo);
 
-		this.refreshMemberAccessDiagnostics(templateInfoResults.templateInfo);
+			this.refreshMemberAccessDiagnostics(this.latestHtmlTemplateInfoResults.templateInfo);
+		} catch (err) {
+			logError(err);
+		}
 	}
 
 	private refreshComponentsCommand = () => {
