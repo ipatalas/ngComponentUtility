@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.8.2 (May 21, 2018)
+
+* Fix silent error after watch reload and improved logging there
+
 ## 0.8.1 (May 15, 2018)
 
 * Member diagnostics enhancements:
