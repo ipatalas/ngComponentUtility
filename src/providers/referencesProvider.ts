@@ -12,7 +12,7 @@ export class ReferencesProvider implements vsc.ReferenceProvider {
 	private components: Component[];
 	private documentHandlers: Map<string, DocumentHandlerDelegate>;
 
-	constructor() {
+	constructor(private htmlDocumentHelper: HtmlDocumentHelper) {
 		this.documentHandlers = new Map<string, DocumentHandlerDelegate>([
 			['html', this.provideHtmlReferences],
 			['typescript', this.provideControllerReferences]
@@ -50,10 +50,10 @@ export class ReferencesProvider implements vsc.ReferenceProvider {
 	}
 
 	private provideHtmlReferences = (document: vsc.TextDocument, position: vsc.Position): vsc.Location[] => {
-		const bracketsBeforeCursor = HtmlDocumentHelper.findTagBrackets(document, position, 'backward');
-		const bracketsAfterCursor = HtmlDocumentHelper.findTagBrackets(document, position, 'forward');
+		const bracketsBeforeCursor = this.htmlDocumentHelper.findTagBrackets(document, position, 'backward');
+		const bracketsAfterCursor = this.htmlDocumentHelper.findTagBrackets(document, position, 'forward');
 
-		if (HtmlDocumentHelper.isInsideAClosedTag(bracketsBeforeCursor, bracketsAfterCursor)) {
+		if (this.htmlDocumentHelper.isInsideAClosedTag(bracketsBeforeCursor, bracketsAfterCursor)) {
 			const wordPos = document.getWordRangeAtPosition(position);
 			const componentName = document.getText(wordPos);
 

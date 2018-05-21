@@ -8,14 +8,16 @@ const REGEX_TAG = /^<[a-z-]*$/i;
 export class ComponentCompletionProvider implements vsc.CompletionItemProvider {
 	private components: Component[];
 
+	constructor(private htmlDocumentHelper: HtmlDocumentHelper) {}
+
 	public loadComponents = (components: Component[]) => {
 		this.components = components;
 	}
 
 	public provideCompletionItems = (document: vsc.TextDocument, position: vsc.Position/*, token: vsc.CancellationToken*/): vsc.CompletionItem[] => {
 		let hasOpeningTagBefore = false;
-		const bracketsBeforeCursor = HtmlDocumentHelper.findTagBrackets(document, position, 'backward');
-		const bracketsAfterCursor = HtmlDocumentHelper.findTagBrackets(document, position, 'forward');
+		const bracketsBeforeCursor = this.htmlDocumentHelper.findTagBrackets(document, position, 'backward');
+		const bracketsAfterCursor = this.htmlDocumentHelper.findTagBrackets(document, position, 'forward');
 
 		if (bracketsBeforeCursor.opening && (!bracketsBeforeCursor.closing || bracketsBeforeCursor.closing.isBefore(bracketsBeforeCursor.opening))) {
 			// get everything from starting < tag till the cursor
@@ -31,12 +33,12 @@ export class ComponentCompletionProvider implements vsc.CompletionItemProvider {
 			}
 		}
 
-		if (HtmlDocumentHelper.isInsideAClosedTag(bracketsBeforeCursor, bracketsAfterCursor)) {
+		if (this.htmlDocumentHelper.isInsideAClosedTag(bracketsBeforeCursor, bracketsAfterCursor)) {
 			// get everything from starting < tag till ending >
 			const tagTextRange = new vsc.Range(bracketsBeforeCursor.opening, bracketsAfterCursor.closing);
 			const text = document.getText(tagTextRange);
 
-			const { tag, attributes } = HtmlDocumentHelper.parseTag(text);
+			const { tag, attributes } = this.htmlDocumentHelper.parseTag(text);
 
 			const component = this.components.find(c => c.htmlName === tag);
 			if (component) {
