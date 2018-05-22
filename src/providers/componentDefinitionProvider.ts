@@ -36,7 +36,7 @@ export class ComponentDefinitionProvider implements vsc.DefinitionProvider {
 
 				if (word === component.htmlName) {
 					const config = this.getConfig();
-					const componentParts = config.get('goToDefinition') as string[];
+					const componentParts = config.get('goToDefinition') as string[] || [];
 
 					const results: vsc.Location[] = [];
 
