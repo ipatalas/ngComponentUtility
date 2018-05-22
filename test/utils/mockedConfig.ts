@@ -1,7 +1,7 @@
 import { WorkspaceConfiguration, ConfigurationTarget } from 'vscode';
 
 export class MockedConfig implements WorkspaceConfiguration {
-	private _config: {[key: string]: any};
+	private _config: {[key: string]: any} = {};
 	readonly [key: string]: any;
 
 	public setMockData(config: {[key: string]: any}) {
