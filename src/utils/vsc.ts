@@ -3,12 +3,21 @@ import * as vsc from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import { isValidAngularProject } from './angular';
-import { logVerbose, log, logWarning } from './logging';
+import { logVerbose, log, logWarning, logError } from './logging';
 
 const workspaceRoot = vsc.workspace.workspaceFolders && vsc.workspace.workspaceFolders[0].uri.fsPath;
 
-export const TEST_ROOT = 'testRoot';
 export let angularRoot;
+
+export function mockRoot(rootPath: string) {
+	if (process.env.NODE_ENV === 'test') {
+		const oldRoot = angularRoot;
+		angularRoot = rootPath;
+		return oldRoot;
+	} else {
+		logError('This is only allowed in tests');
+	}
+}
 
 export function getLocation(location: { path: string, pos: ts.LineAndCharacter }) {
 	return new vsc.Location(vsc.Uri.file(location.path), new vsc.Position(location.pos.line, location.pos.character));
@@ -82,7 +91,7 @@ function getAngularRootDirectory() {
 	}
 
 	if (process.env.NODE_ENV === 'test') {
-		return TEST_ROOT;
+		return '';
 	}
 
 	return workspaceRoot;

@@ -25,18 +25,23 @@ import { shouldActivateExtension, notAngularProject, markAsAngularProject, alrea
 import { events } from './symbols';
 import { MemberAccessDiagnostics } from './utils/memberAccessDiagnostics';
 import { IHtmlTemplateInfoResults, ITemplateInfo } from './utils/htmlTemplate/types';
+import { HtmlDocumentHelper } from './utils/htmlDocumentHelper';
 import { Commands } from './commands/commands';
 import { SwitchComponentPartsCommand } from './commands/switchComponentParts';
 
 const HTML_DOCUMENT_SELECTOR = <vsc.DocumentFilter>{ language: 'html', scheme: 'file' };
 const TS_DOCUMENT_SELECTOR = <vsc.DocumentFilter>{ language: 'typescript', scheme: 'file' };
 
+const getConfig = () => vsc.workspace.getConfiguration('ngComponents');
+
+const htmlDocumentHelper = new HtmlDocumentHelper();
+
 export class Extension {
-	private completionProvider = new ComponentCompletionProvider();
-	private memberCompletionProvider = new MemberCompletionProvider();
+	private completionProvider = new ComponentCompletionProvider(htmlDocumentHelper);
+	private memberCompletionProvider = new MemberCompletionProvider(getConfig);
 	private bindingProvider = new BindingProvider();
-	private definitionProvider = new ComponentDefinitionProvider();
-	private referencesProvider = new ReferencesProvider();
+	private definitionProvider = new ComponentDefinitionProvider(htmlDocumentHelper, getConfig);
+	private referencesProvider = new ReferencesProvider(htmlDocumentHelper);
 	private memberReferencesProvider = new MemberReferencesProvider();
 	private memberDefinitionProvider = new MemberDefinitionProvider();
 	private findUnusedAngularComponentsCommand = new FindUnusedComponentsCommand();

@@ -10,7 +10,7 @@ export interface IBracketsPosition {
 }
 
 export class HtmlDocumentHelper {
-	public static findTagBrackets = (document: vsc.TextDocument, startFrom: vsc.Position, direction: 'backward' | 'forward'): IBracketsPosition => {
+	public findTagBrackets = (document: vsc.TextDocument, startFrom: vsc.Position, direction: 'backward' | 'forward'): IBracketsPosition => {
 		let openingPosition: vsc.Position;
 		let closingPosition: vsc.Position;
 		let linesToSearch: number[];
@@ -18,7 +18,7 @@ export class HtmlDocumentHelper {
 
 		if (direction === 'backward') {
 			// skip cursor position when searching backwards
-			startFrom = HtmlDocumentHelper.getPreviousCharacterPosition(document, startFrom);
+			startFrom = this.getPreviousCharacterPosition(document, startFrom);
 			if (!startFrom) {
 				return {
 					opening: undefined,
@@ -61,7 +61,7 @@ export class HtmlDocumentHelper {
 		};
 	}
 
-	public static getPreviousCharacterPosition = (document: vsc.TextDocument, startFrom: vsc.Position) => {
+	public getPreviousCharacterPosition = (document: vsc.TextDocument, startFrom: vsc.Position) => {
 		if (startFrom.character === 0) {
 			if (startFrom.line === 0) {
 				return undefined;
@@ -72,7 +72,7 @@ export class HtmlDocumentHelper {
 		}
 	}
 
-	public static parseTag = (text: string) => {
+	public parseTag = (text: string) => {
 		let match: RegExpExecArray;
 		match = REGEX_TAG_NAME.exec(text);
 		const tag = match[1];
@@ -87,7 +87,7 @@ export class HtmlDocumentHelper {
 		return { tag, attributes: existingAttributes };
 	}
 
-	public static isInsideAClosedTag = (beforeCursor: IBracketsPosition, afterCursor: IBracketsPosition) => {
+	public isInsideAClosedTag = (beforeCursor: IBracketsPosition, afterCursor: IBracketsPosition) => {
 		return beforeCursor.opening && (!beforeCursor.closing || beforeCursor.closing.isBefore(beforeCursor.opening))
 			&& afterCursor.closing && (!afterCursor.opening || afterCursor.closing.isBefore(afterCursor.opening));
 	}

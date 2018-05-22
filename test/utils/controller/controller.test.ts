@@ -1,10 +1,12 @@
 import * as assert from 'assert';
 import * as _ from 'lodash';
 
-import { Controller } from '../../src/utils/controller/controller';
-import { MemberBase, MemberType } from '../../src/utils/controller/member';
-import { ClassMethod } from '../../src/utils/controller/method';
-import { getControllerSourceFile } from './helpers';
+import { Controller } from '../../../src/utils/controller/controller';
+import { MemberBase, MemberType, IMember } from '../../../src/utils/controller/member';
+import { ClassMethod } from '../../../src/utils/controller/method';
+import { getControllerSourceFile } from '../helpers';
+import should = require('should');
+import sinon = require('sinon');
 
 describe('Give Controller class', () => {
 	describe('when calling parse', () => {
@@ -59,6 +61,79 @@ describe('Give Controller class', () => {
 
 			assertMethod(members, 'testMethod', 'number', true, [{ name: 'p1', type: 'string' }]);
 			assertMethod(members, 'arrowFunction', 'number', true, [{ name: 'p1', type: 'string' }, { name: 'p2', type: 'number' }]);
+		});
+	});
+
+	describe('when calling isInstanceOf()', () => {
+		it('and controller is direct instance of given class then true is returned', () => {
+			const controller = new Controller();
+			controller.className = 'TestClass';
+
+			const result = controller.isInstanceOf('TestClass');
+
+			should(result).be.true();
+		});
+
+		it('and controller is not instance of given class then false is returned', () => {
+			const controller = new Controller();
+			controller.className = 'TestClass';
+
+			const result = controller.isInstanceOf('OtherTestClass');
+
+			should(result).be.false();
+		});
+
+		it('and controller base class is instance of given class then isInstanceOf base class is called', () => {
+			// arrange
+			const TESTED_CLASS = 'OtherTestClass';
+			const baseClass = new Controller();
+			baseClass.isInstanceOf = () => true;
+			const spy = sinon.spy(baseClass, 'isInstanceOf');
+
+			const controller = new Controller();
+			controller.className = 'TestClass';
+			controller.baseClass = baseClass;
+
+			// act
+			const result = controller.isInstanceOf(TESTED_CLASS);
+
+			// assert
+			should(result).be.equal(true);
+			should(spy.calledOnce).be.true();
+		});
+	});
+
+	describe('when calling getMembers()', () => {
+		let controller: Controller;
+
+		beforeEach(() => {
+			const baseController = new Controller();
+			baseController.members = [<IMember>{
+				isPublic: true
+			}, <IMember>{
+				isPublic: false
+			}];
+
+			controller = new Controller();
+			controller.members = [<IMember>{
+				isPublic: true
+			}, <IMember>{
+				isPublic: false
+			}];
+
+			controller.baseClass = baseController;
+		});
+
+		it('with `true` then only public members are returned', () => {
+			const result = controller.getMembers(true);
+
+			should(result).have.lengthOf(2);
+		});
+
+		it('with `false` then all members are returned', () => {
+			const result = controller.getMembers(false);
+
+			should(result).have.lengthOf(4);
 		});
 	});
 });

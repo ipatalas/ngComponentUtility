@@ -4,4 +4,4 @@ node_modules
 /*.vsix
 /.vscode/symbols.json
 /.vscode-test/**
-/coverage
+/coverage/**

@@ -2,20 +2,22 @@ import * as vsc from 'vscode';
 
 import { Component } from '../utils/component/component';
 import { HtmlDocumentHelper } from '../utils/htmlDocumentHelper';
-import { getLocation, getConfiguration } from '../utils/vsc';
+import { getLocation } from '../utils/vsc';
 
 export class ComponentDefinitionProvider implements vsc.DefinitionProvider {
 	private components: Component[];
+
+	constructor(private htmlDocumentHelper: HtmlDocumentHelper, private getConfig: () => vsc.WorkspaceConfiguration) {}
 
 	public loadComponents = (components: Component[]) => {
 		this.components = components;
 	}
 
 	public provideDefinition(document: vsc.TextDocument, position: vsc.Position, _token: vsc.CancellationToken): vsc.Definition {
-		const bracketsBeforeCursor = HtmlDocumentHelper.findTagBrackets(document, position, 'backward');
-		const bracketsAfterCursor = HtmlDocumentHelper.findTagBrackets(document, position, 'forward');
+		const bracketsBeforeCursor = this.htmlDocumentHelper.findTagBrackets(document, position, 'backward');
+		const bracketsAfterCursor = this.htmlDocumentHelper.findTagBrackets(document, position, 'forward');
 
-		if (HtmlDocumentHelper.isInsideAClosedTag(bracketsBeforeCursor, bracketsAfterCursor)) {
+		if (this.htmlDocumentHelper.isInsideAClosedTag(bracketsBeforeCursor, bracketsAfterCursor)) {
 			// get everything from starting < tag till ending >
 			const tagTextRange = new vsc.Range(bracketsBeforeCursor.opening, bracketsAfterCursor.closing);
 			const text = document.getText(tagTextRange);
@@ -23,7 +25,7 @@ export class ComponentDefinitionProvider implements vsc.DefinitionProvider {
 			const wordPos = document.getWordRangeAtPosition(position);
 			const word = document.getText(wordPos);
 
-			const { tag } = HtmlDocumentHelper.parseTag(text);
+			const { tag } = this.htmlDocumentHelper.parseTag(text);
 
 			const component = this.components.find(c => c.htmlName === tag);
 			if (component) {
@@ -33,8 +35,8 @@ export class ComponentDefinitionProvider implements vsc.DefinitionProvider {
 				}
 
 				if (word === component.htmlName) {
-					const config = getConfiguration();
-					const componentParts = config.get('goToDefinition') as string[];
+					const config = this.getConfig();
+					const componentParts = config.get('goToDefinition') as string[] || [];
 
 					const results: vsc.Location[] = [];
 
