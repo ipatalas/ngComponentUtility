@@ -8,7 +8,7 @@ import { getControllerSourceFile } from '../helpers';
 import should = require('should');
 import sinon = require('sinon');
 
-describe('Give Controller class', () => {
+describe('Given Controller class', () => {
 	describe('when calling parse', () => {
 		const testCases = [{
 			test_file: 'controller_simple.ts',
