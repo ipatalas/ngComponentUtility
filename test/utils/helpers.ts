@@ -30,6 +30,13 @@ function getSourceFile(type: string, name: string): SourceFile {
 	return new SourceFile(sourceFile);
 }
 
+export function getTestSourceFile(contents: string): SourceFile {
+	const sourceFile = ts.createSourceFile('test.ts', contents, ts.ScriptTarget.ES5, true) as ISourceFile;
+	sourceFile.fullpath = 'test.ts';
+
+	return new SourceFile(sourceFile);
+}
+
 export function createPropertyMember(name: string) {
 	return <IMember> {
 		name,

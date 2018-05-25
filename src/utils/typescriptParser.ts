@@ -182,15 +182,27 @@ export class TypescriptParser {
 		}
 	}
 
-	public getExportedVariable = (node: ts.Node, name: string): ts.VariableDeclaration => {
-		if (node.kind === ts.SyntaxKind.Identifier && (node as ts.Identifier).text === name && node.parent.kind === ts.SyntaxKind.VariableDeclaration) {
-			const varStatement = this.closestParent<ts.VariableStatement>(node.parent, ts.SyntaxKind.VariableStatement);
-			if (varStatement && varStatement.modifiers.some(modifier => modifier.kind === ts.SyntaxKind.ExportKeyword)) {
-				return node.parent as ts.VariableDeclaration;
-			}
-		}
+	public getExportedVariable = (name: string): ts.VariableDeclaration => {
+		let varDeclaration: ts.VariableDeclaration;
+		let i = 0;
 
-		return ts.forEachChild(node, n => this.getExportedVariable(n, name));
+		while (i < this.sourceFile.statements.length) {
+			const statement = this.sourceFile.statements[i];
+
+			if (isTsKind<ts.VariableStatement>(statement, ts.SyntaxKind.VariableStatement)) {
+				varDeclaration = statement.declarationList.declarations.find(x => (x.name as ts.Identifier).text === name);
+				if (varDeclaration && statement.modifiers && statement.modifiers.some(modifier => modifier.kind === ts.SyntaxKind.ExportKeyword)) {
+					return varDeclaration;
+				}
+			} else if (isTsKind<ts.ExportAssignment>(statement, ts.SyntaxKind.ExportAssignment)) {
+				const exp = statement.expression;
+				if (isTsKind<ts.Identifier>(exp, ts.SyntaxKind.Identifier) && exp.text === name) {
+					return varDeclaration;
+				}
+			}
+
+			i++;
+		}
 	}
 
 	public getExportedClass = (node: ts.Node, name: string): ts.ClassDeclaration => {

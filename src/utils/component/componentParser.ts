@@ -110,7 +110,7 @@ export class ComponentParser {
 		let parser = await this.tsParser.getParserFromImport(identifier);
 
 		while (parser) {
-			const varDeclaration = parser.getExportedVariable(parser.sourceFile, identifier.text);
+			const varDeclaration = parser.getExportedVariable(identifier.text);
 			if (varDeclaration && varDeclaration.initializer.kind === ts.SyntaxKind.ObjectLiteralExpression) {
 				this.componentTsParser.set(componentName, parser);
 				return Promise.resolve(varDeclaration.initializer as ts.ObjectLiteralExpression);
