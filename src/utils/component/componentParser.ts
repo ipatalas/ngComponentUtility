@@ -35,11 +35,20 @@ export class ComponentParser {
 			for (const toImport of this.componentsToImport) {
 				const componentName = this.tsParser.getStringValueFromNode(toImport.nameNode);
 
-				const config = toImport.kind === ts.SyntaxKind.NewExpression ?
-					await this.getExportedClassDeclaration(componentName, toImport.identifier) :
-					await this.getExportedVariable(componentName, toImport.identifier);
+				let configObj: ts.ObjectLiteralExpression | ts.ClassDeclaration;
+				let importedFromParser: TypescriptParser;
 
-				const component = this.createComponent(toImport.nameNode, config, true);
+				if (toImport.kind === ts.SyntaxKind.NewExpression) {
+					const { parser, classDeclaration} = await this.getExportedClassDeclaration(componentName, toImport.identifier);
+					configObj = classDeclaration;
+					importedFromParser = parser;
+				} else {
+					const { parser, variableValue } = await this.getExportedVariable(componentName, toImport.identifier);
+					configObj = variableValue;
+					importedFromParser = parser;
+				}
+
+				const component = this.createComponent(toImport.nameNode, configObj, importedFromParser);
 				if (component) {
 					this.results.push(component);
 				}
@@ -113,7 +122,7 @@ export class ComponentParser {
 			const varDeclaration = parser.getExportedVariable(identifier.text);
 			if (varDeclaration && varDeclaration.initializer.kind === ts.SyntaxKind.ObjectLiteralExpression) {
 				this.componentTsParser.set(componentName, parser);
-				return Promise.resolve(varDeclaration.initializer as ts.ObjectLiteralExpression);
+				return Promise.resolve({ parser, variableValue: varDeclaration.initializer as ts.ObjectLiteralExpression });
 			} else {
 				parser = await parser.getParserFromImport(identifier);
 			}
@@ -130,7 +139,7 @@ export class ComponentParser {
 			classDeclaration = parser.getExportedClass(parser.sourceFile, identifier.text);
 			if (classDeclaration) {
 				this.componentTsParser.set(componentName, parser);
-				return Promise.resolve(classDeclaration);
+				return Promise.resolve({ parser, classDeclaration });
 			} else {
 				parser = await parser.getParserFromImport(identifier as ts.Identifier);
 			}
@@ -141,12 +150,13 @@ export class ComponentParser {
 
 	private errorNotSupported = () => new Error('This component configuration type is not supported yet - please raise an issue and provide an example');
 
-	private createComponent = (componentNameNode: ts.Expression, configObj: ts.ObjectLiteralExpression | ts.ClassDeclaration, isImported?: boolean) => {
+	private createComponent = (componentNameNode: ts.Expression, configObj: ts.ObjectLiteralExpression | ts.ClassDeclaration, importedFromParser?: TypescriptParser) => {
 		const componentName = this.tsParser.getStringValueFromNode(componentNameNode);
 		if (!componentName || !configObj) {
 			return undefined;
 		}
 
+		const isImported = importedFromParser != null;
 		const parser = this.componentTsParser.get(componentName) || this.tsParser;
 
 		const component = new Component();
@@ -169,7 +179,7 @@ export class ComponentParser {
 			logVerbose(`Template for ${component.name} not found (member completion and Go To Definition for this component will not work)`);
 		}
 
-		if (!this.controllerHelper.prepareController(component, config)) {
+		if (!this.controllerHelper.prepareController(component, config, importedFromParser)) {
 			logVerbose(`Controller for ${component.name} not found (member completion and Go To Definition for this component will not work)`);
 		}
 

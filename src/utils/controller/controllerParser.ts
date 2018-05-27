@@ -29,15 +29,7 @@ export class ControllerParser {
 
 			this.results.push(controller);
 		} else if (this.isControllerClass(node)) {
-			const controller = new Controller();
-			controller.path = this.file.path;
-			controller.name = controller.className = node.name.text;
-			controller.pos = this.file.sourceFile.getLineAndCharacterOfPosition(node.members.pos);
-			controller.baseClassName = this.getBaseClassName(node);
-			controller.members = [
-				...node.members.map(m => this.createMember(controller, m)).filter(item => item), // filter out undefined (not implemented member types)
-				...this.getConstructorMembers(controller, node.members)
-			];
+			const controller = this.parseControllerClass(node);
 
 			this.results.push(controller);
 		} else if (node.kind === ts.SyntaxKind.CallExpression) {
@@ -62,6 +54,20 @@ export class ControllerParser {
 		} else {
 			node.getChildren().forEach(this.parseChildren);
 		}
+	}
+
+	public parseControllerClass(node: ts.ClassDeclaration) {
+		const controller = new Controller();
+		controller.path = this.file.path;
+		controller.name = controller.className = node.name.text;
+		controller.pos = this.file.sourceFile.getLineAndCharacterOfPosition(node.members.pos);
+		controller.baseClassName = this.getBaseClassName(node);
+		controller.members = [
+			...node.members.map(m => this.createMember(controller, m)).filter(item => item),
+			...this.getConstructorMembers(controller, node.members)
+		];
+
+		return controller;
 	}
 
 	private findControllerRegistration = (node: ts.Node): ts.CallExpression => {

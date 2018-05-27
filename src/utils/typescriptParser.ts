@@ -9,6 +9,7 @@ export function isTsKind<T extends ts.Node = ts.Node>(node: ts.Node, syntaxKind:
 
 export class TypescriptParser {
 	private readonly identifierNodes: Map<string, ts.Node[]> = new Map<string, ts.Node[]>();
+	private readonly classDefinitions: Map<string, ts.ClassDeclaration> = new Map<string, ts.ClassDeclaration>();
 
 	public readonly sourceFile: ISourceFile;
 
@@ -18,6 +19,12 @@ export class TypescriptParser {
 
 	constructor(public file: SourceFile) {
 		this.sourceFile = file.sourceFile;
+
+		this.classDefinitions = new Map<string, ts.ClassDeclaration>(
+			this.sourceFile.statements
+				.filter(s => isTsKind<ts.ClassDeclaration>(s, ts.SyntaxKind.ClassDeclaration) && s.name)
+				.map((c: ts.ClassDeclaration) => <[string, ts.ClassDeclaration]>[c.name.text, c])
+		);
 	}
 
 	public addIdentifier = (node: ts.Identifier) => {
@@ -139,29 +146,18 @@ export class TypescriptParser {
 	}
 
 	public getClassDefinition = (identifier: ts.Identifier) => {
-		if (this.identifierNodes.has(identifier.text)) {
-			const usages = this.identifierNodes.get(identifier.text);
-			const classDeclaration = usages.find(u => u.parent.kind === ts.SyntaxKind.ClassDeclaration);
-			if (classDeclaration) {
-				return classDeclaration.parent as ts.ClassDeclaration;
-			}
-		}
+		return this.classDefinitions.get(identifier.text);
 	}
 
 	private getPropertyAccessMember = (pae: ts.PropertyAccessExpression) => {
 		if (pae.expression.kind === ts.SyntaxKind.Identifier) {
 			const className = (pae.expression as ts.Identifier).text;
 
-			if (this.identifierNodes.has(className)) {
-				const usages = this.identifierNodes.get(className);
-				const classIdentifier = usages.find(u => u.parent.kind === ts.SyntaxKind.ClassDeclaration);
-				if (classIdentifier) {
-					const classDeclaration = classIdentifier.parent as ts.ClassDeclaration;
-
-					return classDeclaration.members
-						.filter(m => m.kind === ts.SyntaxKind.PropertyDeclaration)
-						.find(m => m.name.getText(this.sourceFile) === pae.name.text) as ts.PropertyDeclaration;
-				}
+			const classDeclaration = this.classDefinitions.get(className);
+			if (classDeclaration) {
+				return classDeclaration.members
+					.filter(m => m.kind === ts.SyntaxKind.PropertyDeclaration)
+					.find(m => m.name.getText(this.sourceFile) === pae.name.text) as ts.PropertyDeclaration;
 			}
 		}
 	}
