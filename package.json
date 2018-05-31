@@ -169,6 +169,11 @@
 					"type": "number",
 					"default": 0.6,
 					"description": "Similarity thresold for Did You Mean suggestions"
+				},
+				"ngComponents.memberDiagnostics.didYouMean.maxResults": {
+					"type": "number",
+					"default": 2,
+					"description": "Determines how many suggestions to show if there are more available"
 				}
 			}
 		}

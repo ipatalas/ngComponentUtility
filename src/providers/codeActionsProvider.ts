@@ -36,16 +36,19 @@ export class CodeActionProvider implements vsc.CodeActionProvider {
 					...bindings.map(b => b.name)
 				];
 
-				const options = this.buildDidYouMeanOptions();
-				const match = didYouMean(diag.code, allMembersNames, options);
-				if (match) {
+				const config = this.getConfig();
+				const options = this.buildDidYouMeanOptions(config);
+				const matches: string[] = didYouMean(diag.code, allMembersNames, options);
+
+				if (matches.length > 0) {
+					const maxResults = config.get<number>('memberDiagnostics.didYouMean.maxResults', 2);
 					const rangeToReplace = range.with(range.start.translate(undefined, component.controllerAs.length + 1));
 
-					results.push({
+					results.push(...matches.slice(0, maxResults).map(m => ({
 						command: Commands.MemberDiagnostic.DidYouMean,
-						title: `Did you mean '${match}'?`,
-						arguments: [rangeToReplace, match]
-					});
+						title: `Did you mean '${m}'?`,
+						arguments: [rangeToReplace, m]
+					})));
 				}
 			}
 
@@ -59,12 +62,12 @@ export class CodeActionProvider implements vsc.CodeActionProvider {
 		return results;
 	}
 
-	private buildDidYouMeanOptions = () => {
-		const config = this.getConfig();
+	private buildDidYouMeanOptions = (config: vsc.WorkspaceConfiguration) => {
 		const similarityThresold = config.get<number>('memberDiagnostics.didYouMean.similarityThreshold', 0.6);
 
 		return {
-			threshold: similarityThresold
+			threshold: similarityThresold,
+			returnType: 'all-sorted-matches'
 		};
 	}
 }
