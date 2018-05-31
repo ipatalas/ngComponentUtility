@@ -6,9 +6,10 @@ import { ITemplateInfo } from './htmlTemplate/types';
 import { RelativePath } from './htmlTemplate/relativePath';
 import { IComponentBase } from './component/component';
 import { IMemberAccessEntry } from './htmlTemplate/streams/memberAccessParser';
+import { ConfigurationFile } from '../configurationFile';
 
 export class MemberAccessDiagnostics {
-	constructor(private getConfig: () => vsc.WorkspaceConfiguration) {}
+	constructor(private getConfig: () => vsc.WorkspaceConfiguration, private configurationFile: ConfigurationFile) { }
 
 	public getDiagnostics = (components: IComponentBase[], templateInfo: ITemplateInfo): DiagnosticsByTemplate => {
 		const config = this.getConfig();
@@ -18,6 +19,11 @@ export class MemberAccessDiagnostics {
 		const componentMembers = this.getComponentMembers(components, checkBindings, checkMembers);
 		const messageFormat = this.getMessage(checkBindings, checkMembers);
 
+		const ignoredMembers = this.configurationFile.getIgnoredMemberDiagnostics();
+
+		const isIgnoredMember =
+			(relativePath: string, m: IMemberAccessEntry) => ignoredMembers[relativePath] && ignoredMembers[relativePath].some(x => x === m.memberName);
+
 		const isComponentMember =
 			(relativePath: string, m: IMemberAccessEntry) => componentMembers[relativePath] && componentMembers[relativePath].some(x => x === m.memberName);
 
@@ -26,7 +32,10 @@ export class MemberAccessDiagnostics {
 
 		return Object.entries(templateInfo)
 			.reduce((allInvalid, [relativePath, template]) => {
-				const invalidMembers = template.memberAccess.filter(m => !isComponentMember(relativePath, m) && !isFormMember(relativePath, m));
+				const invalidMembers = template.memberAccess.filter(m =>
+					!isIgnoredMember(relativePath, m) &&
+					!isComponentMember(relativePath, m) &&
+					!isFormMember(relativePath, m));
 
 				if (invalidMembers.length > 0) {
 					allInvalid.push([
@@ -51,7 +60,11 @@ export class MemberAccessDiagnostics {
 		const range = new vsc.Range(member.line, member.character, member.line, member.character + member.expression.length);
 		const message = util.format(messageFormat, member.memberName);
 
-		return new vsc.Diagnostic(range, message, vsc.DiagnosticSeverity.Warning);
+		const diagnostic = new vsc.Diagnostic(range, message, vsc.DiagnosticSeverity.Warning);
+		diagnostic.source = 'ngComponents';
+		diagnostic.code = member.memberName;
+
+		return diagnostic;
 	}
 
 	private getComponentMembers(components: IComponentBase[], checkBindings: boolean, checkMembers: boolean) {

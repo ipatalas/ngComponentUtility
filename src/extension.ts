@@ -1,5 +1,6 @@
 'use strict';
 
+import _ = require('lodash');
 import * as vsc from 'vscode';
 import * as prettyHrtime from 'pretty-hrtime';
 
@@ -12,6 +13,7 @@ import { ComponentDefinitionProvider } from './providers/componentDefinitionProv
 import { ReferencesProvider } from './providers/referencesProvider';
 import { MemberDefinitionProvider } from './providers/memberDefinitionProvider';
 import { MemberReferencesProvider } from './providers/memberReferencesProvider';
+import { CodeActionProvider } from './providers/codeActionsProvider';
 
 import { IComponentTemplate, Component } from './utils/component/component';
 import { ComponentsCache } from './utils/component/componentsCache';
@@ -20,7 +22,7 @@ import { RoutesCache } from './utils/route/routesCache';
 import { Route } from './utils/route/route';
 
 import { ConfigurationChangeListener } from './utils/configurationChangeListener';
-import { logVerbose, log, logError } from './utils/logging';
+import { logVerbose, log, logError, logWarning } from './utils/logging';
 import { shouldActivateExtension, notAngularProject, markAsAngularProject, alreadyAngularProject, getConfiguration } from './utils/vsc';
 import { events } from './symbols';
 import { MemberAccessDiagnostics } from './utils/memberAccessDiagnostics';
@@ -28,6 +30,8 @@ import { IHtmlTemplateInfoResults, ITemplateInfo } from './utils/htmlTemplate/ty
 import { HtmlDocumentHelper } from './utils/htmlDocumentHelper';
 import { Commands } from './commands/commands';
 import { SwitchComponentPartsCommand } from './commands/switchComponentParts';
+import { IgnoreMemberDiagnosticCommand } from './commands/ignoreMemberDiagnostic';
+import { ConfigurationFile } from './configurationFile';
 
 const HTML_DOCUMENT_SELECTOR = <vsc.DocumentFilter>{ language: 'html', scheme: 'file' };
 const TS_DOCUMENT_SELECTOR = <vsc.DocumentFilter>{ language: 'typescript', scheme: 'file' };
@@ -43,16 +47,18 @@ export class Extension {
 	private definitionProvider = new ComponentDefinitionProvider(htmlDocumentHelper, getConfig);
 	private referencesProvider = new ReferencesProvider(htmlDocumentHelper);
 	private memberReferencesProvider = new MemberReferencesProvider();
+	private codeActionProvider = new CodeActionProvider();
 	private memberDefinitionProvider = new MemberDefinitionProvider();
 	private findUnusedAngularComponentsCommand = new FindUnusedComponentsCommand();
+
+	private configurationFile = new ConfigurationFile();
+	private statusBar = vsc.window.createStatusBarItem(vsc.StatusBarAlignment.Left);
+	private configListener = new ConfigurationChangeListener('ngComponents');
 
 	private componentsCache = new ComponentsCache();
 	private htmlTemplateInfoCache = new HtmlTemplateInfoCache();
 	private routesCache = new RoutesCache();
-	private memberAccessDiagnostics = new MemberAccessDiagnostics(getConfiguration);
-
-	private statusBar = vsc.window.createStatusBarItem(vsc.StatusBarAlignment.Left);
-	private configListener = new ConfigurationChangeListener('ngComponents');
+	private memberAccessDiagnostics = new MemberAccessDiagnostics(getConfiguration, this.configurationFile);
 
 	private latestComponents: Component[];
 	private latestHtmlTemplateInfoResults: IHtmlTemplateInfoResults;
@@ -63,17 +69,20 @@ export class Extension {
 		if (!shouldActivateExtension()) {
 			context.subscriptions.push(vsc.commands.registerCommand(Commands.MarkAsAngularProject, markAsAngularProject));
 
-			const remainingCommands = Object.values(Commands).filter(c => c !== Commands.MarkAsAngularProject);
+			const commandNames = _.flatMap(Object.values(Commands), c => _.isObjectLike(c) ? Object.values(c) : <string>c);
+			const remainingCommands = commandNames.filter(c => c !== Commands.MarkAsAngularProject);
 			remainingCommands.forEach(cmd => context.subscriptions.push(vsc.commands.registerCommand(cmd, notAngularProject)));
 			return;
 		}
 
 		this.diagnosticCollection = vsc.languages.createDiagnosticCollection('member-diagnostics');
 
+		context.subscriptions.push(this.configurationFile);
 		context.subscriptions.push(this.configListener, this.componentsCache, this.htmlTemplateInfoCache, this.routesCache);
 		context.subscriptions.push(vsc.commands.registerCommand(Commands.MarkAsAngularProject, alreadyAngularProject));
 
 		try {
+			await this.loadConfigurationFile();
 			await this.refreshComponents();
 
 			this.componentsCache.on(events.componentsChanged, this.componentsChanged);
@@ -86,6 +95,7 @@ export class Extension {
 
 		context.subscriptions.push.apply(context.subscriptions, [
 			new SwitchComponentPartsCommand(this.getComponents),
+			new IgnoreMemberDiagnosticCommand(this.configurationFile),
 			vsc.commands.registerCommand(Commands.RefreshComponents, this.refreshComponentsCommand),
 			vsc.commands.registerCommand(Commands.RefreshMemberDiagnostics, this.refreshMemberDiagnosticsCommand),
 			vsc.commands.registerCommand(Commands.FindUnusedComponents,
@@ -97,17 +107,32 @@ export class Extension {
 			vsc.languages.registerDefinitionProvider(HTML_DOCUMENT_SELECTOR, this.memberDefinitionProvider),
 			vsc.languages.registerReferenceProvider([HTML_DOCUMENT_SELECTOR, TS_DOCUMENT_SELECTOR], this.referencesProvider),
 			vsc.languages.registerReferenceProvider(TS_DOCUMENT_SELECTOR, this.memberReferencesProvider),
+			vsc.languages.registerCodeActionsProvider(HTML_DOCUMENT_SELECTOR, this.codeActionProvider),
 			this.diagnosticCollection
 		]);
 
-		this.configListener.registerListener(['controllerGlobs', 'componentGlobs', 'htmlGlobs'], () => vsc.commands.executeCommand(Commands.RefreshComponents));
-		this.configListener.registerListener(['memberDiagnostics.html'], this.refreshMemberDiagnosticsCommand);
+		this.registerConfigListeners();
 
 		this.statusBar.tooltip = 'Refresh Angular components';
 		this.statusBar.command = Commands.RefreshComponents;
 		this.statusBar.show();
 
 		context.subscriptions.push(this.statusBar);
+	}
+
+	private async loadConfigurationFile() {
+		try {
+			await this.configurationFile.load();
+		} catch (err) {
+			logWarning('Error while opening configuration file: ' + err.message);
+		}
+	}
+
+	private registerConfigListeners() {
+		this.configListener.registerListener(['controllerGlobs', 'componentGlobs', 'htmlGlobs'], () => vsc.commands.executeCommand(Commands.RefreshComponents));
+		this.configListener.registerListener(['memberDiagnostics.html'], this.refreshMemberDiagnosticsCommand);
+
+		this.configurationFile.on(events.configurationFile.ignoredMemberDiagnosticChanged, () => vsc.commands.executeCommand(Commands.RefreshMemberDiagnostics));
 	}
 
 	private getComponents = () => this.latestComponents;

@@ -4,5 +4,8 @@ export const Commands = {
 	RefreshMemberDiagnostics: 'ngComponents.refreshMemberDiagnostics',
 	FindUnusedComponents: 'ngComponents.findUnusedAngularComponents',
 	MarkAsAngularProject: 'ngComponents.markAsAngularProject',
-	SwitchComponentParts: 'ngComponents.switchComponentParts'
+	SwitchComponentParts: 'ngComponents.switchComponentParts',
+	MemberDiagnostic: {
+		IgnoreMember: 'ngComponents.ignoreMemberDiagnostic'
+	}
 };
