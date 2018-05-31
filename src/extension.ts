@@ -32,6 +32,7 @@ import { Commands } from './commands/commands';
 import { SwitchComponentPartsCommand } from './commands/switchComponentParts';
 import { IgnoreMemberDiagnosticCommand } from './commands/ignoreMemberDiagnostic';
 import { ConfigurationFile } from './configurationFile';
+import { DidYouMeanCommand } from './commands/didYouMean';
 
 const HTML_DOCUMENT_SELECTOR = <vsc.DocumentFilter>{ language: 'html', scheme: 'file' };
 const TS_DOCUMENT_SELECTOR = <vsc.DocumentFilter>{ language: 'typescript', scheme: 'file' };
@@ -47,7 +48,7 @@ export class Extension {
 	private definitionProvider = new ComponentDefinitionProvider(htmlDocumentHelper, getConfig);
 	private referencesProvider = new ReferencesProvider(htmlDocumentHelper);
 	private memberReferencesProvider = new MemberReferencesProvider();
-	private codeActionProvider = new CodeActionProvider();
+	private codeActionProvider = new CodeActionProvider(getConfig);
 	private memberDefinitionProvider = new MemberDefinitionProvider();
 	private findUnusedAngularComponentsCommand = new FindUnusedComponentsCommand();
 
@@ -96,6 +97,7 @@ export class Extension {
 		context.subscriptions.push.apply(context.subscriptions, [
 			new SwitchComponentPartsCommand(this.getComponents),
 			new IgnoreMemberDiagnosticCommand(this.configurationFile),
+			new DidYouMeanCommand(),
 			vsc.commands.registerCommand(Commands.RefreshComponents, this.refreshComponentsCommand),
 			vsc.commands.registerCommand(Commands.RefreshMemberDiagnostics, this.refreshMemberDiagnosticsCommand),
 			vsc.commands.registerCommand(Commands.FindUnusedComponents,
@@ -157,6 +159,7 @@ export class Extension {
 
 			this.completionProvider.loadComponents(this.latestComponents);
 			this.memberCompletionProvider.loadComponents(componentsAndRoutes);
+			this.codeActionProvider.loadComponents(componentsAndRoutes);
 			this.bindingProvider.loadComponents(this.latestComponents);
 			this.definitionProvider.loadComponents(this.latestComponents);
 			this.memberDefinitionProvider.loadComponents(componentsAndRoutes, this.latestHtmlTemplateInfoResults.templateInfo);

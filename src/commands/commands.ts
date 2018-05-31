@@ -6,6 +6,7 @@ export const Commands = {
 	MarkAsAngularProject: 'ngComponents.markAsAngularProject',
 	SwitchComponentParts: 'ngComponents.switchComponentParts',
 	MemberDiagnostic: {
-		IgnoreMember: 'ngComponents.ignoreMemberDiagnostic'
+		IgnoreMember: 'ngComponents.memberDiagnostic.ignoreMemberDiagnostic',
+		DidYouMean: 'ngComponents.memberDiagnostic.didYouMean'
 	}
 };

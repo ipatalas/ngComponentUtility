@@ -7,8 +7,7 @@ export class IgnoreMemberDiagnosticCommand implements vsc.Disposable {
 	private disposable: vsc.Disposable;
 
 	constructor(private configuration: ConfigurationFile) {
-		this.disposable = vsc.commands.registerCommand(Commands.MemberDiagnostic.IgnoreMember,
-			(templatePath: RelativePath, memberName: string) => this.execute(templatePath, memberName));
+		this.disposable = vsc.commands.registerCommand(Commands.MemberDiagnostic.IgnoreMember, this.execute);
 	}
 
 	public dispose() {
