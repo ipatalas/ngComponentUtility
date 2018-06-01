@@ -91,7 +91,11 @@ export class Extension {
 			this.htmlTemplateInfoCache.on(events.htmlReferencesChanged, this.htmlReferencesChanged);
 		} catch (err) {
 			logError(err);
-			vsc.window.showErrorMessage('Error initializing extension');
+			vsc.window.showErrorMessage('Error initializing extension', 'Check errors').then(value => {
+				if (value === 'Check errors') {
+					vsc.commands.executeCommand('workbench.action.toggleDevTools');
+				}
+			});
 		}
 
 		context.subscriptions.push.apply(context.subscriptions, [
