@@ -1,10 +1,12 @@
 'use strict';
 
+import { Readable } from 'stream';
 import * as _ from 'lodash';
 import * as parse5 from 'parse5';
 import * as fs from 'fs';
 import * as vsc from 'vscode';
 import * as prettyHrtime from 'pretty-hrtime';
+
 import { default as tags } from './htmlTags';
 import { findFiles, getConfiguration } from '../vsc';
 import { IComponentTemplate, IComponentBase } from '../component/component';
@@ -114,12 +116,12 @@ export class HtmlTemplateInfoCache extends EventEmitter implements vsc.Disposabl
         return parser;
     }
 
-    private parseFile = (relativePath: RelativePath, results: HtmlTemplateInfoResults, isMemberDiagnosticEnabled: boolean) => {
+    public parseFile = (relativePath: RelativePath, results: HtmlTemplateInfoResults, isMemberDiagnosticEnabled: boolean, overridenFileContents?: string) => {
         return new Promise<void>((resolve, reject) => {
             const getLocation = (location: parse5.MarkupData.StartTagLocation) => ({ line: location.line - 1, col: location.col - 1 });
             const htmlParser = this.createHtmlReferencesParser(resolve, reject, results, relativePath.relative, getLocation);
 
-            const stream = fs.createReadStream(relativePath.absolute).pipe(htmlParser);
+            const stream = this.createStream(relativePath, overridenFileContents).pipe(htmlParser);
 
             if (isMemberDiagnosticEnabled) {
                 const memberAccessParser = this.createMemberAccessParser(results, relativePath.relative);
@@ -129,6 +131,18 @@ export class HtmlTemplateInfoCache extends EventEmitter implements vsc.Disposabl
                 }
             }
         });
+    }
+
+    private createStream = (relativePath: RelativePath, overridenFileContents?: string) => {
+        if (!overridenFileContents) {
+            return fs.createReadStream(relativePath.absolute);
+        }
+
+        const readable = new Readable();
+        readable.push(overridenFileContents);
+        readable.push(null);
+
+        return readable;
     }
 
     private parseInlineTemplate = (template: IComponentTemplate, results: HtmlTemplateInfoResults) => {

@@ -33,6 +33,8 @@ import { SwitchComponentPartsCommand } from './commands/switchComponentParts';
 import { IgnoreMemberDiagnosticCommand } from './commands/ignoreMemberDiagnostic';
 import { ConfigurationFile } from './configurationFile';
 import { DidYouMeanCommand } from './commands/didYouMean';
+import { RelativePath } from './utils/htmlTemplate/relativePath';
+import { HtmlTemplateInfoResults } from './utils/htmlTemplate/htmlTemplateInfoResult';
 
 const HTML_DOCUMENT_SELECTOR = <vsc.DocumentFilter>{ language: 'html', scheme: 'file' };
 const TS_DOCUMENT_SELECTOR = <vsc.DocumentFilter>{ language: 'typescript', scheme: 'file' };
@@ -114,7 +116,8 @@ export class Extension {
 			vsc.languages.registerReferenceProvider([HTML_DOCUMENT_SELECTOR, TS_DOCUMENT_SELECTOR], this.referencesProvider),
 			vsc.languages.registerReferenceProvider(TS_DOCUMENT_SELECTOR, this.memberReferencesProvider),
 			vsc.languages.registerCodeActionsProvider(HTML_DOCUMENT_SELECTOR, this.codeActionProvider),
-			this.diagnosticCollection
+			this.diagnosticCollection,
+			vsc.workspace.onDidChangeTextDocument(_.debounce(this.onDocumentTextChanged, 500))
 		]);
 
 		this.registerConfigListeners();
@@ -124,6 +127,26 @@ export class Extension {
 		this.statusBar.show();
 
 		context.subscriptions.push(this.statusBar);
+	}
+
+	private onDocumentTextChanged = async (e: vsc.TextDocumentChangeEvent) => {
+		const isHtmlFile = e.document.languageId === HTML_DOCUMENT_SELECTOR.language && e.document.uri.scheme === HTML_DOCUMENT_SELECTOR.scheme;
+		if (!isHtmlFile) {
+			return;
+		}
+
+		if (e.document.isClosed || !e.document.isDirty) {
+			this.refreshMemberAccessDiagnostics(this.latestHtmlTemplateInfoResults.templateInfo);
+		} else {
+			const config = getConfiguration();
+			const isMemberDiagnosticEnabled = config.get<boolean>('memberDiagnostics.enabled');
+			const results = new HtmlTemplateInfoResults();
+			const relativePath = RelativePath.fromUri(e.document.uri);
+			await this.htmlTemplateInfoCache.parseFile(relativePath, results, isMemberDiagnosticEnabled, e.document.getText());
+
+			const templateInfo = Object.assign({}, this.latestHtmlTemplateInfoResults.templateInfo, results.templateInfo);
+			this.refreshMemberAccessDiagnostics(templateInfo);
+		}
 	}
 
 	private async loadConfigurationFile() {
