@@ -222,7 +222,11 @@ export class Extension {
 				this.statusBar.text = `$(sync) ${this.latestComponents.length} components`;
 			} catch (err) {
 				logError(err);
-				vsc.window.showErrorMessage('Error refreshing components, check developer console');
+				vsc.window.showErrorMessage('Error refreshing components, check developer console', 'Check errors').then(value => {
+					if (value === 'Check errors') {
+						vsc.commands.executeCommand('workbench.action.toggleDevTools');
+					}
+				});
 			}
 
 			resolve();
