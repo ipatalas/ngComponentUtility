@@ -6,7 +6,6 @@ import { getTemplatesTestFilePath, getTemplatesTestDirPath } from '../utils/help
 import { mockRoot } from '../../src/utils/vsc';
 import { Commands } from '../../src/commands/commands';
 import { IComponentBase } from '../../src/utils/component/component';
-import { Controller } from '../../src/utils/controller/controller';
 
 const templatesRoot = getTemplatesTestDirPath();
 const getConfig = () => config;
