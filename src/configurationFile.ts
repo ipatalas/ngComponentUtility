@@ -54,19 +54,26 @@ export class ConfigurationFile extends EventEmitter implements vsc.Disposable {
 
 	public load = (): Promise<void> => {
 		return new Promise<void>((resolve, reject) => {
-			fs.readFile(this.configurationPath, { encoding: 'utf8' }, (err, data) => {
-				if (err) {
+			fs.exists(this.configurationPath, exists => {
+				if (!exists) {
 					this.configuration = CreateEmptyConfig();
-					return reject(err);
+					return resolve();
 				}
 
-				try {
-					this.configuration = JSON.parse(data);
-					resolve();
-				} catch (err) {
-					this.configuration = CreateEmptyConfig();
-					reject(err);
-				}
+				fs.readFile(this.configurationPath, { encoding: 'utf8' }, (err, data) => {
+					if (err) {
+						this.configuration = CreateEmptyConfig();
+						return reject(err);
+					}
+
+					try {
+						this.configuration = JSON.parse(data);
+						resolve();
+					} catch (err) {
+						this.configuration = CreateEmptyConfig();
+						reject(err);
+					}
+				});
 			});
 		});
 	}
