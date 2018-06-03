@@ -4,7 +4,7 @@
 	"description": "Angular 1.5 components utility",
 	"author": "Ireneusz Patalas",
 	"license": "MIT",
-	"version": "0.8.2",
+	"version": "0.9.0",
 	"publisher": "ipatalas",
 	"contributors": [
 		"Ireneusz Patalas",
@@ -38,19 +38,23 @@
 		"commands": [
 			{
 				"command": "ngComponents.refreshAngularComponents",
-				"title": "Refresh Components Cache"
+				"title": "Refresh Components Cache",
+				"category": "ngComponents"
 			},
 			{
 				"command": "ngComponents.refreshMemberDiagnostics",
-				"title": "Refresh Member Diagnostics"
+				"title": "Refresh Member Diagnostics",
+				"category": "ngComponents"
 			},
 			{
 				"command": "ngComponents.findUnusedAngularComponents",
-				"title": "Find unused Angular components"
+				"title": "Find unused Angular components",
+				"category": "ngComponents"
 			},
 			{
 				"command": "ngComponents.markAsAngularProject",
-				"title": "Force enable ngComponents utility on this workspace"
+				"title": "Force enable ngComponents utility on this workspace",
+				"category": "ngComponents"
 			},
 			{
 				"command": "ngComponents.switchComponentParts",

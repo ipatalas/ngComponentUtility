@@ -15,12 +15,12 @@
 	- [Find All References (**introduced in 0.5.0**)](#find-all-references)
 	- [Find unused components (**introduced in 0.5.0**)](#find-unused-components-experimental)
 	- [Component member diagnostics (**introduced in 0.8.0**)](#component-member-diagnostics)
+	    - [Code actions (**introduced in 0.9.0**)](#code-actions)
 	- [Watch file changes (**introduced in 0.6.0**)](#watch-file-changes)
 - [Configuration](#configuration)
 - [Commands](#commands)
 - [Performance note on configuration globs](#performance-note-on-configuration-globs)
 - [Changelog](#changelog)
-- [Roadmap](#roadmap)
 
 # Synopsis
 
@@ -142,6 +142,16 @@ Experimental feature to detect using non-existing fields in component template:
 This will check controller members including base classes if possible as well as component bindings.
 This feature is off by default until getting stable enough. Use `ngComponents.memberDiagnostics.enabled` to enable it.
 
+### Code actions
+
+Member diagnostics has been enhanced with Code Actions now:
+
+![Code actions](images/code-actions.png)
+
+Like seen on the image you can ignore an error for instance if it's a false positive (which may happen rarely) or for any other reasons. It will be added to a separate configuration file which resides in .vscode directory under the workspace. One can commit that file to repository so that whole team sees the same.
+
+Other option is a 'Did you mean' suggestion. It uses great __didyoumean2__ library under the hood and exposes one of its [options](https://github.com/foray1010/didyoumean2#threshold-integernumber) via `ngComponents.memberDiagnostics.didYouMean.similarityThreshold` setting. Obviously after selecting this fix the text will get replaced by the suggestion.
+
 ## Watch file changes
 
 To avoid a need to manually refresh components cache every time a change is introduced a new mechanism of file watching has been introduced. It watches all parts of the component - ie. component itself, template and controller.
@@ -165,9 +175,11 @@ This plugin contributes the following [settings](https://code.visualstudio.com/d
 - `ngComponents.logging.redirectToFile`: path to redirect logs to - needed when console is flooded with too many messages and supresses them
 - `ngComponents.forceEnable`: force enable the extension if AngularJS was not detected automatically
 - `ngComponents.angularRoot`: custom Angular root folder relative to workspace root (defaults to workspace root) - use when your workspace contains more projects and Angular project is in a subfolder
-- `ngComponents.memberDiagnostics.enabled`: enable experimental member diagnostics [details](#component-member-diagnostics)
+- `ngComponents.memberDiagnostics.enabled`: enable experimental member diagnostics [details](#component-member-diagnostics) (default: **false**)
 - `ngComponents.memberDiagnostics.html.checkBindings`: when disabled use of component's binding in the template when it's not defined in the controller will issue a warning
 - `ngComponents.memberDiagnostics.html.checkControllerMembers`: when disabled use of component's controller member in the template will issue a warning
+- `ngComponents.memberDiagnostics.didYouMean.similarityThreshold`: similarity thresold for Did You Mean suggestions (default: **0.6**)
+- `ngComponents.memberDiagnostics.didYouMean.maxResults`: determines how many suggestions to show if there are more available (default: **2**)
 
 Whenever one of the globs changes components cache is automatically rebuilt. Additionally all component files are monitored for changes and they will be reflected immediately, ie. after adding a binding you can just save the file and go straight to template file to use that binding.
 
@@ -181,6 +193,7 @@ This extension contributes the following commands to the Command palette.
 - `Refresh Member Diagnostics`: refreshes [member diagnostics](#component-member-diagnostics) on demand
 - `Find unused Angular components`: searches for [unused components](#find-unused-components)
 - `Force enable ngComponents utility on this workspace`: see above for description of `ngComponents.forceEnable`
+- `Switch between component/controller/template`: switches between component/controller/template inside a component
 
 # Performance note on configuration globs
 
@@ -199,26 +212,3 @@ The bigger the project the greater the impact so in general it is better to use 
 # Changelog
 
 Full changelog is available [here](https://github.com/ipatalas/ngComponentUtility/blob/master/CHANGELOG.md) or in the Changelog tab from within vscode itself.
-
-# Roadmap
-
-The following features are planned:
-- ~~ability to specify multiple globs in configuration~~
-- ~~**Find all references** for components in html view~~
-- ~~**Go to definition** for components in html view~~
-	- ~~ability to pick which file to open if possible (view, component or controller)~~
-	- ~~should work for both the component and it's attributes/bindings~~
-- ~~auto refresh components when they change (reload only the one that has changed)~~
-- ~~refresh all when configuration changes (glob for example)~~
-- ~~basic intellisense for view model used in html files (at least first level)~~
-- ~~Go To Definition for view model properties/methods (at least first level)~~
-- ability to add binding from component usage in html (by typing it's name and selecting "Add binding" from intellisense menu or command)
-- rename component feature - update all usages
-- optimize parsing files, especially when component and controller globs have common files
-	- careful to clear cache after entire scan, will need refactoring on file scanner first
-- feature flags to disable specific functions
-- ~~rethink the way components are parsed (component config is not a JSON, might contain incompatible stuff)~~
-	- ~~`controller` field does not necessarily is a string, may be a class name directly~~
-	- ~~`template` field may `require` a file instead of hardcoding it in the component~~
-	- make sure both TypeScript and bare JS are supported (currently we focus on TS cause it's what we use)
-- add support for Angular2 (perhaps as a separate extension)

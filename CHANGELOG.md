@@ -1,5 +1,15 @@
 # Change Log
 
+## 0.9.0 (Jun 03, 2018)
+
+* Member diagnostics enhancements:
+  * Code action with option to ignore specific member error
+  * Code action with 'Did you mean' suggestions
+  * Refresh diagnostics live when file is being edited
+* Fixed [#26](https://github.com/ipatalas/ngComponentUtility/issues/26) - controller not found in ES6 import scenario
+* Fixed [#25](https://github.com/ipatalas/ngComponentUtility/issues/25) - default ES6 exports are not picked up
+* Other minor fixes
+
 ## 0.8.2 (May 21, 2018)
 
 * Fix silent error after watch reload and improved logging there
