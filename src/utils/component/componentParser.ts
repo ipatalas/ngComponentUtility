@@ -1,5 +1,4 @@
 import * as ts from 'typescript';
-import * as decamelize from 'decamelize';
 import { SourceFile } from '../sourceFile';
 import { Component } from './component';
 import { TypescriptParser } from '../typescriptParser';
@@ -8,6 +7,7 @@ import { logVerbose } from '../logging';
 import { ComponentBinding } from './componentBinding';
 import { TemplateParser } from '../templateParser';
 import { ControllerHelper } from '../controllerHelper';
+import _ = require('lodash');
 
 interface IComponentToImport {
 	nameNode: ts.Expression;
@@ -162,7 +162,7 @@ export class ComponentParser {
 		const component = new Component();
 		component.path = parser.sourceFile.fullpath;
 		component.name = componentName;
-		component.htmlName = decamelize(componentName, '-');
+		component.htmlName = _.kebabCase(componentName);
 		component.pos = parser.sourceFile.getLineAndCharacterOfPosition(
 			isImported ? ((configObj as ts.ClassDeclaration).name || configObj).pos : componentNameNode.pos
 		);
