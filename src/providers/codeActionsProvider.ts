@@ -1,5 +1,6 @@
 import * as vsc from 'vscode';
 import * as path from 'path';
+import _ = require('lodash');
 import didYouMean = require('didyoumean2');
 
 import { Commands } from '../commands/commands';
@@ -31,10 +32,10 @@ export class CodeActionProvider implements vsc.CodeActionProvider {
 		if (diag) {
 			if (component) {
 				const { members, bindings } = this.getMembersAndBindings(component);
-				const allMembersNames = [
-					...members.map(m => m.name),
-					...bindings.map(b => b.name)
-				];
+				const allMembersNames = _.union(
+					members.map(m => m.name),
+					bindings.map(b => b.name)
+				);
 
 				const config = this.getConfig();
 				const options = this.buildDidYouMeanOptions(config);
