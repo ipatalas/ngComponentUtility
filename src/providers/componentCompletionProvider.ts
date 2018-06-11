@@ -14,7 +14,7 @@ export class ComponentCompletionProvider implements vsc.CompletionItemProvider {
 		this.components = components;
 	}
 
-	public provideCompletionItems = (document: vsc.TextDocument, position: vsc.Position/*, token: vsc.CancellationToken*/): vsc.CompletionItem[] => {
+	public provideCompletionItems = (document: vsc.TextDocument, position: vsc.Position, _token: vsc.CancellationToken): vsc.CompletionItem[] => {
 		let hasOpeningTagBefore = false;
 		const bracketsBeforeCursor = this.htmlDocumentHelper.findTagBrackets(document, position, 'backward');
 		const bracketsAfterCursor = this.htmlDocumentHelper.findTagBrackets(document, position, 'forward');
@@ -48,9 +48,7 @@ export class ComponentCompletionProvider implements vsc.CompletionItemProvider {
 			return [];
 		}
 
-		const currentCharacter = document.lineAt(position).text.charAt(position.character);
-
-		return this.provideTagCompletions(hasOpeningTagBefore, currentCharacter === '<', position);
+		return this.provideTagCompletions(hasOpeningTagBefore, position);
 	}
 
 	private provideAttributeCompletions = (component: Component, existingAttributes: string[]): vsc.CompletionItem[] => {
@@ -69,7 +67,7 @@ export class ComponentCompletionProvider implements vsc.CompletionItemProvider {
 			});
 	}
 
-	private provideTagCompletions = (hasOpeningTagBefore: boolean, hasOpeningTagAfter: boolean, position: vsc.Position): vsc.CompletionItem[] => {
+	private provideTagCompletions = (hasOpeningTagBefore: boolean, position: vsc.Position): vsc.CompletionItem[] => {
 		return this.components.map(c => {
 			const bindings = c.bindings.map(b => `${b.htmlName}=""`).join(' ');
 
@@ -85,10 +83,6 @@ export class ComponentCompletionProvider implements vsc.CompletionItemProvider {
 
 			if (hasOpeningTagBefore) {
 				item.additionalTextEdits.push(vsc.TextEdit.delete(new vsc.Range(position.translate(0, -1), position)));
-			}
-
-			if (hasOpeningTagAfter) {
-				item.additionalTextEdits.push(vsc.TextEdit.insert(position.translate(undefined, 1), '<'));
 			}
 
 			return item;

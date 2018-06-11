@@ -8,7 +8,7 @@ export class BindingProvider implements vsc.CompletionItemProvider {
 	public loadComponents = (components: Component[]) => {
 		this.components = components;
 	}
-	public provideCompletionItems = (document: vsc.TextDocument, position: vsc.Position/*, token: vsc.CancellationToken*/): vsc.CompletionItem[] => {
+	public provideCompletionItems = (document: vsc.TextDocument, position: vsc.Position, _token: vsc.CancellationToken): vsc.CompletionItem[] => {
 		const line = document.lineAt(position.line).text;
 		let startIndex = line.indexOf(',') - 1;
 		const isAllowedCharacter = /[a-z-]/i;
