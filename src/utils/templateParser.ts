@@ -1,5 +1,6 @@
 import * as ts from 'typescript';
 import * as path from 'path';
+import { kebabCase } from 'lodash';
 import { TypescriptParser } from './typescriptParser';
 import { IComponentTemplate } from './component/component';
 import { RelativePath } from './htmlTemplate/relativePath';
@@ -8,7 +9,21 @@ import { ConfigParser } from './configParser';
 export class TemplateParser {
 	public createTemplate = (config: ConfigParser, parser: TypescriptParser) => {
 		return this.createTemplateFromUrl(config.get('templateUrl'), parser)
-				|| this.createFromInlineTemplate(config.get('template'), parser);
+			|| this.createFromInlineTemplate(config.get('template'), parser)
+			|| this.createFromComponentDef(config.get('component'), parser);
+	}
+
+	private createFromComponentDef = (node: ts.Expression, parser: TypescriptParser): IComponentTemplate => {
+		if (!node) {
+			return undefined;
+		}
+
+		const literal = node as ts.LiteralExpression;
+		const kebabName = kebabCase(literal.text);
+		// In the future, handle bindings for usage
+		literal.text = `<${kebabName}></${kebabName}>`;
+
+		return this.createFromInlineTemplate(literal, parser);
 	}
 
 	private createFromInlineTemplate = (node: ts.Expression, parser: TypescriptParser): IComponentTemplate => {

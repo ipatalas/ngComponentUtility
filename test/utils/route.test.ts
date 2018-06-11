@@ -17,6 +17,17 @@ describe('Given Route class', () => {
 			assert.equal(route.template.path, sourceFile.path);
 		});
 
+		it('on route with component and no template then template is set correctly', async () => {
+			const sourceFile = getRouteSourceFile('route.component_template.ts');
+
+			const [route] = await Route.parse(sourceFile, []);
+
+			assert.equal(route.path, sourceFile.path);
+			assert.equal(route.name, 'example_route');
+			assert.equal(route.template.body, '<component-name></component-name>');
+			assert.equal(route.template.path, sourceFile.path);
+		});
+
 		it('on route with external template then template is set correctly', async () => {
 			mockRoot('testRoot');
 			const sourceFile = getRouteSourceFile('route.external_template.ts');
