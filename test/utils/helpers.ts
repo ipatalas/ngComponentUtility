@@ -1,6 +1,7 @@
 import * as _path from 'path';
 import * as ts from 'typescript';
 import * as fs from 'fs';
+import * as vsc from 'vscode';
 import { SourceFile, ISourceFile } from '../../src/utils/sourceFile';
 import { IComponentBinding } from '../../src/utils/component/component';
 import { CompletionItem } from 'vscode';
@@ -28,6 +29,18 @@ function getSourceFile(type: string, name: string): SourceFile {
 	sourceFile.fullpath = path;
 
 	return new SourceFile(sourceFile);
+}
+
+export async function createHtmlDocument(contents: string) {
+	const position = contents.indexOf('^');
+
+	return {
+		position: new vsc.Position(0, position),
+		document: await vsc.workspace.openTextDocument({
+			content: contents,
+			language: 'html'
+		})
+	};
 }
 
 export function getTestSourceFile(contents: string): SourceFile {
