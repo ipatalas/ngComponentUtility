@@ -4,6 +4,8 @@
 
 * Fix for double 'Did you mean' suggestions when a suggestion is both a controller member and a binding
 * Minor fixes for code actions matching and replacement
+* Merged [#27](https://github.com/ipatalas/ngComponentUtility/pull/27) - thanks to **[@avishnyak](https://github.com/avishnyak)**!
+  * Handle component definition on routes in ui-router
 
 ## 0.9.0 (Jun 03, 2018)
 
