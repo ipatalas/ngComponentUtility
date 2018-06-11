@@ -33,6 +33,9 @@ function getSourceFile(type: string, name: string): SourceFile {
 
 export async function createHtmlDocument(contents: string) {
 	const position = contents.indexOf('^');
+	if (position > -1) {
+		contents = contents.replace('^', '');
+	}
 
 	return {
 		position: new vsc.Position(0, position),
