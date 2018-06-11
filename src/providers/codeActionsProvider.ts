@@ -27,7 +27,7 @@ export class CodeActionProvider implements vsc.CodeActionProvider {
 		const component = this.components.get(relativePath.relativeLowercase);
 		const results: vsc.Command[] = [];
 
-		const diag = ctx.diagnostics.find(d => d.range.isEqual(range));
+		const diag = ctx.diagnostics.find(d => d.range.contains(range));
 
 		if (diag) {
 			if (component) {
@@ -43,7 +43,7 @@ export class CodeActionProvider implements vsc.CodeActionProvider {
 
 				if (matches.length > 0) {
 					const maxResults = config.get<number>('memberDiagnostics.didYouMean.maxResults', 2);
-					const rangeToReplace = range.with(range.start.translate(undefined, component.controllerAs.length + 1));
+					const rangeToReplace = diag.range.with(diag.range.start.translate(undefined, component.controllerAs.length + 1));
 
 					results.push(...matches.slice(0, maxResults).map(m => ({
 						command: Commands.MemberDiagnostic.DidYouMean,
