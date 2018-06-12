@@ -247,10 +247,12 @@ export class TypescriptParser {
 				result = this.getDeclarationFromExportAssignment(statement, name);
 			}
 
-			if (result.varDeclaration) {
+			if (result && result.varDeclaration) {
 				return result.varDeclaration;
 			}
-			defaultFallback = result.defaultDeclaration;
+			if (result && result.defaultDeclaration) {
+				defaultFallback = result.defaultDeclaration;
+			}
 
 			// TODO: The following valid ES Module declarations are not supported yet.  They require a full tree traversal.
 			// export default function () { } // also class, function*
