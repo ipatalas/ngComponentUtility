@@ -1,8 +1,8 @@
 import * as assert from 'assert';
 import * as _ from 'lodash';
 
-import { Component, IComponentBinding } from '../../src/utils/component/component';
-import { getComponentSourceFile, getComponentsTestFilePath } from './helpers';
+import { Component, IComponentBinding } from '../../../src/utils/component/component';
+import { getComponentSourceFile, getComponentsTestFilePath } from '../helpers';
 
 describe('Give Component class', () => {
 	describe('when calling parse in AST mode', () => {
@@ -124,6 +124,7 @@ function testFiles(files: string[]) {
 
 			assert.equal(component.length, 1);
 			assert.equal(component[0].name, 'exampleComponent');
+			assert.equal(component[0].htmlName, 'example-component');
 			const bindings = component[0].bindings.map(b => _.pick(b, ['name', 'htmlName', 'type']));
 			assert.deepEqual(bindings, [
 				{

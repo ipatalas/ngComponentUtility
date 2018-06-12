@@ -1,5 +1,6 @@
 import * as vsc from 'vscode';
 import * as path from 'path';
+import _ = require('lodash');
 import didYouMean = require('didyoumean2');
 
 import { Commands } from '../commands/commands';
@@ -26,15 +27,15 @@ export class CodeActionProvider implements vsc.CodeActionProvider {
 		const component = this.components.get(relativePath.relativeLowercase);
 		const results: vsc.Command[] = [];
 
-		const diag = ctx.diagnostics.find(d => d.range.isEqual(range));
+		const diag = ctx.diagnostics.find(d => d.range.contains(range));
 
 		if (diag) {
 			if (component) {
 				const { members, bindings } = this.getMembersAndBindings(component);
-				const allMembersNames = [
-					...members.map(m => m.name),
-					...bindings.map(b => b.name)
-				];
+				const allMembersNames = _.union(
+					members.map(m => m.name),
+					bindings.map(b => b.name)
+				);
 
 				const config = this.getConfig();
 				const options = this.buildDidYouMeanOptions(config);
@@ -42,7 +43,7 @@ export class CodeActionProvider implements vsc.CodeActionProvider {
 
 				if (matches.length > 0) {
 					const maxResults = config.get<number>('memberDiagnostics.didYouMean.maxResults', 2);
-					const rangeToReplace = range.with(range.start.translate(undefined, component.controllerAs.length + 1));
+					const rangeToReplace = diag.range.with(diag.range.start.translate(undefined, component.controllerAs.length + 1));
 
 					results.push(...matches.slice(0, maxResults).map(m => ({
 						command: Commands.MemberDiagnostic.DidYouMean,

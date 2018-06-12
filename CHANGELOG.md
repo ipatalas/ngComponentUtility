@@ -1,5 +1,10 @@
 # Change Log
 
+## 0.9.1 (Jun 11, 2018)
+
+* Fix for double 'Did you mean' suggestions when a suggestion is both a controller member and a binding
+* Minor fixes for code actions matching and replacement
+
 ## 0.9.0 (Jun 03, 2018)
 
 * Member diagnostics enhancements:

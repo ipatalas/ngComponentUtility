@@ -1,8 +1,8 @@
 import * as ts from 'typescript';
 import { IComponentBinding } from './component';
 import * as vsc from 'vscode';
-import * as decamelize from 'decamelize';
 import { TypescriptParser } from '../typescriptParser';
+import _ = require('lodash');
 
 export class ComponentBinding implements IComponentBinding {
 	public name: string;
@@ -15,7 +15,7 @@ export class ComponentBinding implements IComponentBinding {
 
 		this.name = node.name.getText(parser.sourceFile);
 		this.type = type;
-		this.htmlName = decamelize(name || this.name, '-');
+		this.htmlName = _.kebabCase(name || this.name);
 		this.pos = parser.sourceFile.getLineAndCharacterOfPosition(node.initializer.pos);
 	}
 

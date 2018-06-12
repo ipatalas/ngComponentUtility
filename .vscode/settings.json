@@ -12,5 +12,6 @@
 	"editor.detectIndentation": true,
 	"typescript.tsdk": "./node_modules/typescript/lib",
 	"tslint.configFile": "tslint.json",
-	"eslint.enable": false
+	"eslint.enable": false,
+	"typescript.preferences.quoteStyle": "single"
 }
