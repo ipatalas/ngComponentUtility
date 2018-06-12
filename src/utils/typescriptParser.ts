@@ -20,11 +20,15 @@ export class TypescriptParser {
 	constructor(public file: SourceFile) {
 		this.sourceFile = file.sourceFile;
 
-		this.classDefinitions = new Map<string, ts.ClassDeclaration>(
-			this.sourceFile.statements
-				.filter(s => isTsKind<ts.ClassDeclaration>(s, ts.SyntaxKind.ClassDeclaration) && s.name)
-				.map((c: ts.ClassDeclaration) => <[string, ts.ClassDeclaration]>[c.name.text, c])
-		);
+		this.sourceFile.statements.forEach(this.topLevelScan);
+	}
+
+	private topLevelScan = (node: ts.Node) => {
+		if (isTsKind<ts.ClassDeclaration>(node, ts.SyntaxKind.ClassDeclaration) && node.name) {
+			this.classDefinitions.set(node.name.text, node);
+		} else if (isTsKind<ts.VariableStatement>(node, ts.SyntaxKind.VariableStatement) && node.declarationList) {
+			node.declarationList.declarations.forEach((n) => this.addIdentifier(n.name as ts.Identifier));
+		}
 	}
 
 	public addIdentifier = (node: ts.Identifier) => {
@@ -95,7 +99,15 @@ export class TypescriptParser {
 				.filter(s => s.kind === ts.SyntaxKind.ExportDeclaration)
 				.find((s: ts.ExportDeclaration) => this.isExportDeclarationFor(s, identifier)) as ts.ExportDeclaration;
 
-			return result && result.moduleSpecifier;
+			if (result === undefined) {
+				// Check for a default export in the format of: 'export default expression;'
+				const defaultResult = this.sourceFile.statements
+					.find(s => s.kind === ts.SyntaxKind.ExportAssignment) as ts.ExportAssignment;
+
+				return defaultResult && defaultResult.expression;
+			} else {
+				return result && result.moduleSpecifier;
+			}
 		}
 	}
 
@@ -180,25 +192,55 @@ export class TypescriptParser {
 
 	public getExportedVariable = (name: string): ts.VariableDeclaration => {
 		let varDeclaration: ts.VariableDeclaration;
+		let defaultFallback: ts.VariableDeclaration;
 		let i = 0;
 
 		while (i < this.sourceFile.statements.length) {
 			const statement = this.sourceFile.statements[i];
 
 			if (isTsKind<ts.VariableStatement>(statement, ts.SyntaxKind.VariableStatement)) {
+				// export let name1, name2, …, nameN; // also var, const
+				// export let name1 = 1, name2 = 2, 3, nameN; // also var, const
+
 				varDeclaration = statement.declarationList.declarations.find(x => (x.name as ts.Identifier).text === name);
 				if (varDeclaration && statement.modifiers && statement.modifiers.some(modifier => modifier.kind === ts.SyntaxKind.ExportKeyword)) {
 					return varDeclaration;
 				}
+			} else if (isTsKind<ts.ExportDeclaration>(statement, ts.SyntaxKind.ExportDeclaration)) {
+				const exp = statement.exportClause.elements.find(x => (x.name as ts.Identifier).text === name);
+				if (exp && exp.propertyName && exp.name.text !== 'default') {
+					// export { variable1 as name1, variable2 as name2, nameN };
+					return this.getVariableDefinition(exp.propertyName);
+				} else if (exp && exp.propertyName && exp.name.text === 'default') {
+					// export { name1 as default };
+					defaultFallback = this.getVariableDefinition(exp.propertyName);
+				} else if (exp) {
+					// export { name1, name2, …, nameN };
+					return this.getVariableDefinition(exp.name);
+				}
 			} else if (isTsKind<ts.ExportAssignment>(statement, ts.SyntaxKind.ExportAssignment)) {
 				const exp = statement.expression;
-				if (isTsKind<ts.Identifier>(exp, ts.SyntaxKind.Identifier) && exp.text === name) {
-					return varDeclaration;
+				if (isTsKind<ts.Identifier>(exp, ts.SyntaxKind.Identifier)) {
+					// export default identifier;
+					if (exp.text === name) {
+						return this.getVariableDefinition(exp);
+					} else {
+						defaultFallback = this.getVariableDefinition(exp);
+					}
 				}
 			}
 
+			// TODO: The following valid ES Module declarations are not supported yet.  They require a full tree traversal.
+			// export default function () { } // also class, function*
+			// export default function name1() { } // also class, function*
+			// export function FunctionName() {}
+			// export class ClassName {}
+			// export default expression; // where expression is not an identifier
+
 			i++;
 		}
+
+		return defaultFallback;
 	}
 
 	public getExportedClass = (node: ts.Node, name: string): ts.ClassDeclaration => {

@@ -13,7 +13,7 @@ export class TemplateParser {
 			|| this.createFromComponentDef(config.get('component'), parser);
 	}
 
-	private createFromComponentDef = (node: ts.Expression, parser: TypescriptParser): IComponentTemplate => {
+	public createFromComponentDef = (node: ts.Expression, parser: TypescriptParser): IComponentTemplate => {
 		if (!node) {
 			return undefined;
 		}
