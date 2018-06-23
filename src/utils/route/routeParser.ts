@@ -54,8 +54,30 @@ export class RouteParser {
 		route.name = routeName.text;
 		route.pos = this.tsParser.sourceFile.getLineAndCharacterOfPosition(routeName.pos);
 		route.path = this.tsParser.path;
+		route.views = [];
 
 		route.template = this.templateParser.createTemplate(config, this.tsParser);
+
+		const viewsNode = config.get('views') as ts.ObjectLiteralExpression;
+
+		if (viewsNode !== undefined) {
+			const viewConfigNodes = new ConfigParser(viewsNode).entries();
+
+			for (const viewNode of viewConfigNodes) {
+				const viewRoute = new Route();
+				viewRoute.name = `${route.name}[${viewNode[0]}]`;
+				viewRoute.pos = this.tsParser.sourceFile.getLineAndCharacterOfPosition(viewNode[1].pos);
+				viewRoute.path = this.tsParser.path;
+
+				if (ts.isStringLiteral(viewNode[1])) {
+					viewRoute.template = this.templateParser.createFromComponentDef(viewNode[1], this.tsParser);
+				} else if (ts.isObjectLiteralExpression(viewNode[1])) {
+					viewRoute.template = this.templateParser.createTemplate(new ConfigParser(viewNode[1] as ts.ObjectLiteralExpression), this.tsParser);
+				}
+
+				route.views.push(viewRoute);
+			}
+		}
 
 		if (!this.controllerHelper.prepareController(route, config)) {
 			logVerbose(`Controller for route '${route.name}' not found (member completion and Go To Definition for this component will not work)`);

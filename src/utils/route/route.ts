@@ -10,6 +10,8 @@ export class Route implements IComponentBase {
 	public name: string;
 	public pos: ts.LineAndCharacter;
 
+	public views: IComponentBase[];
+
 	public path: string;
 	public template: IComponentTemplate;
 	public controller: Controller;

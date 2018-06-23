@@ -171,7 +171,11 @@ export class ComponentParser {
 		const bindingsObj = config.get('bindings');
 		if (bindingsObj) {
 			const bindingsProps = bindingsObj as ts.ObjectLiteralExpression;
-			component.bindings.push(...bindingsProps.properties.map(b => new ComponentBinding(b as ts.PropertyAssignment, parser)));
+			// AngularJS allows either `bindings: true` or `bindings: { ... }` syntax
+			// Ignore the former here because it does not contribute to autocompletion
+			if (bindingsProps.properties) {
+				component.bindings.push(...bindingsProps.properties.map(b => new ComponentBinding(b as ts.PropertyAssignment, parser)));
+			}
 		}
 
 		component.template = this.templateParser.createTemplate(config, parser);

@@ -15,7 +15,7 @@ import { MemberDefinitionProvider } from './providers/memberDefinitionProvider';
 import { MemberReferencesProvider } from './providers/memberReferencesProvider';
 import { CodeActionProvider } from './providers/codeActionsProvider';
 
-import { IComponentTemplate, Component } from './utils/component/component';
+import { IComponentTemplate, Component, IComponentBase } from './utils/component/component';
 import { ComponentsCache } from './utils/component/componentsCache';
 import { HtmlTemplateInfoCache } from './utils/htmlTemplate/htmlTemplateInfoCache';
 import { RoutesCache } from './utils/route/routesCache';
@@ -256,5 +256,14 @@ export class Extension {
 		});
 	}
 
-	private getTemplatesWithBody = (source: Array<{ template: IComponentTemplate }>) => source.filter(c => c.template && c.template.body).map(c => c.template);
+	private getTemplatesWithBody = (source: Array<{ template: IComponentTemplate, views?: IComponentBase[] }>) =>
+		_.flatMap(source, (c) => {
+			if (c.template && c.template.body) {
+				return c.template;
+			}
+
+			if (c.views && c.views.length > 0) {
+				return c.views.filter(v => v.template && v.template.body).map(v => v.template);
+			}
+		})
 }

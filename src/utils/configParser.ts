@@ -34,6 +34,8 @@ export class ConfigParser {
 
 	public get = (name: string) => this.properties[name];
 
+	public entries = () => Object.entries(this.properties);
+
 	private isClass(config: ts.ObjectLiteralExpression | ts.ClassDeclaration): config is ts.ClassDeclaration {
 		return (config as ts.ClassDeclaration).members !== undefined;
 	}
