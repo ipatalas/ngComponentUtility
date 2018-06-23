@@ -1,5 +1,4 @@
 import * as ts from 'typescript';
-import { isTsKind } from './typescriptParser';
 
 export class ConfigParser {
 	private properties: {[index: string]: ts.Expression};
@@ -15,8 +14,7 @@ export class ConfigParser {
 						member.body.statements
 							.filter(m => m.kind === ts.SyntaxKind.ExpressionStatement)
 							.forEach((m: ts.ExpressionStatement) => {
-								if (isTsKind<ts.BinaryExpression>(m.expression, ts.SyntaxKind.BinaryExpression) &&
-									isTsKind<ts.PropertyAccessExpression>(m.expression.left, ts.SyntaxKind.PropertyAccessExpression)) {
+								if (ts.isBinaryExpression(m.expression) && ts.isPropertyAccessExpression(m.expression.left)) {
 									acc[m.expression.left.name.getText()] = m.expression.right;
 								}
 							});

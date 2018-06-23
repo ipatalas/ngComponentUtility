@@ -2,7 +2,7 @@ import * as ts from 'typescript';
 import { IComponentBase } from './component/component';
 import { Controller } from './controller/controller';
 import { ConfigParser } from './configParser';
-import { TypescriptParser, isTsKind } from './typescriptParser';
+import { TypescriptParser } from './typescriptParser';
 import _ = require('lodash');
 import { ControllerParser } from './controller/controllerParser';
 
@@ -13,10 +13,10 @@ export class ControllerHelper {
 	public prepareController(component: IComponentBase, config: ConfigParser, importedFromParser?: TypescriptParser): boolean {
 		const controllerNode = config.get('controller');
 		if (controllerNode) {
-			if (isTsKind<ts.StringLiteral>(controllerNode, ts.SyntaxKind.StringLiteral)) {
+			if (ts.isStringLiteral(controllerNode)) {
 				component.controllerName = controllerNode.text;
 				component.controller = !_.isEmpty(this.controllers) && this.controllers.find(c => c.name === component.controllerName);
-			} else if (isTsKind<ts.Identifier>(controllerNode, ts.SyntaxKind.Identifier)) {
+			} else if (ts.isIdentifier(controllerNode)) {
 				component.controllerClassName = (controllerNode as ts.Identifier).text;
 
 				const classDeclaration = importedFromParser && importedFromParser.getClassDefinition(controllerNode);

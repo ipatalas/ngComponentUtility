@@ -8,10 +8,6 @@ export interface IDeclarationOrDefault {
 	defaultDeclaration?: ts.VariableDeclaration;
 }
 
-export function isTsKind<T extends ts.Node = ts.Node>(node: ts.Node, syntaxKind: ts.SyntaxKind): node is T {
-	return node.kind === syntaxKind;
-}
-
 export class TypescriptParser {
 	private readonly identifierNodes: Map<string, ts.Node[]> = new Map<string, ts.Node[]>();
 	private readonly classDefinitions: Map<string, ts.ClassDeclaration> = new Map<string, ts.ClassDeclaration>();
@@ -29,9 +25,9 @@ export class TypescriptParser {
 	}
 
 	private topLevelScan = (node: ts.Node) => {
-		if (isTsKind<ts.ClassDeclaration>(node, ts.SyntaxKind.ClassDeclaration) && node.name) {
+		if (ts.isClassDeclaration(node) && node.name) {
 			this.classDefinitions.set(node.name.text, node);
-		} else if (isTsKind<ts.VariableStatement>(node, ts.SyntaxKind.VariableStatement) && node.declarationList) {
+		} else if (ts.isVariableStatement(node) && node.declarationList) {
 			node.declarationList.declarations.forEach((n) => this.addIdentifier(n.name as ts.Identifier));
 		}
 	}
@@ -64,12 +60,12 @@ export class TypescriptParser {
 	}
 
 	public getStringValueFromNode = (node: ts.Expression): string => {
-		if (node.kind === ts.SyntaxKind.StringLiteral || node.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral) {
-			return (node as ts.LiteralExpression).text;
-		} else if (node.kind === ts.SyntaxKind.Identifier) {
-			return this.getStringVariableValue(node as ts.Identifier);
-		} else if (node.kind === ts.SyntaxKind.PropertyAccessExpression) {
-			const member = this.getPropertyAccessMember(node as ts.PropertyAccessExpression);
+		if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) {
+			return node.text;
+		} else if (ts.isIdentifier(node)) {
+			return this.getStringVariableValue(node);
+		} else if (ts.isPropertyAccessExpression(node)) {
+			const member = this.getPropertyAccessMember(node);
 			if (member) {
 				return this.getStringValueFromNode(member.initializer);
 			}
@@ -77,14 +73,14 @@ export class TypescriptParser {
 	}
 
 	public getObjectLiteralValueFromNode = (node: ts.Expression): ts.ObjectLiteralExpression => {
-		if (node.kind === ts.SyntaxKind.ObjectLiteralExpression) {
-			return node as ts.ObjectLiteralExpression;
-		} else if (node.kind === ts.SyntaxKind.AsExpression) {
-			return (node as ts.AsExpression).expression as ts.ObjectLiteralExpression;
-		} else if (node.kind === ts.SyntaxKind.Identifier) {
-			return this.getObjectLiteralVariableValue(node as ts.Identifier);
-		} else if (node.kind === ts.SyntaxKind.PropertyAccessExpression) {
-			const member = this.getPropertyAccessMember(node as ts.PropertyAccessExpression);
+		if (ts.isObjectLiteralExpression(node)) {
+			return node;
+		} else if (ts.isAsExpression(node)) {
+			return node.expression as ts.ObjectLiteralExpression;
+		} else if (ts.isIdentifier(node)) {
+			return this.getObjectLiteralVariableValue(node);
+		} else if (ts.isPropertyAccessExpression(node)) {
+			const member = this.getPropertyAccessMember(node);
 			if (member) {
 				return this.getObjectLiteralValueFromNode(member.initializer);
 			}
@@ -101,7 +97,7 @@ export class TypescriptParser {
 			return result && result.moduleSpecifier;
 		} else {
 			const result = this.sourceFile.statements
-				.filter(s => s.kind === ts.SyntaxKind.ExportDeclaration)
+				.filter(s => ts.isExportDeclaration(s))
 				.find((s: ts.ExportDeclaration) => this.isExportDeclarationFor(s, identifier)) as ts.ExportDeclaration;
 
 			if (result === undefined) {
@@ -221,7 +217,7 @@ export class TypescriptParser {
 
 	private getDeclarationFromExportAssignment = (statement: ts.ExportAssignment, name: string): IDeclarationOrDefault => {
 		const exp = statement.expression;
-		if (isTsKind<ts.Identifier>(exp, ts.SyntaxKind.Identifier)) {
+		if (ts.isIdentifier(exp)) {
 			// export default identifier;
 			if (exp.text === name) {
 				return { varDeclaration: this.getVariableDefinition(exp) };
@@ -239,11 +235,11 @@ export class TypescriptParser {
 		while (i < this.sourceFile.statements.length) {
 			const statement = this.sourceFile.statements[i];
 
-			if (isTsKind<ts.VariableStatement>(statement, ts.SyntaxKind.VariableStatement)) {
+			if (ts.isVariableStatement(statement)) {
 				result = this.getDeclarationFromVariableStatement(statement, name);
-			} else if (isTsKind<ts.ExportDeclaration>(statement, ts.SyntaxKind.ExportDeclaration)) {
+			} else if (ts.isExportDeclaration(statement)) {
 				result = this.getDeclarationFromExportDeclarationStatement(statement, name);
-			} else if (isTsKind<ts.ExportAssignment>(statement, ts.SyntaxKind.ExportAssignment)) {
+			} else if (ts.isExportAssignment(statement)) {
 				result = this.getDeclarationFromExportAssignment(statement, name);
 			}
 

@@ -4,7 +4,6 @@ import { Controller } from './controller';
 import { ClassMethod } from './method';
 import { ClassProperty } from './property';
 import _ = require('lodash');
-import { isTsKind } from '../typescriptParser';
 
 export class ControllerParser {
 	private results: Controller[] = [];
@@ -95,11 +94,11 @@ export class ControllerParser {
 	}
 
 	private createMember = (controller: Controller, member: ts.ClassElement) => {
-		if (isTsKind<ts.MethodDeclaration>(member, ts.SyntaxKind.MethodDeclaration)) {
+		if (ts.isMethodDeclaration(member)) {
 			return ClassMethod.fromNode(controller, member, this.file.sourceFile);
-		} else if (isTsKind<ts.GetAccessorDeclaration>(member, ts.SyntaxKind.GetAccessor)) {
+		} else if (ts.isGetAccessorDeclaration(member)) {
 			return ClassProperty.fromProperty(controller, member, this.file.sourceFile);
-		} else if (isTsKind<ts.PropertyDeclaration>(member, ts.SyntaxKind.PropertyDeclaration)) {
+		} else if (ts.isPropertyDeclaration(member)) {
 			if (member.initializer && member.initializer.kind === ts.SyntaxKind.ArrowFunction) {
 				return ClassMethod.fromNode(controller, member, this.file.sourceFile);
 			} else {
@@ -125,7 +124,7 @@ export class ControllerParser {
 			if (extendsClause && extendsClause.types.length === 1) {
 				const typeExpression = extendsClause.types[0].expression;
 
-				if (isTsKind<ts.PropertyAccessExpression>(typeExpression, ts.SyntaxKind.PropertyAccessExpression)) {
+				if (ts.isPropertyAccessExpression(typeExpression)) {
 					return typeExpression.name.text;
 				}
 
@@ -135,7 +134,7 @@ export class ControllerParser {
 	}
 
 	private isControllerClass(node: ts.Node): node is ts.ClassDeclaration {
-		return isTsKind<ts.ClassDeclaration>(node, ts.SyntaxKind.ClassDeclaration) && !this.implementsComponentOptions(node);
+		return ts.isClassDeclaration(node) && !this.implementsComponentOptions(node);
 	}
 
 	private implementsComponentOptions(classDeclaration: ts.ClassDeclaration) {
