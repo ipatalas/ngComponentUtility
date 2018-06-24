@@ -1,3 +1,5 @@
+import angular from 'angular';
+
 /* tslint:disable */
 export class TestController {
 	private privateField: string;

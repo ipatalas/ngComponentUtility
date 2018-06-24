@@ -1,3 +1,4 @@
+import angular from 'angular';
 
 export class ExampleComponentClass implements ng.IComponentOptions {
 	public controller = 'ExampleCtrl';

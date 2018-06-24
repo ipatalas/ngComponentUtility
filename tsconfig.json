@@ -4,7 +4,8 @@
 		"lib": [
 			"es6",
 			"es2015.promise",
-			"es2017.object"
+			"es2017.object",
+			"dom"
 		],
 		"module": "commonjs",
 		"moduleResolution": "node",

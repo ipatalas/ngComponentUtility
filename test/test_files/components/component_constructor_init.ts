@@ -1,8 +1,10 @@
+// @ts-ignore
 import ExampleController from './exported_controller';
+import angular from 'angular';
 
 const template = require('./example-template.html');
 
-export class ExampleComponent {
+class ExampleComponent {
 	public controller: any;
 	public bindings: any;
 	public template: string;
