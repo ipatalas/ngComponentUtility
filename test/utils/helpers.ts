@@ -11,6 +11,7 @@ const COMPONENTS_DIR = 'components';
 const CONTORLLERS_DIR = 'controllers';
 const ROUTES_DIR = 'routes';
 const TEMPLATES_DIR = 'templates';
+const DIRECTIVES_DIR = 'directives';
 
 const TEST_FILES_ROOT = _path.join(__dirname, '../../../test/test_files');
 
@@ -20,6 +21,7 @@ export const getTemplatesTestFilePath = (filename: string) => getTestFilePath(TE
 export const getTemplatesTestDirPath = () => _path.join(TEST_FILES_ROOT, TEMPLATES_DIR);
 
 export const getControllerSourceFile = (name: string) => getSourceFile(CONTORLLERS_DIR, name);
+export const getDirectiveSourceFile = (name: string) => getSourceFile(DIRECTIVES_DIR, name);
 export const getComponentSourceFile = (name: string) => getSourceFile(COMPONENTS_DIR, name);
 export const getRouteSourceFile = (name: string) => getSourceFile(ROUTES_DIR, name);
 
