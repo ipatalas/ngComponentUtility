@@ -8,6 +8,12 @@ export interface IDeclarationOrDefault {
 	defaultDeclaration?: ts.VariableDeclaration;
 }
 
+export function isAngularModule(exp: ts.Expression) {
+	return ts.isPropertyAccessExpression(exp) &&
+		ts.isIdentifier(exp.expression) && ts.isIdentifier(exp.name) &&
+		exp.expression.text === 'angular' && exp.name.text === 'module';
+}
+
 export class TypescriptParser {
 	private readonly identifierNodes: Map<string, ts.Node[]> = new Map<string, ts.Node[]>();
 	private readonly classDefinitions: Map<string, ts.ClassDeclaration> = new Map<string, ts.ClassDeclaration>();

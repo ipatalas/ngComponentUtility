@@ -1,9 +1,10 @@
 import * as ts from 'typescript';
+import _ = require('lodash');
 import { SourceFile } from '../sourceFile';
 import { Controller } from './controller';
 import { ClassMethod } from './method';
 import { ClassProperty } from './property';
-import _ = require('lodash');
+import { isAngularModule } from '../typescriptParser';
 
 export class ControllerParser {
 	private results: Controller[] = [];
@@ -34,7 +35,7 @@ export class ControllerParser {
 		} else if (node.kind === ts.SyntaxKind.CallExpression) {
 			const call = node as ts.CallExpression;
 
-			if (this.isAngularModule(call.expression)) {
+			if (isAngularModule(call.expression)) {
 				const controllerCall = this.findControllerRegistration(call.parent);
 				if (controllerCall) {
 					const controllerName = controllerCall.arguments[0] as ts.StringLiteral;
@@ -83,14 +84,6 @@ export class ControllerParser {
 		if (node.parent) {
 			return this.findControllerRegistration(node.parent);
 		}
-	}
-
-	private isAngularModule = (expression: ts.Expression) => {
-		const pae = expression as ts.PropertyAccessExpression;
-
-		return expression.kind === ts.SyntaxKind.PropertyAccessExpression &&
-			(pae.expression.kind === ts.SyntaxKind.Identifier && pae.name.kind === ts.SyntaxKind.Identifier) &&
-			(pae.expression as ts.Identifier).text === 'angular' && (pae.name as ts.Identifier).text === 'module';
 	}
 
 	private createMember = (controller: Controller, member: ts.ClassElement) => {
