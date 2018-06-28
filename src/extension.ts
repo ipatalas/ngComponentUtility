@@ -265,5 +265,5 @@ export class Extension {
 			if (c.views && c.views.length > 0) {
 				return c.views.filter(v => v.template && v.template.body).map(v => v.template);
 			}
-		})
+		}).filter(Boolean) // skip undefined items
 }
