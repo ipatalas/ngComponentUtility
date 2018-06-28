@@ -17,21 +17,22 @@ export class MemberReferencesProvider implements vsc.ReferenceProvider {
 
 	// tslint:disable-next-line:max-line-length
 	public async provideReferences(document: vsc.TextDocument, position: vsc.Position, _context: vsc.ReferenceContext, _token: vsc.CancellationToken): Promise<vsc.Location[]> {
-		const src = await SourceFile.parse(document.fileName);
+		const src = await SourceFile.parseFromString(document.getText(), document.fileName);
 		const index = src.sourceFile.getPositionOfLineAndCharacter(position.line, position.character);
 
 		const tsParser = new TypescriptParser(src);
 		const node = tsParser.findNode(index);
 
 		if (node && ts.isIdentifier(node)) {
-			if (ts.isPropertyDeclaration(node.parent) || ts.isMethodDeclaration(node.parent)) {
+			const fieldName = this.getAccessedFieldName(node);
+			if (fieldName) {
 				const classDeclaration = tsParser.closestParent<ts.ClassDeclaration>(node, ts.SyntaxKind.ClassDeclaration);
 				if (classDeclaration) {
 					const components = this.components
 						.filter(c => c.controller && c.controller.isInstanceOf(classDeclaration.name.text));
 
 					return Promise
-						.all(components.map(c => this.getLocations(c, node)))
+						.all(components.map(c => this.getLocations(c, fieldName)))
 						.then(x => _.flatten(x));
 				}
 			}
@@ -40,8 +41,26 @@ export class MemberReferencesProvider implements vsc.ReferenceProvider {
 		return Promise.resolve([]);
 	}
 
-	private getLocations = async (component: IComponentBase, identifier: ts.Identifier): Promise<vsc.Location[]> => {
-		const searchString = `${component.controllerAs}.${identifier.text}`;
+	private getAccessedFieldName = (node: ts.Identifier): string => {
+		if (ts.isPropertyDeclaration(node.parent) || ts.isMethodDeclaration(node.parent)) {
+			// field/method declaration
+			return node.text;
+		} else if (ts.isPropertyAccessExpression(node.parent)) {
+			// handles `this.fieldName.anotherOne` expression
+			// works for method calls as well
+			let exp = node.parent.expression;
+			while (ts.isPropertyAccessExpression(exp)) {
+				exp = exp.expression;
+			}
+
+			if (exp.kind === ts.SyntaxKind.ThisKeyword) {
+				return node.parent.getText().substr('this.'.length);
+			}
+		}
+	}
+
+	private getLocations = async (component: IComponentBase, fieldName: string): Promise<vsc.Location[]> => {
+		const searchString = `${component.controllerAs}.${fieldName}`;
 		const template = component.template;
 
 		return new Promise<vsc.Location[]>((resolve, reject) => {
