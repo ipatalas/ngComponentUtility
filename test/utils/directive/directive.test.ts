@@ -35,4 +35,31 @@ describe('Given Directive class when calling parse()', () => {
 		should(results).be.lengthOf(1);
 		should(results[0].restrict).be.equal('EA');
 	});
+
+	[
+		'directive.register.arrowFunc.ts',
+		'directive.register.blockArrowFunc.ts',
+		'directive.register.functionExpression.ts'
+	].forEach(filename => {
+		it(`with directive initialized (${filename}) then the directive is parsed`, async () => {
+			const sourceFile = getDirectiveSourceFile(filename);
+
+			const results = await Directive.parse(sourceFile);
+
+			should(results).be.lengthOf(1);
+			should(results[0].restrict).be.equal('EA');
+		});
+	});
+
+	it('with multiple directives then all directives are properly parsed', async () => {
+		const sourceFile = getDirectiveSourceFile('directive.multiple.ts');
+
+		const results = await Directive.parse(sourceFile);
+
+		should(results).be.lengthOf(3);
+		for (const i of [1, 2, 3]) {
+			should(results[i - 1].name).be.equal('classDirective' + i);
+			should(results[i - 1].className).be.equal('ClassDirective' + i);
+		}
+	});
 });
