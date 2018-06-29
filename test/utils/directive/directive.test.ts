@@ -4,7 +4,7 @@ import should = require('should');
 
 describe('Given Directive class when calling parse()', () => {
 	it('with class based directive then the directive is properly parsed', async () => {
-		const sourceFile = getDirectiveSourceFile('class_property_init_directive.ts');
+		const sourceFile = getDirectiveSourceFile('directive.init.class_property.ts');
 
 		const results = await Directive.parse(sourceFile);
 
@@ -16,7 +16,7 @@ describe('Given Directive class when calling parse()', () => {
 	});
 
 	it('with constructor initialized class based directive then the directive is properly parsed', async () => {
-		const sourceFile = getDirectiveSourceFile('class_ctor_init_directive.ts');
+		const sourceFile = getDirectiveSourceFile('directive.init.class_ctor.ts');
 
 		const results = await Directive.parse(sourceFile);
 
@@ -28,7 +28,7 @@ describe('Given Directive class when calling parse()', () => {
 	});
 
 	it(`with directive without explicit 'restrict' then the it is set to default 'EA'`, async () => {
-		const sourceFile = getDirectiveSourceFile('without_restrict_directive.ts');
+		const sourceFile = getDirectiveSourceFile('directive.default_restrict.ts');
 
 		const results = await Directive.parse(sourceFile);
 
