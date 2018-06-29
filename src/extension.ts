@@ -35,6 +35,9 @@ import { ConfigurationFile } from './configurationFile';
 import { DidYouMeanCommand } from './commands/didYouMean';
 import { RelativePath } from './utils/htmlTemplate/relativePath';
 import { HtmlTemplateInfoResults } from './utils/htmlTemplate/htmlTemplateInfoResult';
+import { DirectiveCache } from './utils/directive/directiveCache';
+import { Directive } from './utils/directive/directive';
+import { DirectiveDefinitionProvider } from './providers/directiveDefinitionProvider';
 
 const HTML_DOCUMENT_SELECTOR = <vsc.DocumentFilter>{ language: 'html', scheme: 'file' };
 const TS_DOCUMENT_SELECTOR = <vsc.DocumentFilter>{ language: 'typescript', scheme: 'file' };
@@ -48,6 +51,7 @@ export class Extension {
 	private memberCompletionProvider = new MemberCompletionProvider(getConfig);
 	private bindingProvider = new BindingProvider();
 	private definitionProvider = new ComponentDefinitionProvider(htmlDocumentHelper, getConfig);
+	private directiveDefinitionProvider = new DirectiveDefinitionProvider(htmlDocumentHelper);
 	private referencesProvider = new ReferencesProvider(htmlDocumentHelper);
 	private memberReferencesProvider = new MemberReferencesProvider();
 	private codeActionProvider = new CodeActionProvider(getConfig);
@@ -61,11 +65,13 @@ export class Extension {
 	private componentsCache = new ComponentsCache();
 	private htmlTemplateInfoCache = new HtmlTemplateInfoCache();
 	private routesCache = new RoutesCache();
+	private directivesCache = new DirectiveCache();
 	private memberAccessDiagnostics = new MemberAccessDiagnostics(getConfiguration, this.configurationFile);
 
 	private latestComponents: Component[];
 	private latestHtmlTemplateInfoResults: IHtmlTemplateInfoResults;
 	private latestRoutes: Route[];
+	private latestDirectives: Directive[];
 	private diagnosticCollection: vsc.DiagnosticCollection;
 
 	public activate = async (context: vsc.ExtensionContext) => {
@@ -80,8 +86,8 @@ export class Extension {
 
 		this.diagnosticCollection = vsc.languages.createDiagnosticCollection('member-diagnostics');
 
-		context.subscriptions.push(this.configurationFile);
-		context.subscriptions.push(this.configListener, this.componentsCache, this.htmlTemplateInfoCache, this.routesCache);
+		context.subscriptions.push(this.configurationFile, this.configListener);
+		context.subscriptions.push(this.componentsCache, this.htmlTemplateInfoCache, this.routesCache, this.directivesCache);
 		context.subscriptions.push(vsc.commands.registerCommand(Commands.MarkAsAngularProject, alreadyAngularProject));
 
 		try {
@@ -90,6 +96,7 @@ export class Extension {
 
 			this.componentsCache.on(events.componentsChanged, this.componentsChanged);
 			this.routesCache.on(events.routesChanged, this.routesChanged);
+			this.directivesCache.on(events.directivesChanged, this.directivesChanged);
 			this.htmlTemplateInfoCache.on(events.htmlReferencesChanged, this.htmlReferencesChanged);
 		} catch (err) {
 			logError(err);
@@ -112,6 +119,7 @@ export class Extension {
 			vsc.languages.registerCompletionItemProvider(HTML_DOCUMENT_SELECTOR, this.bindingProvider, ','),
 			vsc.languages.registerCompletionItemProvider(HTML_DOCUMENT_SELECTOR, this.memberCompletionProvider, '.'),
 			vsc.languages.registerDefinitionProvider(HTML_DOCUMENT_SELECTOR, this.definitionProvider),
+			vsc.languages.registerDefinitionProvider(HTML_DOCUMENT_SELECTOR, this.directiveDefinitionProvider),
 			vsc.languages.registerDefinitionProvider(HTML_DOCUMENT_SELECTOR, this.memberDefinitionProvider),
 			vsc.languages.registerReferenceProvider([HTML_DOCUMENT_SELECTOR, TS_DOCUMENT_SELECTOR], this.referencesProvider),
 			vsc.languages.registerReferenceProvider(TS_DOCUMENT_SELECTOR, this.memberReferencesProvider),
@@ -158,7 +166,9 @@ export class Extension {
 	}
 
 	private registerConfigListeners() {
-		this.configListener.registerListener(['controllerGlobs', 'componentGlobs', 'htmlGlobs'], () => vsc.commands.executeCommand(Commands.RefreshComponents));
+		const globs = ['controllerGlobs', 'componentGlobs', 'htmlGlobs', 'directiveGlobs'];
+
+		this.configListener.registerListener(globs, () => vsc.commands.executeCommand(Commands.RefreshComponents));
 		this.configListener.registerListener(['memberDiagnostics.html'], this.refreshMemberDiagnosticsCommand);
 
 		this.configurationFile.on(events.configurationFile.ignoredMemberDiagnosticChanged, () => vsc.commands.executeCommand(Commands.RefreshMemberDiagnostics));
@@ -166,15 +176,17 @@ export class Extension {
 
 	private getComponents = () => this.latestComponents;
 
-	private componentsChanged = (components: Component[]) => this.refreshAllProviders(components);
-	private routesChanged = (routes: Route[]) => this.refreshAllProviders(undefined, routes);
-	private htmlReferencesChanged = (templateInfoResults: IHtmlTemplateInfoResults) => this.refreshAllProviders(undefined, undefined, templateInfoResults);
+	private componentsChanged = (components: Component[]) => this.refreshAllProviders({ components });
+	private routesChanged = (routes: Route[]) => this.refreshAllProviders({ routes });
+	private directivesChanged = (directives: Directive[]) => this.refreshAllProviders({ directives });
+	private htmlReferencesChanged = (templateInfoResults: IHtmlTemplateInfoResults) => this.refreshAllProviders({ templateInfoResults });
 
-	private refreshAllProviders = (components?: Component[], routes?: Route[], templateInfoResults?: IHtmlTemplateInfoResults) => {
+	private refreshAllProviders = (providers: { components?: Component[], routes?: Route[], templateInfoResults?: IHtmlTemplateInfoResults, directives?: Directive[] }) => {
 		try {
-			this.latestComponents = components || this.latestComponents;
-			this.latestRoutes = routes || this.latestRoutes;
-			this.latestHtmlTemplateInfoResults = templateInfoResults || this.latestHtmlTemplateInfoResults;
+			this.latestComponents = providers.components || this.latestComponents;
+			this.latestRoutes = providers.routes || this.latestRoutes;
+			this.latestDirectives = providers.directives || this.latestDirectives;
+			this.latestHtmlTemplateInfoResults = providers.templateInfoResults || this.latestHtmlTemplateInfoResults;
 
 			const componentsAndRoutes = [...this.latestComponents, ...this.latestRoutes];
 			const inlineTemplates: IComponentTemplate[] = this.getTemplatesWithBody(componentsAndRoutes);
@@ -189,6 +201,7 @@ export class Extension {
 			this.codeActionProvider.loadComponents(componentsAndRoutes);
 			this.bindingProvider.loadComponents(this.latestComponents);
 			this.definitionProvider.loadComponents(this.latestComponents);
+			this.directiveDefinitionProvider.loadDirectives(this.latestDirectives);
 			this.memberDefinitionProvider.loadComponents(componentsAndRoutes, this.latestHtmlTemplateInfoResults.templateInfo);
 
 			this.refreshMemberAccessDiagnostics(this.latestHtmlTemplateInfoResults.templateInfo);
@@ -230,12 +243,18 @@ export class Extension {
 			try {
 				const { components, controllers } = await this.componentsCache.refresh();
 				this.latestRoutes = await this.routesCache.refresh(controllers);
+				this.latestDirectives = await this.directivesCache.refresh();
 				this.latestHtmlTemplateInfoResults = await this.htmlTemplateInfoCache.refresh([...components, ...this.latestRoutes]);
 				this.latestComponents = components;
 
 				let postprocessingTime = process.hrtime();
 
-				this.refreshAllProviders(this.latestComponents, this.latestRoutes, this.latestHtmlTemplateInfoResults);
+				this.refreshAllProviders({
+					components: this.latestComponents,
+					routes: this.latestRoutes,
+					templateInfoResults: this.latestHtmlTemplateInfoResults,
+					directives: this.latestDirectives
+				});
 
 				postprocessingTime = process.hrtime(postprocessingTime);
 				log(`Postprocessing time: ${prettyHrtime(postprocessingTime)}`);

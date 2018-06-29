@@ -112,6 +112,16 @@
 					],
 					"description": "glob string used to search for angular-ui-router files for references of the components"
 				},
+				"ngComponents.directiveGlobs": {
+					"type": [
+						"array",
+						"string"
+					],
+					"default": [
+						"**/*.directive.ts"
+					],
+					"description": "glob string used to search for directive files"
+				},
 				"ngComponents.goToDefinition": {
 					"type": [
 						"array",

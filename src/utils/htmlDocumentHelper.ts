@@ -91,4 +91,22 @@ export class HtmlDocumentHelper {
 		return beforeCursor.opening && (!beforeCursor.closing || beforeCursor.closing.isBefore(beforeCursor.opening))
 			&& afterCursor.closing && (!afterCursor.opening || afterCursor.closing.isBefore(afterCursor.opening));
 	}
+
+	public parseAtPosition = (document: vsc.TextDocument, position: vsc.Position) => {
+		const bracketsBeforeCursor = this.findTagBrackets(document, position, 'backward');
+		const bracketsAfterCursor = this.findTagBrackets(document, position, 'forward');
+
+		if (this.isInsideAClosedTag(bracketsBeforeCursor, bracketsAfterCursor)) {
+			// get everything from starting < tag till ending >
+			const tagTextRange = new vsc.Range(bracketsBeforeCursor.opening, bracketsAfterCursor.closing);
+			const text = document.getText(tagTextRange);
+
+			const wordPos = document.getWordRangeAtPosition(position);
+			const word = document.getText(wordPos);
+
+			const { tag } = this.parseTag(text);
+
+			return { word, tag };
+		}
+	}
 }

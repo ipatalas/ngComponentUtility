@@ -14,27 +14,17 @@ export class ComponentDefinitionProvider implements vsc.DefinitionProvider {
 	}
 
 	public provideDefinition(document: vsc.TextDocument, position: vsc.Position, _token: vsc.CancellationToken): vsc.Definition {
-		const bracketsBeforeCursor = this.htmlDocumentHelper.findTagBrackets(document, position, 'backward');
-		const bracketsAfterCursor = this.htmlDocumentHelper.findTagBrackets(document, position, 'forward');
+		const match = this.htmlDocumentHelper.parseAtPosition(document, position);
 
-		if (this.htmlDocumentHelper.isInsideAClosedTag(bracketsBeforeCursor, bracketsAfterCursor)) {
-			// get everything from starting < tag till ending >
-			const tagTextRange = new vsc.Range(bracketsBeforeCursor.opening, bracketsAfterCursor.closing);
-			const text = document.getText(tagTextRange);
-
-			const wordPos = document.getWordRangeAtPosition(position);
-			const word = document.getText(wordPos);
-
-			const { tag } = this.htmlDocumentHelper.parseTag(text);
-
-			const component = this.components.find(c => c.htmlName === tag);
+		if (match) {
+			const component = this.components.find(c => c.htmlName === match.tag);
 			if (component) {
-				const binding = component.bindings.find(b => b.htmlName === word);
+				const binding = component.bindings.find(b => b.htmlName === match.word);
 				if (binding) {
 					return getLocation({ path: component.path, pos: binding.pos });
 				}
 
-				if (word === component.htmlName) {
+				if (match.word === component.htmlName) {
 					const config = this.getConfig();
 					const componentParts = config.get('goToDefinition') as string[] || [];
 
