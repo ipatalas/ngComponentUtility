@@ -15,7 +15,7 @@ export class DirectiveParser {
 	public parse = async () => {
 		this.parseChildren(this.tsParser.file.sourceFile);
 
-		return this.results;
+		return this.results.filter(d => d.name);
 	}
 
 	private parseChildren = (node: ts.Node) => {
@@ -27,14 +27,16 @@ export class DirectiveParser {
 			if (isAngularModule(node.expression)) {
 				const directiveCall = this.findDirectiveRegistration(node.parent);
 
-				const name = directiveCall.arguments[0] as ts.StringLiteral;
-				const className = this.getClassName(directiveCall.arguments[1]);
+				if (directiveCall) {
+					const name = directiveCall.arguments[0] as ts.StringLiteral;
+					const className = this.getClassName(directiveCall.arguments[1]);
 
-				if (className) {
-					const directive = this.results.find(c => c.className === className);
-					if (directive) {
-						directive.name = name.text;
-						directive.htmlName = _.kebabCase(name.text);
+					if (className) {
+						const directive = this.results.find(c => c.className === className);
+						if (directive) {
+							directive.name = name.text;
+							directive.htmlName = _.kebabCase(name.text);
+						}
 					}
 				}
 			} else {
@@ -50,10 +52,32 @@ export class DirectiveParser {
 			&& ts.isIdentifier(node.expression.expression)) {
 			// .directive('directive', DirectiveClass.factoryMethod())
 			return node.expression.expression.text;
+		} else if (ts.isArrowFunction(node)) {
+			// angular.module('app').directive('isolateForm', () => new IsolateFormDirective());
+			// angular.module('app').directive('isolateForm', () => { return new IsolateFormDirective() });
+			const className = this.getClassNameFromNewExpression(node.body) || this.getClassNameFromBlock(node.body);
+			if (className) {
+				return className;
+			}
+		} else if (ts.isFunctionExpression(node)) {
+			// angular.module('app').directive('isolateForm', function() {return new IsolateFormDirective()));
+			return this.getClassNameFromBlock(node.body);
 		}
+	}
 
-		// angular.module('app').directive('isolateForm', () => new IsolateFormDirective());
-		// angular.module('app').directive('isolateForm', function() {return new IsolateFormDirective()));
+	private getClassNameFromBlock = (node: ts.Node) => {
+		if (ts.isBlock(node)) {
+			const returnStatement = node.statements.find(s => ts.isReturnStatement(s)) as ts.ReturnStatement;
+			if (returnStatement) {
+				return this.getClassNameFromNewExpression(returnStatement.expression);
+			}
+		}
+	}
+
+	private getClassNameFromNewExpression = (exp: ts.Node) => {
+		if (ts.isNewExpression(exp) && ts.isIdentifier(exp.expression)) {
+			return exp.expression.text;
+		}
 	}
 
 	private parseClass(node: ts.ClassDeclaration) {
