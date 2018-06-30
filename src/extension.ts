@@ -39,6 +39,7 @@ import { DirectiveCache } from './utils/directive/directiveCache';
 import { Directive } from './utils/directive/directive';
 import { DirectiveDefinitionProvider } from './providers/directiveDefinitionProvider';
 import { DirectiveReferencesProvider } from './providers/directiveReferencesProvider';
+import { FindUnusedDirectivesCommand } from './commands/findUnusedDirectives';
 
 const HTML_DOCUMENT_SELECTOR = <vsc.DocumentFilter>{ language: 'html', scheme: 'file' };
 const TS_DOCUMENT_SELECTOR = <vsc.DocumentFilter>{ language: 'typescript', scheme: 'file' };
@@ -59,6 +60,7 @@ export class Extension {
 	private codeActionProvider = new CodeActionProvider(getConfig);
 	private memberDefinitionProvider = new MemberDefinitionProvider();
 	private findUnusedAngularComponentsCommand = new FindUnusedComponentsCommand();
+	private findUnusedDirectivesCommand = new FindUnusedDirectivesCommand();
 
 	private configurationFile = new ConfigurationFile();
 	private statusBar = vsc.window.createStatusBarItem(vsc.StatusBarAlignment.Left);
@@ -117,6 +119,8 @@ export class Extension {
 			vsc.commands.registerCommand(Commands.RefreshMemberDiagnostics, this.refreshMemberDiagnosticsCommand),
 			vsc.commands.registerCommand(Commands.FindUnusedComponents,
 				() => this.findUnusedAngularComponentsCommand.execute(this.latestHtmlTemplateInfoResults.htmlReferences, this.latestComponents)),
+			vsc.commands.registerCommand(Commands.FindUnusedDirectives,
+				() => this.findUnusedDirectivesCommand.execute(this.latestHtmlTemplateInfoResults.directiveReferences, this.latestDirectives)),
 			vsc.languages.registerCompletionItemProvider(HTML_DOCUMENT_SELECTOR, this.completionProvider, '<'),
 			vsc.languages.registerCompletionItemProvider(HTML_DOCUMENT_SELECTOR, this.bindingProvider, ','),
 			vsc.languages.registerCompletionItemProvider(HTML_DOCUMENT_SELECTOR, this.memberCompletionProvider, '.'),

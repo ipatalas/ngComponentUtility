@@ -52,6 +52,11 @@
 				"category": "ngComponents"
 			},
 			{
+				"command": "ngComponents.findUnusedDirectives",
+				"title": "Find unused Angular directives",
+				"category": "ngComponents"
+			},
+			{
 				"command": "ngComponents.markAsAngularProject",
 				"title": "Force enable ngComponents utility on this workspace",
 				"category": "ngComponents"

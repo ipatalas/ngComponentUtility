@@ -2,6 +2,7 @@
 import { IHtmlReferences } from '../utils/htmlTemplate/types';
 import { Component } from '../utils/component/component';
 import * as vsc from 'vscode';
+import { logError } from '../utils/logging';
 
 export class FindUnusedComponentsCommand {
 	public execute = (htmlReferences: IHtmlReferences, components: Component[]) => {
@@ -26,8 +27,7 @@ export class FindUnusedComponentsCommand {
 					editor.selection = new vsc.Selection(line, character, line, character);
 				});
 			}, (err) => {
-				// tslint:disable-next-line:no-console
-				console.error(err);
+				logError(err);
 			});
 		});
 	}
