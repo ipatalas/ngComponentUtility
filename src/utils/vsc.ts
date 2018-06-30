@@ -4,6 +4,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { isValidAngularProject } from './angular';
 import { logVerbose, log, logWarning, logError } from './logging';
+import { IHtmlReference } from './htmlTemplate/types';
 
 const workspaceRoot = vsc.workspace.workspaceFolders && vsc.workspace.workspaceFolders[0].uri.fsPath;
 
@@ -21,6 +22,16 @@ export function mockRoot(rootPath: string) {
 
 export function getLocation(location: { path: string, pos: ts.LineAndCharacter }) {
 	return new vsc.Location(vsc.Uri.file(location.path), new vsc.Position(location.pos.line, location.pos.character));
+}
+
+export function convertHtmlReferencesToLocations(references: IHtmlReference[]): vsc.Location[] {
+	return references.map(ref => getLocation({
+		path: path.join(angularRoot, ref.relativeHtmlPath),
+		pos: {
+			line: ref.line,
+			character: ref.character
+		}
+	}));
 }
 
 export function getConfiguration() {

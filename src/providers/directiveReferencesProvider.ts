@@ -1,7 +1,6 @@
-import * as path from 'path';
 import * as vsc from 'vscode';
-import { IHtmlReferences, IHtmlReference } from '../utils/htmlTemplate/types';
-import { getLocation, angularRoot } from '../utils/vsc';
+import { IHtmlReferences } from '../utils/htmlTemplate/types';
+import { convertHtmlReferencesToLocations } from '../utils/vsc';
 import { Directive } from '../utils/directive/directive';
 
 export class DirectiveReferencesProvider implements vsc.ReferenceProvider {
@@ -21,20 +20,10 @@ export class DirectiveReferencesProvider implements vsc.ReferenceProvider {
 		if (directive) {
 			const references = this.htmlReferences[directive.htmlName];
 			if (references) {
-				return this.convertReferencesToLocations(references);
+				return convertHtmlReferencesToLocations(references);
 			}
 		}
 
 		return [];
-	}
-
-	private convertReferencesToLocations = (references: IHtmlReference[]): vsc.Location[] => {
-		return references.map(ref => getLocation({
-			path: path.join(angularRoot, ref.relativeHtmlPath),
-			pos: {
-				line: ref.line,
-				character: ref.character
-			}
-		}));
 	}
 }

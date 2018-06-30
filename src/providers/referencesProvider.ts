@@ -1,8 +1,7 @@
-import * as path from 'path';
 import * as vsc from 'vscode';
 import { HtmlDocumentHelper } from '../utils/htmlDocumentHelper';
-import { IHtmlReferences, IHtmlReference } from '../utils/htmlTemplate/types';
-import { getLocation, angularRoot } from '../utils/vsc';
+import { IHtmlReferences } from '../utils/htmlTemplate/types';
+import { convertHtmlReferencesToLocations } from '../utils/vsc';
 import { Component } from '../utils/component/component';
 type DocumentHandlerDelegate = (document: vsc.TextDocument, position: vsc.Position) => vsc.Location[];
 
@@ -42,7 +41,7 @@ export class ReferencesProvider implements vsc.ReferenceProvider {
 		if (component) {
 			const references = this.htmlReferences[component.htmlName];
 			if (references) {
-				return this.convertReferencesToLocations(references);
+				return convertHtmlReferencesToLocations(references);
 			}
 		}
 
@@ -59,20 +58,10 @@ export class ReferencesProvider implements vsc.ReferenceProvider {
 
 			const componentReferences = this.htmlReferences[componentName];
 			if (componentReferences) {
-				return this.convertReferencesToLocations(componentReferences);
+				return convertHtmlReferencesToLocations(componentReferences);
 			}
 		}
 
 		return [];
-	}
-
-	private convertReferencesToLocations = (references: IHtmlReference[]): vsc.Location[] => {
-		return references.map(ref => getLocation({
-			path: path.join(angularRoot, ref.relativeHtmlPath),
-			pos: {
-				line: ref.line,
-				character: ref.character
-			}
-		}));
 	}
 }
