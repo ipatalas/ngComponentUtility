@@ -83,6 +83,8 @@ export class TypescriptParser {
 			return node;
 		} else if (ts.isAsExpression(node)) {
 			return node.expression as ts.ObjectLiteralExpression;
+		} else if (ts.isTypeAssertion(node)) {
+			return node.expression as ts.ObjectLiteralExpression;
 		} else if (ts.isIdentifier(node)) {
 			return this.getObjectLiteralVariableValue(node);
 		} else if (ts.isPropertyAccessExpression(node)) {

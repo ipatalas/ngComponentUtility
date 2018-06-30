@@ -58,10 +58,10 @@ export class RouteParser {
 
 		route.template = this.templateParser.createTemplate(config, this.tsParser);
 
-		const viewsNode = config.get('views') as ts.ObjectLiteralExpression;
+		const viewsNode = config.get('views');
 
 		if (viewsNode !== undefined) {
-			const viewConfigNodes = new ConfigParser(viewsNode).entries();
+			const viewConfigNodes = new ConfigParser(this.tsParser.getObjectLiteralValueFromNode(viewsNode)).entries();
 
 			for (const viewNode of viewConfigNodes) {
 				const viewRoute = new Route();
