@@ -7,11 +7,20 @@ import { IMemberAccessEntry } from './streams/memberAccessParser';
 
 export class HtmlTemplateInfoResults implements IHtmlTemplateInfoResults {
 	public htmlReferences: IHtmlReferences = {};
+	public directiveReferences: IHtmlReferences = {};
 	public templateInfo: ITemplateInfo = {};
 
 	public addHtmlReference = (componentName: string, relativeHtmlPath: string, location: ts.LineAndCharacter) => {
 		this.htmlReferences[componentName] = this.htmlReferences[componentName] || [];
 		this.htmlReferences[componentName].push({
+			relativeHtmlPath,
+			...location
+		});
+	}
+
+	public addDirectiveReference = (directiveName: string, relativeHtmlPath: string, location: ts.LineAndCharacter) => {
+		this.directiveReferences[directiveName] = this.directiveReferences[directiveName] || [];
+		this.directiveReferences[directiveName].push({
 			relativeHtmlPath,
 			...location
 		});

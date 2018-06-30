@@ -19,6 +19,7 @@ import { SplitToLines } from './streams/splitToLines';
 import { MemberAccessParser, IMemberAccessEntry } from './streams/memberAccessParser';
 import { IHtmlTemplateInfoResults } from './types';
 import { HtmlTemplateInfoResults } from './htmlTemplateInfoResult';
+import { Directive } from '../directive/directive';
 
 const htmlTags = new Set<string>(tags);
 
@@ -26,6 +27,7 @@ export class HtmlTemplateInfoCache extends EventEmitter implements vsc.Disposabl
     private componentAliasMap: Map<string, string>;
     private results: HtmlTemplateInfoResults;
     private watcher: FileWatcher;
+    private directivesSet: Set<string>;
 
     private isMemberDiagnosticEnabled = (config?: vsc.WorkspaceConfiguration) => {
         return (config || getConfiguration()).get<boolean>('memberDiagnostics.enabled');
@@ -75,11 +77,21 @@ export class HtmlTemplateInfoCache extends EventEmitter implements vsc.Disposabl
                 }
             }
 
+            attrs.forEach(attr => {
+                if (this.directivesSet.has(attr.name)) {
+                    results.addDirectiveReference(attr.name, relativePath, locationCb(location.attrs[attr.name]));
+                }
+            });
+
             if (htmlTags.has(name)) {
                 return;
             }
 
-            results.addHtmlReference(name, relativePath, locationCb(location));
+            if (this.directivesSet.has(name)) {
+                results.addDirectiveReference(name, relativePath, locationCb(location));
+            } else {
+                results.addHtmlReference(name, relativePath, locationCb(location));
+            }
         }).on('finish', () => {
             parser.end();
             resolve();
@@ -177,7 +189,7 @@ export class HtmlTemplateInfoCache extends EventEmitter implements vsc.Disposabl
         return this.results;
     }
 
-    public refresh = async (components: IComponentBase[]): Promise<IHtmlTemplateInfoResults> => {
+    public refresh = async (components: IComponentBase[], directives: Directive[]): Promise<IHtmlTemplateInfoResults> => {
         const config = getConfiguration();
 
         try {
@@ -185,6 +197,7 @@ export class HtmlTemplateInfoCache extends EventEmitter implements vsc.Disposabl
 
             this.setupWatchers(config);
             this.componentAliasMap = isMemberDiagnosticEnabled && this.buildComponentAliasMap(components);
+            this.directivesSet = new Set<string>(directives.map(d => d.htmlName));
 
             const results = new HtmlTemplateInfoResults();
             const htmlGlobs = config.get('htmlGlobs') as string[];

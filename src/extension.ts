@@ -244,7 +244,7 @@ export class Extension {
 				const { components, controllers } = await this.componentsCache.refresh();
 				this.latestRoutes = await this.routesCache.refresh(controllers);
 				this.latestDirectives = await this.directivesCache.refresh();
-				this.latestHtmlTemplateInfoResults = await this.htmlTemplateInfoCache.refresh([...components, ...this.latestRoutes]);
+				this.latestHtmlTemplateInfoResults = await this.htmlTemplateInfoCache.refresh([...components, ...this.latestRoutes], this.latestDirectives);
 				this.latestComponents = components;
 
 				let postprocessingTime = process.hrtime();
