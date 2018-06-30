@@ -1,7 +1,7 @@
 import * as path from 'path';
 import * as vsc from 'vscode';
 import { HtmlDocumentHelper } from '../utils/htmlDocumentHelper';
-import { IHtmlReferences, IComponentReferences } from '../utils/htmlTemplate/types';
+import { IHtmlReferences, IHtmlReference } from '../utils/htmlTemplate/types';
 import { getLocation, angularRoot } from '../utils/vsc';
 import { Component } from '../utils/component/component';
 type DocumentHandlerDelegate = (document: vsc.TextDocument, position: vsc.Position) => vsc.Location[];
@@ -66,7 +66,7 @@ export class ReferencesProvider implements vsc.ReferenceProvider {
 		return [];
 	}
 
-	private convertReferencesToLocations = (references: IComponentReferences[]): vsc.Location[] => {
+	private convertReferencesToLocations = (references: IHtmlReference[]): vsc.Location[] => {
 		return references.map(ref => getLocation({
 			path: path.join(angularRoot, ref.relativeHtmlPath),
 			pos: {

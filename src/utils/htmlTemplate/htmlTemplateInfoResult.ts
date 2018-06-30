@@ -10,17 +10,17 @@ export class HtmlTemplateInfoResults implements IHtmlTemplateInfoResults {
 	public directiveReferences: IHtmlReferences = {};
 	public templateInfo: ITemplateInfo = {};
 
-	public addHtmlReference = (componentName: string, relativeHtmlPath: string, location: ts.LineAndCharacter) => {
-		this.htmlReferences[componentName] = this.htmlReferences[componentName] || [];
-		this.htmlReferences[componentName].push({
+	public addHtmlReference = (componentHtmlName: string, relativeHtmlPath: string, location: ts.LineAndCharacter) => {
+		this.htmlReferences[componentHtmlName] = this.htmlReferences[componentHtmlName] || [];
+		this.htmlReferences[componentHtmlName].push({
 			relativeHtmlPath,
 			...location
 		});
 	}
 
-	public addDirectiveReference = (directiveName: string, relativeHtmlPath: string, location: ts.LineAndCharacter) => {
-		this.directiveReferences[directiveName] = this.directiveReferences[directiveName] || [];
-		this.directiveReferences[directiveName].push({
+	public addDirectiveReference = (directiveHtmlName: string, relativeHtmlPath: string, location: ts.LineAndCharacter) => {
+		this.directiveReferences[directiveHtmlName] = this.directiveReferences[directiveHtmlName] || [];
+		this.directiveReferences[directiveHtmlName].push({
 			relativeHtmlPath,
 			...location
 		});

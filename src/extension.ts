@@ -38,6 +38,7 @@ import { HtmlTemplateInfoResults } from './utils/htmlTemplate/htmlTemplateInfoRe
 import { DirectiveCache } from './utils/directive/directiveCache';
 import { Directive } from './utils/directive/directive';
 import { DirectiveDefinitionProvider } from './providers/directiveDefinitionProvider';
+import { DirectiveReferencesProvider } from './providers/directiveReferencesProvider';
 
 const HTML_DOCUMENT_SELECTOR = <vsc.DocumentFilter>{ language: 'html', scheme: 'file' };
 const TS_DOCUMENT_SELECTOR = <vsc.DocumentFilter>{ language: 'typescript', scheme: 'file' };
@@ -52,6 +53,7 @@ export class Extension {
 	private bindingProvider = new BindingProvider();
 	private definitionProvider = new ComponentDefinitionProvider(htmlDocumentHelper, getConfig);
 	private directiveDefinitionProvider = new DirectiveDefinitionProvider(htmlDocumentHelper);
+	private directiveReferencesProvider = new DirectiveReferencesProvider();
 	private referencesProvider = new ReferencesProvider(htmlDocumentHelper);
 	private memberReferencesProvider = new MemberReferencesProvider();
 	private codeActionProvider = new CodeActionProvider(getConfig);
@@ -123,6 +125,7 @@ export class Extension {
 			vsc.languages.registerDefinitionProvider(HTML_DOCUMENT_SELECTOR, this.memberDefinitionProvider),
 			vsc.languages.registerReferenceProvider([HTML_DOCUMENT_SELECTOR, TS_DOCUMENT_SELECTOR], this.referencesProvider),
 			vsc.languages.registerReferenceProvider(TS_DOCUMENT_SELECTOR, this.memberReferencesProvider),
+			vsc.languages.registerReferenceProvider(TS_DOCUMENT_SELECTOR, this.directiveReferencesProvider),
 			vsc.languages.registerCodeActionsProvider(HTML_DOCUMENT_SELECTOR, this.codeActionProvider),
 			this.diagnosticCollection,
 			vsc.workspace.onDidChangeTextDocument(_.debounce(this.onDocumentTextChanged, 500))
@@ -195,6 +198,7 @@ export class Extension {
 
 			this.referencesProvider.load(this.latestHtmlTemplateInfoResults.htmlReferences, this.latestComponents);
 			this.memberReferencesProvider.load(componentsAndRoutes);
+			this.directiveReferencesProvider.load(this.latestHtmlTemplateInfoResults.directiveReferences, this.latestDirectives);
 
 			this.completionProvider.loadComponents(this.latestComponents);
 			this.memberCompletionProvider.loadComponents(componentsAndRoutes);
