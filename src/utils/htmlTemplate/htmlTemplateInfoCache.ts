@@ -27,7 +27,7 @@ export class HtmlTemplateInfoCache extends EventEmitter implements vsc.Disposabl
     private componentAliasMap: Map<string, string>;
     private results: HtmlTemplateInfoResults;
     private watcher: FileWatcher;
-    private directivesSet: Set<string>;
+    private directivesSet: Set<string> = new Set<string>();
 
     private isMemberDiagnosticEnabled = (config?: vsc.WorkspaceConfiguration) => {
         return (config || getConfiguration()).get<boolean>('memberDiagnostics.enabled');
