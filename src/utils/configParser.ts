@@ -8,9 +8,9 @@ export class ConfigParser {
 			this.properties = config.members
 				.filter(m => [ts.SyntaxKind.PropertyDeclaration, ts.SyntaxKind.Constructor].indexOf(m.kind) !== -1)
 				.reduce((acc, member: ts.PropertyDeclaration | ts.ConstructorDeclaration) => {
-					if (member.kind === ts.SyntaxKind.PropertyDeclaration) {
+					if (ts.isPropertyDeclaration(member)) {
 						acc[(member.name as ts.Identifier).text] = member.initializer;
-					} else if (member.kind === ts.SyntaxKind.Constructor) {
+					} else if (ts.isConstructorDeclaration(member)) {
 						member.body.statements
 							.filter(m => m.kind === ts.SyntaxKind.ExpressionStatement)
 							.forEach((m: ts.ExpressionStatement) => {
@@ -21,7 +21,7 @@ export class ConfigParser {
 					}
 					return acc;
 				}, {});
-		} else {
+		} else if (config.properties) {
 			this.properties = config.properties
 				.reduce((acc, member: ts.PropertyAssignment) => {
 					acc[(member.name as ts.Identifier).text] = member.initializer;
