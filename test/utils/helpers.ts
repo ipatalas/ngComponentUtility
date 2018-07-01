@@ -33,7 +33,7 @@ function getSourceFile(type: string, name: string): SourceFile {
 	return new SourceFile(sourceFile);
 }
 
-export async function createHtmlDocument(contents: string) {
+async function createDocument(type: string, contents: string) {
 	const position = contents.indexOf('^');
 	if (position > -1) {
 		contents = contents.replace('^', '');
@@ -43,10 +43,13 @@ export async function createHtmlDocument(contents: string) {
 		position: new vsc.Position(0, position),
 		document: await vsc.workspace.openTextDocument({
 			content: contents,
-			language: 'html'
+			language: type
 		})
 	};
 }
+
+export const createHtmlDocument = async (contents: string) => createDocument('html', contents);
+export const createTypescriptDocument = async (contents: string) => createDocument('typescript', contents);
 
 export function getTestSourceFile(contents: string): SourceFile {
 	const sourceFile = ts.createSourceFile('test.ts', contents, ts.ScriptTarget.ES5, true) as ISourceFile;

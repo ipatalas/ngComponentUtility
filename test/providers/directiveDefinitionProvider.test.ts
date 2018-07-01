@@ -5,14 +5,13 @@ import { Directive } from '../../src/utils/directive/directive';
 import { DirectiveDefinitionProvider } from '../../src/providers/directiveDefinitionProvider';
 import { HtmlDocumentHelper } from '../../src/utils/htmlDocumentHelper';
 import { createHtmlDocument } from '../utils/helpers';
-import { CancellationTokenSource } from 'vscode';
 
 const htmlDocumentHelper = new HtmlDocumentHelper();
 
 describe('Given DirectiveDefinitionProvider', () => {
 	describe('when calling provideDefinition()', () => {
 		const provider = new DirectiveDefinitionProvider(htmlDocumentHelper);
-		const cancellation = new CancellationTokenSource();
+		const cancellation = new vsc.CancellationTokenSource();
 
 		async function testProvideDefinition(directives: Directive[], contents: string) {
 			provider.loadDirectives(directives || []);
@@ -33,7 +32,7 @@ describe('Given DirectiveDefinitionProvider', () => {
 		describe('and when position is on', () => {
 			const directivePos = { line: 2, character: 2 };
 			const directives = [<Directive>{
-				className: 'DirectiveName',
+				className: 'DirectiveClassName',
 				htmlName: 'directive-name',
 				name: 'Directive',
 				path: 'path',
