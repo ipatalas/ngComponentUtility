@@ -17,6 +17,7 @@
 	- [Component member diagnostics (**introduced in 0.8.0**)](#component-member-diagnostics)
 	    - [Code actions (**introduced in 0.9.0**)](#code-actions)
 	- [Watch file changes (**introduced in 0.6.0**)](#watch-file-changes)
+- [Directives (**introduced in 1.0.0**)](#directives)
 - [Configuration](#configuration)
 - [Commands](#commands)
 - [Performance note on configuration globs](#performance-note-on-configuration-globs)
@@ -109,15 +110,15 @@ You can use `Find All References` feature of vscode to navigate through usages o
 
 In HTML template cursor has to be focused on component name, not the binding or the inner html of the component for this to work:
 
-![Find unused components](images/find-all-references-1.png)
+![Find All References](images/find-all-references-1.png)
 
 In component definition file cursor has to be on component name:
 
-![Find unused components](images/find-all-references-2.png)
+![Find All References](images/find-all-references-2.png)
 
 In controller file cursor has to be on the class name:
 
-![Find unused components](images/find-all-references-3.png)
+![Find All References](images/find-all-references-3.png)
 
 **New in 0.7.0**
 
@@ -132,6 +133,10 @@ This feature will allow you to easily find components which are not used in the 
 It does understand HTML a bit so commented out parts will be taken into account. See screenshot below:
 
 ![Find unused components](images/find-unused.png)
+
+## Find unused directives
+
+The same like above but for directives. It will find all element based and attribute based directives which are not used across the project.
 
 ## Component member diagnostics
 
@@ -159,6 +164,16 @@ Whenever one of the file is changed it should automatically rebuild the cache so
 
 It is not perfect yet and may not always work as desired. One known issue is when a project changes the branch. It sometimes loses the changes and for that case it's still better to call `Refresh Components Cache` command. For normal development it should work just fine.
 
+# Directives
+
+> **New in 1.0.0**
+
+Directives support has been finally introduced. Both `Find all references` and `Go To Definition` should work for detected directives.
+Currently only class based directives are supported. For examples please see the [test files](https://github.com/ipatalas/ngComponentUtility/tree/master/test/test_files/directives)
+Function based directives will follow shortly.
+
+A command to find unused directives is there as well: `Find unused directives`
+
 # Configuration
 
 This plugin contributes the following [settings](https://code.visualstudio.com/docs/customization/userandworkspace):
@@ -167,6 +182,7 @@ This plugin contributes the following [settings](https://code.visualstudio.com/d
 - `ngComponents.controllerGlobs`: array of glob strings used to search for controllers (used by `Go To Definition`). Default value is  **[\*\*/\*Component.ts]**
 - `ngComponents.htmlGlobs`: array of glob strings used to search for html views (used by `Find All References`). Default value is  **[\*\*/\*Component.ts]**
 - `ngComponents.routeGlobs`: array of glob strings used to search for angular-ui-router files (used by `Find All References`). Default value is  **[\*\*/\*route.ts]**
+- `ngComponents.directiveGlobs`: array of glob strings used to search for directive files (used by `Find All References` and `Go To Definition`). Default value is  **[\*\*/\*.directive.ts]**
 - `ngComponents.goToDefinition`: array of strings to define which files `Go To Definition` for a component should show. Allowed values are *template*, *controller*, *component*. Default value is **["template", "controller"]**
 - `ngComponents.debugConsole`: boolean value to show debug information. Default value is **false**
 - `ngComponents.controller.publicMembersOnly`: whether to suggest all members in view model auto complete. Default value is **true**
@@ -192,6 +208,7 @@ This extension contributes the following commands to the Command palette.
 - `Refresh Components Cache`: refreshes components cache on demand
 - `Refresh Member Diagnostics`: refreshes [member diagnostics](#component-member-diagnostics) on demand
 - `Find unused Angular components`: searches for [unused components](#find-unused-components)
+- `Find unused Angular directives`: searches for [unused directives](#find-unused-directives)
 - `Force enable ngComponents utility on this workspace`: see above for description of `ngComponents.forceEnable`
 - `Switch between component/controller/template`: switches between component/controller/template inside a component
 

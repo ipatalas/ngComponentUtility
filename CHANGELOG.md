@@ -1,5 +1,20 @@
 # Change Log
 
+## 1.0.0 (Jul 1, 2018)
+
+* Merged [#30](https://github.com/ipatalas/ngComponentUtility/pull/30) - thanks to **[@avishnyak](https://github.com/avishnyak)**!
+  * Addresses issue [#28](https://github.com/ipatalas/ngComponentUtility/issues/28) - adds support for ui-router views
+  * Enhances handling of default exports
+  * Added handling for all top-level ES module exports (there are others but they are less common for AngularJS)
+  * Fixed a bug when parsing a component with bindings: true to isolate scope instead of actually providing a binding definition object
+* `Find All References` enhancement:
+  * It is now possible to use `Find All References` on any expression in the contoller, not only on controller's property declarations
+  * Current state of the editor is taken into account instead of last saved one (it led to wrong results in many cases)
+* Add support for Angular directives (class based so far, function based will follow)
+  * `Go To Definition` and `Find All References` should work just fine
+  * Introduced new command `Find unused Angular directives`
+* Some minor bug fixes
+
 ## 0.9.1 (Jun 11, 2018)
 
 * Fix for double 'Did you mean' suggestions when a suggestion is both a controller member and a binding
