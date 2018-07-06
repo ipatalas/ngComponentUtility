@@ -40,6 +40,7 @@ import { Directive } from './utils/directive/directive';
 import { DirectiveDefinitionProvider } from './providers/directiveDefinitionProvider';
 import { DirectiveReferencesProvider } from './providers/directiveReferencesProvider';
 import { FindUnusedDirectivesCommand } from './commands/findUnusedDirectives';
+import { DirectiveCompletionProvider } from './providers/directiveCompletionProvider';
 
 const HTML_DOCUMENT_SELECTOR = <vsc.DocumentFilter>{ language: 'html', scheme: 'file' };
 const TS_DOCUMENT_SELECTOR = <vsc.DocumentFilter>{ language: 'typescript', scheme: 'file' };
@@ -50,6 +51,7 @@ const htmlDocumentHelper = new HtmlDocumentHelper();
 
 export class Extension {
 	private completionProvider = new ComponentCompletionProvider(htmlDocumentHelper);
+	private directiveCompletionProvider = new DirectiveCompletionProvider(htmlDocumentHelper);
 	private memberCompletionProvider = new MemberCompletionProvider(getConfig);
 	private bindingProvider = new BindingProvider();
 	private definitionProvider = new ComponentDefinitionProvider(htmlDocumentHelper, getConfig);
@@ -122,6 +124,7 @@ export class Extension {
 			vsc.commands.registerCommand(Commands.FindUnusedDirectives,
 				() => this.findUnusedDirectivesCommand.execute(this.latestHtmlTemplateInfoResults.directiveReferences, this.latestDirectives)),
 			vsc.languages.registerCompletionItemProvider(HTML_DOCUMENT_SELECTOR, this.completionProvider, '<'),
+			vsc.languages.registerCompletionItemProvider(HTML_DOCUMENT_SELECTOR, this.directiveCompletionProvider, '<'),
 			vsc.languages.registerCompletionItemProvider(HTML_DOCUMENT_SELECTOR, this.bindingProvider, ','),
 			vsc.languages.registerCompletionItemProvider(HTML_DOCUMENT_SELECTOR, this.memberCompletionProvider, '.'),
 			vsc.languages.registerDefinitionProvider(HTML_DOCUMENT_SELECTOR, this.definitionProvider),
@@ -204,6 +207,7 @@ export class Extension {
 			this.memberReferencesProvider.load(componentsAndRoutes);
 			this.directiveReferencesProvider.load(this.latestHtmlTemplateInfoResults.directiveReferences, this.latestDirectives);
 
+			this.directiveCompletionProvider.loadDirectives(this.latestDirectives);
 			this.completionProvider.loadComponents(this.latestComponents);
 			this.memberCompletionProvider.loadComponents(componentsAndRoutes);
 			this.codeActionProvider.loadComponents(componentsAndRoutes);
