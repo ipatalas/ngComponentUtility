@@ -51,6 +51,24 @@ describe('Given Directive class when calling parse()', () => {
 		});
 	});
 
+	[
+		'directive.function.ts',
+		'directive.function.named.ts',
+		'directive.function.named.arrow.ts',
+		'directive.function.arrow.ts',
+		'directive.function.arrow.returnExpression.ts',
+		'directive.function.injectedParams.ts'
+	].forEach(filename => {
+		it(`with function based directive (${filename}) then the directive is parsed`, async () => {
+			const sourceFile = getDirectiveSourceFile(filename);
+
+			const results = await Directive.parse(sourceFile);
+
+			should(results).be.lengthOf(1);
+			should(results[0].restrict).be.equal('E');
+		});
+	});
+
 	it('with multiple directives then all directives are properly parsed', async () => {
 		const sourceFile = getDirectiveSourceFile('directive.multiple.ts');
 

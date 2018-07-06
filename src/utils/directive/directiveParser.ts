@@ -3,6 +3,7 @@ import { SourceFile } from '../sourceFile';
 import { Directive, DEFAULT_RESTRICT } from './directive';
 import * as ts from 'typescript';
 import _ = require('lodash');
+import { ConfigParser } from '../configParser';
 
 export class DirectiveParser {
 	private results: Directive[] = [];
@@ -23,27 +24,66 @@ export class DirectiveParser {
 			const directive = this.parseClass(node);
 
 			this.results.push(directive);
-		} else if (ts.isCallExpression(node)) {
-			if (isAngularModule(node.expression)) {
-				const directiveCall = this.findDirectiveRegistration(node.parent);
+		} else if (ts.isCallExpression(node) && isAngularModule(node.expression)) {
+			const directiveCall = this.findDirectiveRegistration(node.parent);
 
-				if (directiveCall) {
-					const name = directiveCall.arguments[0] as ts.StringLiteral;
-					const className = this.getClassName(directiveCall.arguments[1]);
+			if (directiveCall) {
+				const name = directiveCall.arguments[0] as ts.StringLiteral;
+				const className = this.getClassName(directiveCall.arguments[1]);
 
-					if (className) {
-						const directive = this.results.find(c => c.className === className);
-						if (directive) {
-							directive.name = name.text;
-							directive.htmlName = _.kebabCase(name.text);
-						}
+				if (className) {
+					const directive = this.results.find(c => c.className === className);
+					if (directive) {
+						directive.name = name.text;
+						directive.htmlName = _.kebabCase(name.text);
 					}
+				} else {
+					this.parseFunctionBasedDirective(directiveCall.arguments[1], name.text);
 				}
-			} else {
-				node.getChildren().forEach(this.parseChildren);
 			}
+		} else if (ts.isIdentifier(node)) {
+			this.tsParser.addIdentifier(node);
 		} else {
 			node.getChildren().forEach(this.parseChildren);
+		}
+	}
+
+	private parseFunctionBasedDirective = (node: ts.Node, directiveName: string) => {
+		// angular.module('app').directive('functionDirective', () => ({restrict: 'E'}));
+		// angular.module('app').directive('functionDirective', function() { return {restrict: 'E'}; });
+		if (ts.isFunctionExpression(node) || ts.isArrowFunction(node) || ts.isFunctionDeclaration(node)) {
+			let obj: ts.Expression;
+
+			if (ts.isBlock(node.body)) {
+				const returnStatement = node.body.statements.find(s => ts.isReturnStatement(s)) as ts.ReturnStatement;
+				obj = ts.isParenthesizedExpression(returnStatement.expression) && returnStatement.expression.expression || returnStatement.expression;
+			} else if (ts.isParenthesizedExpression(node.body)) {
+				obj = node.body.expression;
+			}
+
+			const directive = this.parseObjectLiteral(obj, directiveName);
+
+			if (directive) {
+				this.results.push(directive);
+			}
+		} else if (ts.isArrayLiteralExpression(node)) {
+			// angular.module('app').directive('functionDirective', ['$interval', 'dateFilter', function ($interval, dateFilter) {...} ]);
+			const func = _.last(node.elements);
+			if (ts.isFunctionExpression(func)) {
+				this.parseFunctionBasedDirective(func, directiveName);
+			}
+		} else if (ts.isIdentifier(node)) {
+			// angular.module('app').directive('functionDirective', FunctionName);
+			// angular.module('app').directive('functionDirective', ArrowFunctionName);
+			const func = this.tsParser.getFunctionDeclaration(node);
+			if (func) {
+				this.parseFunctionBasedDirective(func, directiveName);
+			} else {
+				const varDeclaration = this.tsParser.getVariableDefinition(node);
+				if (varDeclaration) {
+					this.parseFunctionBasedDirective(varDeclaration.initializer, directiveName);
+				}
+			}
 		}
 	}
 
@@ -78,6 +118,25 @@ export class DirectiveParser {
 		if (ts.isNewExpression(exp) && ts.isIdentifier(exp.expression)) {
 			return exp.expression.text;
 		}
+	}
+
+	private parseObjectLiteral(node: ts.Expression, name: string) {
+		if (!node || !ts.isObjectLiteralExpression(node)) {
+			return;
+		}
+
+		const directive = new Directive();
+		directive.path = this.file.path;
+		directive.pos = this.file.sourceFile.getLineAndCharacterOfPosition(node.pos);
+		directive.name = name;
+		directive.htmlName = _.kebabCase(name);
+
+		const config = new ConfigParser(node);
+		const restrictNode = config.get('restrict');
+
+		directive.restrict = this.tsParser.getStringValueFromNode(restrictNode) || DEFAULT_RESTRICT;
+
+		return directive;
 	}
 
 	private parseClass(node: ts.ClassDeclaration) {

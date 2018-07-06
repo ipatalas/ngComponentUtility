@@ -156,12 +156,22 @@ export class TypescriptParser {
 		return node as TNode;
 	}
 
-	private getVariableDefinition = (identifier: ts.Identifier) => {
+	public getVariableDefinition = (identifier: ts.Identifier) => {
 		if (this.identifierNodes.has(identifier.text)) {
 			const usages = this.identifierNodes.get(identifier.text);
 			const varDeclaration = usages.find(u => u.parent.kind === ts.SyntaxKind.VariableDeclaration);
 			if (varDeclaration) {
 				return varDeclaration.parent as ts.VariableDeclaration;
+			}
+		}
+	}
+
+	public getFunctionDeclaration = (identifier: ts.Identifier) => {
+		if (this.identifierNodes.has(identifier.text)) {
+			const usages = this.identifierNodes.get(identifier.text);
+			const funDeclaration = usages.find(u => u.parent.kind === ts.SyntaxKind.FunctionDeclaration);
+			if (funDeclaration) {
+				return funDeclaration.parent as ts.FunctionDeclaration;
 			}
 		}
 	}
