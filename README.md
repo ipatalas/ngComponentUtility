@@ -1,6 +1,5 @@
 [![Build Status](https://travis-ci.org/ipatalas/ngComponentUtility.svg?branch=master)](https://travis-ci.org/ipatalas/ngComponentUtility)
-[![bitHound Dependencies](https://www.bithound.io/github/ipatalas/ngComponentUtility/badges/dependencies.svg)](https://www.bithound.io/github/ipatalas/ngComponentUtility/master/dependencies/npm)
-[![bitHound Code](https://www.bithound.io/github/ipatalas/ngComponentUtility/badges/code.svg)](https://www.bithound.io/github/ipatalas/ngComponentUtility)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/c61f7e44af10488b8159b64ac6bac007)](https://www.codacy.com/app/ipatalas/ngComponentUtility?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=ipatalas/ngComponentUtility&amp;utm_campaign=Badge_Grade)
 [![Visual Studio Marketplace](https://img.shields.io/vscode-marketplace/d/ipatalas.vscode-angular-components-intellisense.svg)](https://marketplace.visualstudio.com/items?itemName=ipatalas.vscode-angular-components-intellisense)
 
 # Table of contents
