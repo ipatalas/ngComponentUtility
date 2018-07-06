@@ -3,10 +3,18 @@ import * as _ from 'lodash';
 
 const REGEX_TAG_NAME = /<\/?([a-z0-9-]+)/i;
 const REGEX_ATTRIBUTE_NAME = /([a-z-]+)=/gi;
+const REGEX_TAG = /^<[a-z-]*$/i;
 
 export interface IBracketsPosition {
 	opening: vsc.Position;
 	closing: vsc.Position;
+}
+
+export interface IElementAttributeAutoCompletion {
+	inClosingTag?: boolean;
+	tag?: string;
+	attributes?: string[];
+	hasOpeningTagBefore?: boolean;
 }
 
 export class HtmlDocumentHelper {
@@ -61,7 +69,7 @@ export class HtmlDocumentHelper {
 		};
 	}
 
-	public getPreviousCharacterPosition = (document: vsc.TextDocument, startFrom: vsc.Position) => {
+	private getPreviousCharacterPosition = (document: vsc.TextDocument, startFrom: vsc.Position) => {
 		if (startFrom.character === 0) {
 			if (startFrom.line === 0) {
 				return undefined;
@@ -72,12 +80,12 @@ export class HtmlDocumentHelper {
 		}
 	}
 
-	public parseTag = (text: string) => {
+	private parseTag = (text: string) => {
 		let match: RegExpExecArray;
 		match = REGEX_TAG_NAME.exec(text);
 		const tag = match[1];
 
-		const existingAttributes = [];
+		const existingAttributes: string[] = [];
 
 		// tslint:disable-next-line:no-conditional-assignment
 		while (match = REGEX_ATTRIBUTE_NAME.exec(text)) {
@@ -108,5 +116,46 @@ export class HtmlDocumentHelper {
 
 			return { word, tag };
 		}
+	}
+
+	public prepareElementAttributeCompletion = (document: vsc.TextDocument, position: vsc.Position): IElementAttributeAutoCompletion => {
+		let hasOpeningTagBefore = false;
+		const bracketsBeforeCursor = this.findTagBrackets(document, position, 'backward');
+		const bracketsAfterCursor = this.findTagBrackets(document, position, 'forward');
+
+		if (bracketsBeforeCursor.opening && (!bracketsBeforeCursor.closing || bracketsBeforeCursor.closing.isBefore(bracketsBeforeCursor.opening))) {
+			// get everything from starting < tag till the cursor
+			const openingTagTextRange = new vsc.Range(bracketsBeforeCursor.opening, position);
+			const text = document.getText(openingTagTextRange);
+
+			if (text.startsWith('</')) {
+				return {
+					inClosingTag: true
+				};
+			}
+
+			if (REGEX_TAG.test(text)) {
+				hasOpeningTagBefore = true;
+			}
+		}
+
+		if (this.isInsideAClosedTag(bracketsBeforeCursor, bracketsAfterCursor)) {
+			// get everything from starting < tag till ending >
+			const tagTextRange = new vsc.Range(bracketsBeforeCursor.opening, bracketsAfterCursor.closing);
+			const text = document.getText(tagTextRange);
+
+			const { tag, attributes } = this.parseTag(text);
+
+			return {
+				tag,
+				attributes,
+				hasOpeningTagBefore
+			};
+		}
+
+		return {
+			hasOpeningTagBefore,
+			inClosingTag: false
+		};
 	}
 }
