@@ -1,5 +1,4 @@
 import * as ts from 'typescript';
-import * as vsc from 'vscode';
 import { DirectiveParser } from './directiveParser';
 import { SourceFile } from '../sourceFile';
 import { logParsingError } from '../logging';
