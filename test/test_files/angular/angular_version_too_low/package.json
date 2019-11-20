@@ -4,7 +4,7 @@
   "description": "Starter for Angular + ES6 + (Webpack or JSPM)",
   "main": "index.js",
   "dependencies": {
-    "angular": "1.4.9",
+    "angular": "1.7.9",
     "angular-ui-router": "^1.0.0-beta.1",
     "normalize.css": "^3.0.3"
   },
