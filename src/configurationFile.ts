@@ -69,9 +69,9 @@ export class ConfigurationFile extends EventEmitter implements vsc.Disposable {
 					try {
 						this.configuration = JSON.parse(data);
 						resolve();
-					} catch (err) {
+					} catch (ex) {
 						this.configuration = CreateEmptyConfig();
-						reject(err);
+						reject(ex);
 					}
 				});
 			});

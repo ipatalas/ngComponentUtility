@@ -17,7 +17,7 @@ export class MemberReferencesProvider implements vsc.ReferenceProvider {
 
 	// tslint:disable-next-line:max-line-length
 	public async provideReferences(document: vsc.TextDocument, position: vsc.Position, _context: vsc.ReferenceContext, _token: vsc.CancellationToken): Promise<vsc.Location[]> {
-		const src = await SourceFile.parseFromString(document.getText(), document.fileName);
+		const src = SourceFile.parseFromString(document.getText(), document.fileName);
 		const index = src.sourceFile.getPositionOfLineAndCharacter(position.line, position.character);
 
 		const tsParser = new TypescriptParser(src);

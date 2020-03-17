@@ -87,8 +87,8 @@ if (process.env.NO_COVERAGE) {
           .on('end', (): void => {
             clb(undefined, failureCount)
           })
-      } catch (error) {
-        return clb(error)
+      } catch (ex) {
+        return clb(ex)
       }
     })
   }

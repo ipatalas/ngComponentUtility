@@ -38,8 +38,7 @@ export class BindingProvider implements vsc.CompletionItemProvider {
 				const split = b.split('=');
 				let value = split[1] || '';
 				if (!value) {
-					// tslint:disable-next-line:no-shadowed-variable
-					const binding = component.bindings.find(b => b.htmlName === split[0]);
+					const binding = component.bindings.find(x => x.htmlName === split[0]);
 					if (binding) {
 						value = `${component.controllerAs}.${binding.name}`;
 					}
