@@ -1,236 +1,240 @@
 {
-	"name": "vscode-angular-components-intellisense",
-	"displayName": "ng1.5 components utility",
-	"description": "Angular 1.5 components utility",
-	"author": "Ireneusz Patalas",
-	"license": "MIT",
-	"version": "1.0.0",
-	"publisher": "ipatalas",
-	"contributors": [
-		"Ireneusz Patalas",
-		"Kamil Haładus"
-	],
-	"engines": {
-		"vscode": "^1.18.0"
-	},
-	"categories": [
-		"Programming Languages",
-		"Other"
-	],
-	"keywords": [
-		"angular",
-		"AngularJS"
-	],
-	"icon": "images/angular.png",
-	"galleryBanner": {
-		"color": "#0273D4",
-		"theme": "dark"
-	},
-	"activationEvents": [
-		"*"
-	],
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/ipatalas/ngComponentUtility"
-	},
-	"main": "./out/src/main",
-	"contributes": {
-		"commands": [
-			{
-				"command": "ngComponents.refreshAngularComponents",
-				"title": "Refresh Components Cache",
-				"category": "ngComponents"
-			},
-			{
-				"command": "ngComponents.refreshMemberDiagnostics",
-				"title": "Refresh Member Diagnostics",
-				"category": "ngComponents"
-			},
-			{
-				"command": "ngComponents.findUnusedAngularComponents",
-				"title": "Find unused Angular components",
-				"category": "ngComponents"
-			},
-			{
-				"command": "ngComponents.findUnusedDirectives",
-				"title": "Find unused Angular directives",
-				"category": "ngComponents"
-			},
-			{
-				"command": "ngComponents.markAsAngularProject",
-				"title": "Force enable ngComponents utility on this workspace",
-				"category": "ngComponents"
-			},
-			{
-				"command": "ngComponents.switchComponentParts",
-				"title": "Switch between component/controller/template",
-				"category": "ngComponents"
-			}
-		],
-		"keybindings": [
-			{
-				"command": "ngComponents.switchComponentParts",
-				"key": "Alt+o"
-			}
-		],
-		"configuration": {
-			"title": "ng1.5 components utility",
-			"type": "object",
-			"properties": {
-				"ngComponents.componentGlobs": {
-					"type": [
-						"array",
-						"string"
-					],
-					"default": [
-						"**/*Component.ts"
-					],
-					"description": "glob string used to search for files with components"
-				},
-				"ngComponents.controllerGlobs": {
-					"type": [
-						"array",
-						"string"
-					],
-					"default": [
-						"**/*Controller.ts"
-					],
-					"description": "glob string used to search for files with controllers"
-				},
-				"ngComponents.htmlGlobs": {
-					"type": [
-						"array",
-						"string"
-					],
-					"default": [
-						"**/*.html"
-					],
-					"description": "glob string used to search for HTML files for references of the components"
-				},
-				"ngComponents.routeGlobs": {
-					"type": [
-						"array",
-						"string"
-					],
-					"default": [
-						"**/*route.ts"
-					],
-					"description": "glob string used to search for angular-ui-router files for references of the components"
-				},
-				"ngComponents.directiveGlobs": {
-					"type": [
-						"array",
-						"string"
-					],
-					"default": [
-						"**/*.directive.ts"
-					],
-					"description": "glob string used to search for directive files"
-				},
-				"ngComponents.goToDefinition": {
-					"type": [
-						"array",
-						"string"
-					],
-					"default": [
-						"template",
-						"controller"
-					],
-					"uniqueItems": true,
-					"description": "Specify which parts of the component should the Go To Definition action show"
-				},
-				"ngComponents.controller.publicMembersOnly": {
-					"type": "boolean",
-					"default": true,
-					"description": "Set to false to show all members in auto complete"
-				},
-				"ngComponents.controller.excludedMembers": {
-					"type": "string",
-					"default": "^\\$",
-					"description": "Regular expression which can exclude additional members (defaults to exclude Angular lifecycle hooks)"
-				},
-				"ngComponents.logging.verbose": {
-					"type": "boolean",
-					"default": false,
-					"description": "Set to true to enable verbose logging in developers console"
-				},
-				"ngComponents.logging.redirectToFile": {
-					"type": "string",
-					"default": null,
-					"description": "Set path to which you want to redirect logging to"
-				},
-				"ngComponents.forceEnable": {
-					"type": "boolean",
-					"default": false,
-					"description": "Use this setting to force enable the extension if AngularJS was not detected automatically"
-				},
-				"ngComponents.angularRoot": {
-					"type": "string",
-					"default": null,
-					"description": "Custom Angular root folder relative to workspace root (defaults to workspace root)"
-				},
-				"ngComponents.memberDiagnostics.enabled": {
-					"type": "boolean",
-					"default": false,
-					"description": "Enables validation of all components' HTML templates in regards to fields that are used there (experimental)"
-				},
-				"ngComponents.memberDiagnostics.html.checkBindings": {
-					"type": "boolean",
-					"default": true,
-					"description": "When disabled use of component's binding in the template when it's not defined in the controller will issue a warning"
-				},
-				"ngComponents.memberDiagnostics.html.checkControllerMembers": {
-					"type": "boolean",
-					"default": true,
-					"description": "When disabled use of component's controller member in the template will issue a warning"
-				},
-				"ngComponents.memberDiagnostics.didYouMean.similarityThreshold": {
-					"type": "number",
-					"default": 0.6,
-					"description": "Similarity thresold for Did You Mean suggestions"
-				},
-				"ngComponents.memberDiagnostics.didYouMean.maxResults": {
-					"type": "number",
-					"default": 2,
-					"description": "Determines how many suggestions to show if there are more available"
-				}
-			}
-		}
-	},
-	"scripts": {
-		"vscode:prepublish": "tsc -p ./",
-		"compile": "tsc -watch -p ./",
-		"postinstall": "node ./node_modules/vscode/bin/install",
-		"test": "cross-env NODE_ENV=test node ./node_modules/vscode/bin/test",
-		"linter": "tslint -p .",
-		"coverage": "node node_modules/codacy-coverage/bin/codacy-coverage.js < ./coverage/lcov.info"
-	},
-	"devDependencies": {
-		"@types/angular": "^1.6.55",
-		"@types/glob": "^5.0.35",
-		"@types/lodash": "^4.14.136",
-		"@types/mocha": "^5.2.0",
-		"@types/node": "^8.10.12",
-		"@types/proxyquire": "^1.3.28",
-		"@types/sinon": "^4.3.1",
-		"codacy-coverage": "^3.4.0",
-		"cross-env": "^5.2.0",
-		"decache": "^4.5.1",
-		"glob": "^7.1.4",
-		"istanbul": "^0.4.5",
-		"mocha": "^5.0.0",
-		"proxyquire": "^2.1.1",
-		"remap-istanbul": "^0.13.0",
-		"should": "^13.2.3",
-		"sinon": "^5.0.3",
-		"tslint": "^5.18.0",
-		"vscode": "^1.1.36"
-	},
-	"dependencies": {
-		"didyoumean2": "^1.3.0",
-		"lodash": "^4.17.15",
-		"parse5": "^3.0.2",
-		"pretty-hrtime": "^1.0.3",
-		"typescript": "^3.5.3"
-	}
+  "name": "vscode-angular-components-intellisense",
+  "displayName": "ng1.5 components utility",
+  "description": "Angular 1.5 components utility",
+  "author": "Ireneusz Patalas",
+  "license": "MIT",
+  "version": "1.0.0",
+  "publisher": "ipatalas",
+  "contributors": [
+    "Ireneusz Patalas",
+    "Kamil Haładus"
+  ],
+  "engines": {
+    "vscode": "^1.18.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Other"
+  ],
+  "keywords": [
+    "angular",
+    "AngularJS"
+  ],
+  "icon": "images/angular.png",
+  "galleryBanner": {
+    "color": "#0273D4",
+    "theme": "dark"
+  },
+  "activationEvents": [
+    "*"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ipatalas/ngComponentUtility"
+  },
+  "main": "./out/src/main",
+  "contributes": {
+    "commands": [
+      {
+        "command": "ngComponents.refreshAngularComponents",
+        "title": "Refresh Components Cache",
+        "category": "ngComponents"
+      },
+      {
+        "command": "ngComponents.refreshMemberDiagnostics",
+        "title": "Refresh Member Diagnostics",
+        "category": "ngComponents"
+      },
+      {
+        "command": "ngComponents.findUnusedAngularComponents",
+        "title": "Find unused Angular components",
+        "category": "ngComponents"
+      },
+      {
+        "command": "ngComponents.findUnusedDirectives",
+        "title": "Find unused Angular directives",
+        "category": "ngComponents"
+      },
+      {
+        "command": "ngComponents.markAsAngularProject",
+        "title": "Force enable ngComponents utility on this workspace",
+        "category": "ngComponents"
+      },
+      {
+        "command": "ngComponents.switchComponentParts",
+        "title": "Switch between component/controller/template",
+        "category": "ngComponents"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "ngComponents.switchComponentParts",
+        "key": "Alt+o"
+      }
+    ],
+    "configuration": {
+      "title": "ng1.5 components utility",
+      "type": "object",
+      "properties": {
+        "ngComponents.componentGlobs": {
+          "type": [
+            "array",
+            "string"
+          ],
+          "default": [
+            "**/*Component.ts"
+          ],
+          "description": "glob string used to search for files with components"
+        },
+        "ngComponents.controllerGlobs": {
+          "type": [
+            "array",
+            "string"
+          ],
+          "default": [
+            "**/*Controller.ts"
+          ],
+          "description": "glob string used to search for files with controllers"
+        },
+        "ngComponents.htmlGlobs": {
+          "type": [
+            "array",
+            "string"
+          ],
+          "default": [
+            "**/*.html"
+          ],
+          "description": "glob string used to search for HTML files for references of the components"
+        },
+        "ngComponents.routeGlobs": {
+          "type": [
+            "array",
+            "string"
+          ],
+          "default": [
+            "**/*route.ts"
+          ],
+          "description": "glob string used to search for angular-ui-router files for references of the components"
+        },
+        "ngComponents.directiveGlobs": {
+          "type": [
+            "array",
+            "string"
+          ],
+          "default": [
+            "**/*.directive.ts"
+          ],
+          "description": "glob string used to search for directive files"
+        },
+        "ngComponents.goToDefinition": {
+          "type": [
+            "array",
+            "string"
+          ],
+          "default": [
+            "template",
+            "controller"
+          ],
+          "uniqueItems": true,
+          "description": "Specify which parts of the component should the Go To Definition action show"
+        },
+        "ngComponents.controller.publicMembersOnly": {
+          "type": "boolean",
+          "default": true,
+          "description": "Set to false to show all members in auto complete"
+        },
+        "ngComponents.controller.excludedMembers": {
+          "type": "string",
+          "default": "^\\$",
+          "description": "Regular expression which can exclude additional members (defaults to exclude Angular lifecycle hooks)"
+        },
+        "ngComponents.logging.verbose": {
+          "type": "boolean",
+          "default": false,
+          "description": "Set to true to enable verbose logging in developers console"
+        },
+        "ngComponents.logging.redirectToFile": {
+          "type": "string",
+          "default": null,
+          "description": "Set path to which you want to redirect logging to"
+        },
+        "ngComponents.forceEnable": {
+          "type": "boolean",
+          "default": false,
+          "description": "Use this setting to force enable the extension if AngularJS was not detected automatically"
+        },
+        "ngComponents.angularRoot": {
+          "type": "string",
+          "default": null,
+          "description": "Custom Angular root folder relative to workspace root (defaults to workspace root)"
+        },
+        "ngComponents.memberDiagnostics.enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enables validation of all components' HTML templates in regards to fields that are used there (experimental)"
+        },
+        "ngComponents.memberDiagnostics.html.checkBindings": {
+          "type": "boolean",
+          "default": true,
+          "description": "When disabled use of component's binding in the template when it's not defined in the controller will issue a warning"
+        },
+        "ngComponents.memberDiagnostics.html.checkControllerMembers": {
+          "type": "boolean",
+          "default": true,
+          "description": "When disabled use of component's controller member in the template will issue a warning"
+        },
+        "ngComponents.memberDiagnostics.didYouMean.similarityThreshold": {
+          "type": "number",
+          "default": 0.6,
+          "description": "Similarity thresold for Did You Mean suggestions"
+        },
+        "ngComponents.memberDiagnostics.didYouMean.maxResults": {
+          "type": "number",
+          "default": 2,
+          "description": "Determines how many suggestions to show if there are more available"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "tsc -p ./",
+    "compile": "tsc -watch -p ./",
+    "postinstall": "node ./node_modules/vscode/bin/install",
+    "test": "cross-env NODE_ENV=test node ./node_modules/vscode/bin/test",
+    "linter": "tslint -p .",
+    "coverage": "node node_modules/codacy-coverage/bin/codacy-coverage.js < ./coverage/lcov.info",
+    "snyk-protect": "snyk protect",
+    "prepare": "npm run snyk-protect"
+  },
+  "devDependencies": {
+    "@types/angular": "^1.6.55",
+    "@types/glob": "^5.0.35",
+    "@types/lodash": "^4.14.136",
+    "@types/mocha": "^5.2.0",
+    "@types/node": "^8.10.12",
+    "@types/proxyquire": "^1.3.28",
+    "@types/sinon": "^4.3.1",
+    "codacy-coverage": "^3.4.0",
+    "cross-env": "^5.2.0",
+    "decache": "^4.5.1",
+    "glob": "^7.1.4",
+    "istanbul": "^0.4.5",
+    "mocha": "^5.0.0",
+    "proxyquire": "^2.1.1",
+    "remap-istanbul": "^0.13.0",
+    "should": "^13.2.3",
+    "sinon": "^5.0.3",
+    "tslint": "^5.18.0",
+    "vscode": "^1.1.36"
+  },
+  "dependencies": {
+    "didyoumean2": "^1.3.0",
+    "lodash": "^4.17.15",
+    "parse5": "^3.0.2",
+    "pretty-hrtime": "^1.0.3",
+    "typescript": "^3.5.3",
+    "snyk": "^1.316.2"
+  },
+  "snyk": true
 }
